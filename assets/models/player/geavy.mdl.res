@@ -1,0 +1,16 @@
+models/player/geavy.dx80.vtx 
+models/player/geavy.dx90.vtx 
+models/player/geavy.mdl 
+models/player/geavy.phy
+models/player/geavy.sw.vtx 
+models/player/geavy.vvd 
+materials/models/player/hvyweapon/eyeball_l.vmt 
+materials/models/player/hvyweapon/eyeball_r.vmt 
+materials/models/player/hvyweapon/gayweapon_blue.vmt 
+materials/models/player/hvyweapon/gayweapon_hands.vmt 
+materials/models/player/hvyweapon/gayweapon_hands.vtf 
+materials/models/player/hvyweapon/gayweapon_red.vmt 
+materials/models/player/hvyweapon/gayweapon_red.vtf 
+materials/models/player/hvyweapon/geavy_head.vtf 
+materials/models/player/hvyweapon/geavy_head_blue.vmt
+materials/models/player/hvyweapon/geavy_head_red.vmt

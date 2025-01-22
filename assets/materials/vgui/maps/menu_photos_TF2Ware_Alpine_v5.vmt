@@ -1,0 +1,7 @@
+"UnlitGeneric"
+{
+	"$basetexture" "vgui\maps\menu_photos_TF2Ware_Alpine_v5"
+	"$translucent" 1
+	"$ignorez" 1
+	"$vertexcolor" 1
+}
