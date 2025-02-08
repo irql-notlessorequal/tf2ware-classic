@@ -264,6 +264,7 @@ public OnMapStart()
 
 		// Hooks
 		HookConVarChange(ww_enable, StartMinigame_cvar);
+		HookConVarChange(ww_overhead_scores, OverheadScoresChanged);
 		HookEvent("post_inventory_application", EventInventoryApplication, EventHookMode_Post);
 		HookEvent("player_death", Player_Death, EventHookMode_Post);
 		HookEvent("player_team", Player_Team, EventHookMode_Post);
@@ -703,6 +704,18 @@ public StartMinigame_cvar(Handle:cvar, const String:oldVal[], const String:newVa
 		ResetConVar(FindConVar("mp_respawnwavetime"));
 		ResetConVar(FindConVar("mp_forcecamera"));
 		status = 0;
+	}
+}
+
+public OverheadScoresChanged(Handle:cvar, const String:oldVal[], const String:newVal[])
+{
+	if (GetConVarBool(ww_overhead_scores) && g_enabled)
+	{
+		CreateAllSprites();
+	}
+	else
+	{
+		DestroyAllSprites();
 	}
 }
 

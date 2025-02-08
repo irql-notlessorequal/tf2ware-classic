@@ -586,7 +586,8 @@ stock DestroyAllSprites()
 {
     for (new client = 1; client <= MaxClients; client++)
 	{
-        if (IsValidClient(client)) {
+        if (IsValidClient(client))
+		{
             DestroySprite(client);
         }
     }
