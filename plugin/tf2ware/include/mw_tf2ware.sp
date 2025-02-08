@@ -109,6 +109,7 @@ new g_Id[MAXPLAYERS + 1];
 new g_Winner[MAXPLAYERS + 1];
 new g_Minipoints[MAXPLAYERS + 1];
 new g_Country[MAXPLAYERS + 1];
+new g_Sprites[MAXPLAYERS+1];
 new Float:currentSpeed;
 new iMinigame;
 new status;
