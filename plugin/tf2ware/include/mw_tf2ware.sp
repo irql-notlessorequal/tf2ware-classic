@@ -519,7 +519,7 @@ void EndMap()
 		new String:map[PLATFORM_MAX_PATH];
 		if (!GetNextMap(map, PLATFORM_MAX_PATH))
 		{
-			PrintToServer("[rakefix_TriggerMapChange] GetNextMap returned false, cannot switch map!");
+			PrintToServer("[EndMap] GetNextMap returned false, cannot switch map!");
 			return;
 		}
 
