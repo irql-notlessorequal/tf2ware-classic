@@ -64,6 +64,10 @@
 
 #define TF2_PLAYER_TAUNTING	 (1 << 7)	 // 128        Taunting
 
+#define GAMEMODE_NORMAL			0
+#define GAMEMODE_WIPEOUT		1
+#define GAMEMODE_WIPEOUT_HEIGHT 1190.0
+
 new String:g_name[MAX_MINIGAMES][24];
 new Function:g_initFuncs[MAX_MINIGAMES];
 
@@ -79,6 +83,7 @@ new Handle:ww_log;
 new Handle:ww_special;
 new Handle:ww_gamemode;
 new Handle:ww_force_special;
+new Handle:ww_overhead_scores;
 new Handle:ww_allowedCommands;
 new Handle:hudScore;
 // REPLACE WEAPON
@@ -140,10 +145,6 @@ new Handle:g_OnGameFrame_Minigames;
 new Handle:g_PlayerDeath;
 /////////////////////////////////////////
 
-#define GAMEMODE_NORMAL			0
-#define GAMEMODE_WIPEOUT		1
-#define GAMEMODE_WIPEOUT_HEIGHT 1190.0
-
 #include tf2ware/microgames/hitenemy.inc
 #include tf2ware/microgames/spycrab.inc
 #include tf2ware/microgames/kamikaze.inc
@@ -173,10 +174,10 @@ new Handle:g_PlayerDeath;
 
 public Plugin:myinfo = {
 	name		= "TF2Ware Classic",
-	author		= "Mecha the Slag, rake",
+	author		= "Mecha the Slag, IRQL_NOT_LESS_OR_EQUAL",
 	description = "Wario Ware in Team Fortress 2!",
 	version		= PLUGIN_VERSION,
-	url			= "http://mechaware.net/"
+	url			= "https://github.com/irql-notlessorequal/tf2ware-classic"
 };
 
 public OnPluginStart()
@@ -211,6 +212,7 @@ public OnPluginStart()
 	ww_special		 = CreateConVar("ww_special", "0", "Next round is Special Round?", FCVAR_PLUGIN);
 	ww_gamemode		 = CreateConVar("ww_gamemode", "-1", "Gamemode", FCVAR_PLUGIN);
 	ww_force_special = CreateConVar("ww_force_special", "0", "Forces a specific Special Round on Special Round", FCVAR_PLUGIN);
+	ww_overhead_scores = CreateConVar("ww_overhead_scores", "0", "Re-enables overhead scores, a feature that was long removed.", FCVAR_PLUGIN);
 }
 
 public OnMapStart()
@@ -468,7 +470,7 @@ public Action:Event_Roundstart(Handle:event, const String:name[], bool:dontBroad
 		if (Roundstarts == 1)
 		{
 			g_waiting = false;
-			rakefix_ClearPlayerFreeze();
+			ClearPlayerFreeze();
 			SetGameMode();
 			ResetScores();
 			StartMinigame();
@@ -500,6 +502,31 @@ public Action:Event_Roundend(Handle: event, const String: name[], bool: dontBroa
 	}
 }
 
+void EndMap()
+{
+	g_waiting = true;
+	Roundstarts = 0;
+
+	RestorePlayerFreeze();
+
+	int entity = FindEntityByClassname(-1, "game_end");
+	if (entity == -1 && (entity = CreateEntityByName("game_end")) == -1)
+	{
+		new String:map[PLATFORM_MAX_PATH];
+		if (!GetNextMap(map, PLATFORM_MAX_PATH))
+		{
+			PrintToServer("[rakefix_TriggerMapChange] GetNextMap returned false, cannot switch map!");
+			return;
+		}
+
+		ForceChangeLevel(map, "tf2ware has ended due to map timer.");
+	}
+	else
+	{
+		AcceptEntityInput(entity, "EndGame");
+	}
+}
+
 public OnClientPostAdminCheck(client)
 {
 	if (!g_enabled) return;
@@ -514,7 +541,6 @@ public OnClientPostAdminCheck(client)
 	GeoipCode2(ip, country);
 	g_Country[client] = 0;
 
-	// if (StrEqual(country, "IT")) g_Country[client] = 1;
 	if (GetConVarBool(ww_log)) LogMessage("Client post admin check. Country: %d", g_Country[client]);
 }
 
@@ -597,12 +623,28 @@ public EventInventoryApplication(Handle:event, const String:name[], bool:dontBro
 		if ((status != 2) && (g_Winner[client] == 0))
 		{
 			DisableClientWeapons(client);
+
+			if (status != 5 && GetConVarBool(ww_overhead_scores)) 
+			{
+				CreateSprite(client);
+			}
 		}
+
 		if (status == 2 && IsClientParticipating(client))
 		{
 			Call_StartForward(g_justEntered);
 			Call_PushCell(client);
 			Call_Finish();
+
+			if (GetConVarBool(ww_overhead_scores))
+			{
+				CreateSprite(client);
+			}
+		}
+
+		if (status == 5 && g_Winner[client] > 0 && GetConVarBool(ww_overhead_scores)) 
+		{
+			CreateSprite(client);
 		}
 
 		if ((status == 2 && g_attack) || (g_Winner[client] > 0) || (SpecialRound == 6))
@@ -1041,7 +1083,7 @@ public Action:EndGame(Handle:hTimer)
 					HealClient(i);
 
 					// Cancel taunts.
-					rakefix_ClearAllTaunts(i);
+					ClearAllTaunts(i);
 
 					// if client won
 					if (g_Complete[i])
@@ -1301,6 +1343,7 @@ public Action:Victory_timer(Handle:hTimer)
 		if (GetConVarBool(ww_music)) EmitSoundToClient(1, MUSIC_INFO, SOUND_FROM_PLAYER, SNDCHAN_AUTO, SNDLEVEL_NORMAL, SND_NOFLAGS, SNDVOL_NORMAL, GetSoundMultiplier());
 		else EmitSoundToAll(MUSIC_INFO, SOUND_FROM_PLAYER, SNDCHAN_AUTO, SNDLEVEL_NORMAL, SND_NOFLAGS, SNDVOL_NORMAL, GetSoundMultiplier());
 
+		DestroyAllSprites();
 		ResetWinners();
 
 		new targetscore = GetHighestScore();
@@ -1331,6 +1374,10 @@ public Action:Victory_timer(Handle:hTimer)
 				if (bAccepted)
 				{
 					g_Winner[i] = 1;
+					if (GetConVarBool(ww_overhead_scores))
+					{
+						CreateSprite(i);
+					}
 					RespawnClient(i, true, true);
 					SetWeaponState(i, true);
 					winnernumber += 1;
@@ -1371,47 +1418,18 @@ public Action:Victory_timer(Handle:hTimer)
 		}
 
 		UpdateHud(GetSpeedMultiplier(MUSIC_INFO_LEN));
+
+		if (status == 5 && HasMapEnded())
+		{
+			/* TODO(irql) */
+		}
 	}
 	return Plugin_Stop;
 }
 
 public Action:Restartall_timer(Handle:hTimer)
 {
-	/* rake: TF2ware needs at least 5 minutes per round. */
-	int timeLeft = -1;
-	/* rake: Nothing in theory should break if GetMapTimeLeft returns false... */
-	GetMapTimeLeft(timeLeft);
-	bool hasMapEnded = timeLeft >= 0 && timeLeft < 300;
-	if (hasMapEnded)
-	{
-		/* */
-		SetConVarFloat(ww_speed, 1.0);
-		ServerCommand("host_timescale %f", GetHostMultiplier(1.0));
-		ServerCommand("phys_timescale %f", GetHostMultiplier(1.0));
-		/* Cleanup after. */
-		bossBattle	= 0;
-		currentSpeed = GetConVarFloat(ww_speed);
-		iMinigame	 = 1;
-		status		 = 0;
-		randommini	 = 0;
-		Roundstarts	 = 0;
-		g_minigamestotal = 0;
-		g_waiting = true;
-		SetStateAll(false);
-		ResetWinners();
-		SetMissionAll(0);
-
-		/* Clear g_Spawned */
-		for (int i = 0; i < MAXPLAYERS + 1; i++) {
-			g_Spawned[i] = false;
-		}
-
-		/* */
-		rakefix_RestorePlayerFreeze();
-		rakefix_TriggerMapChange();
-		return Plugin_Stop;
-	}
-	else if (status == 5)
+	if (status == 5)
 	{
 		bossBattle = 0;
 
@@ -1445,6 +1463,7 @@ public Action:Restartall_timer(Handle:hTimer)
 			StartMinigame();
 		}
 	}
+
 	return Plugin_Stop;
 }
 
@@ -1959,6 +1978,8 @@ public Player_Death(Handle:event, const String:name[], bool:dontBroadcast)
 {
 	new client = GetClientOfUserId(GetEventInt(event, "userid"));
 
+	DestroySprite(client);
+
 	if (GetConVarBool(ww_enable) && (status == 2))
 	{
 		if (g_PlayerDeath != INVALID_HANDLE && IsValidClient(client) && IsClientParticipating(client))
@@ -2118,32 +2139,4 @@ bool:IsValidTeam(iClient)
 	new iTeam = GetClientTeam(iClient);
 	if (iTeam == 2 || iTeam == 3) return true;
 	return false;
-}
-
-public rakefix_ClearPlayerFreeze()
-{
-	SetConVarInt(FindConVar("tf_player_movement_restart_freeze"), 0);
-}
-
-public rakefix_RestorePlayerFreeze()
-{
-	/* rake: Technically we also clear friendly fire so this function name is a lie. */
-	SetConVarInt(FindConVar("mp_friendlyfire"), 0);
-	SetConVarInt(FindConVar("tf_player_movement_restart_freeze"), 1);
-}
-
-public rakefix_ClearAllTaunts(iClient) {
-	TF2_RemoveCondition(iClient, TFCond_Taunting);
-}
-
-public bool rakefix_TriggerMapChange()
-{
-	new String:map[PLATFORM_MAX_PATH];
-	if (!GetNextMap(map, PLATFORM_MAX_PATH))
-	{
-		PrintToServer("[rakefix_TriggerMapChange] GetNextMap returned false, cannot switch map!");
-		return false;
-	}
-	ForceChangeLevel(map, "tf2ware has ended due to map timer.");
-	return true;
 }

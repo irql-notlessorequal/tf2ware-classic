@@ -1,4 +1,5 @@
 #include "mallet.inc"
+#include "attachments.inc"
 
 new g_PlayerVisibleWeapon[MAXPLAYERS+1] = -1;
 
@@ -432,6 +433,27 @@ stock ChangeClientTeamAlive(client, team){
     SetEntProp(client, Prop_Send, "m_lifeState", 0);
 }
 
+bool HasMapEnded()
+{
+	int timeLeft = -1;
+	GetMapTimeLeft(timeLeft);	
+	return timeLeft >= 0 && timeLeft < 300;
+}
+
+void ClearPlayerFreeze()
+{
+	SetConVarInt(FindConVar("tf_player_movement_restart_freeze"), 0);
+}
+
+void RestorePlayerFreeze()
+{
+	SetConVarInt(FindConVar("tf_player_movement_restart_freeze"), 1);
+}
+
+void ClearAllTaunts(iClient)
+{
+	TF2_RemoveCondition(iClient, TFCond_Taunting);
+}
 
 public GetHealtarget(client) {
     if(!IsValidClient(client) || TF2_GetPlayerClass(client) != TFClass_Medic)
@@ -457,4 +479,63 @@ stock FindEntityByClassname2(startEnt, const String:classname[]) {
     /* If startEnt isn't valid shifting it back to the nearest valid one */
     while (startEnt > -1 && !IsValidEntity(startEnt)) startEnt--;
     return FindEntityByClassname(startEnt, classname);
+}
+
+/////////////////////
+// OVERHEAD SCORES //
+/////////////////////
+
+stock CreateSprite(client) {
+    if (IsValidClient(client))
+	{
+        DestroySprite(client);
+        if (IsPlayerAlive(client) && g_Points[client] > 0)
+		{
+            // Sprite name
+            new points = g_Points[client];
+            if (points > 19) points = 19;
+            if (g_Winner[client] > 0) points = 99;
+            decl String:sprite[256];
+            Format(sprite, sizeof(sprite), "materials/imgay/tf2ware_points%d.vmt", points);
+
+            new Float:vOrigin[3];
+            GetClientAbsOrigin(client, vOrigin);
+
+            vOrigin[2] += 100;
+
+            new ent = CreateEntityByName("env_sprite");
+            if (IsValidEntity(ent)) {
+                DispatchKeyValue(ent, "classname", "env_sprite");
+                DispatchKeyValue(ent, "spawnflags", "1");
+                DispatchKeyValue(ent, "scale", "0.2");
+                DispatchKeyValue(ent, "rendermode", "1");
+                DispatchKeyValue(ent, "rendercolor", "255 255 255");
+                DispatchKeyValue(ent, "model", sprite);
+                DispatchSpawn(ent);
+                TeleportEntity(ent, vOrigin, NULL_VECTOR, NULL_VECTOR);
+                CAttach(ent, client, "");
+
+                g_Sprites[client] = ent;
+            }
+		}
+	}
+}
+
+stock DestroyAllSprites() {
+    for (new client = 1; client <= MaxClients; client++) {
+        if (IsValidClient(client)) {
+            DestroySprite(client);
+        }
+    }
+}
+
+stock DestroySprite(client) {
+    if (IsValidClient(client)) {
+        new ent = g_Sprites[client];
+        if ((g_Sprites[client] > 0) && IsValidEntity(ent)) {
+            CDetach(ent);
+            AcceptEntityInput(ent, "kill");
+            g_Sprites[client] = 0;
+        }
+    }
 }
