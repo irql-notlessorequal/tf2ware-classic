@@ -13,12 +13,12 @@ new Handle:attachments_array = INVALID_HANDLE;
  * 
  * @param child         Child entity. 
  * @param parent        Parent entity. 
- * @param variant       Attachment point. Empty for none. 
+ * @param point       Attachment point. Empty for none. 
  * @return              True if able to create attachment. False if fail.
  *  
  * On error/Errors:     If unable to create attachment.
  */ 
-stock CAttach(child, parent, const String:variant[]) {
+stock CAttach(child, parent, const String:point[]) {
     if (attachments_array == INVALID_HANDLE) attachments_array = CreateArray(2);
     if (!IsValidEntity(child)) return false;
     if (!IsValidEntity(parent)) return false;
@@ -42,8 +42,8 @@ stock CAttach(child, parent, const String:variant[]) {
     
     SetVariantString(name2);
     AcceptEntityInput(link, "SetParent", link, link, 0);
-    if (!StrEqual(variant, "")) {
-        SetVariantString(variant);
+    if (!StrEqual(point, "")) {
+        SetVariantString(point);
         AcceptEntityInput(link, "SetParentAttachment", link, link, 0);
     }
     return true;
