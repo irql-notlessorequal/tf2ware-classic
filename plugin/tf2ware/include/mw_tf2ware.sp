@@ -100,6 +100,7 @@ new bool:g_attack	 = false;
 new bool:g_enabled = false;
 new bool:g_first	 = false;
 new bool:g_waiting = true;
+new bool:g_AlwaysShowPoints = false;
 
 // Ints
 new g_Mission[MAXPLAYERS + 1];
@@ -962,6 +963,9 @@ public Action:Game_Start(Handle: hTimer)
 		// Set everyone's state to fail
 		SetStateAll(false);
 
+		// Don't allow no points by default
+        g_AlwaysShowPoints = false;
+
 		// The 'x did y first' is untriggered
 		g_first = false;
 
@@ -1044,7 +1048,8 @@ public Action:EndGame(Handle:hTimer)
 		Call_StartForward(g_OnAlmostEnd);
 		Call_Finish();
 
-		status					   = 0;
+		g_AlwaysShowPoints = false;
+		status = 0;
 
 		new Float:MUSIC_INFO_LEN = MUSIC_END_LEN;
 		decl String:MUSIC_INFO_WIN[PLATFORM_MAX_PATH];
