@@ -430,7 +430,8 @@ public OnMapStart()
 
 		if (GetConVarBool(ww_log)) LogMessage("Map started");
 	}
-	else {
+	else
+	{
 		g_enabled = false;
 	}
 }

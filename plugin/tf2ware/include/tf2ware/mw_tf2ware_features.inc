@@ -235,7 +235,7 @@ public Action:GiveClientWeapon(client, String:weapon[128], slot, bool:input) {
     if (IsValidClient(client) && IsPlayerAlive(client))
 	{
 		int weaponIdx = -1;
-		if (!MalletGetWeaponIndex(128, weapon, weaponIdx))
+		if (!MalletGetWeaponIndex(sizeof (weapon), weapon, weaponIdx))
 		{
 			PrintToServer("[tf2ware::GiveClientWeapon] [WARNING] MalletGetWeaponIndex(%s) returned FALSE!", weapon);
 			return;
@@ -248,8 +248,11 @@ public Action:GiveClientWeapon(client, String:weapon[128], slot, bool:input) {
 			return;
 		}
 
-		RemoveClientWeapons(client);
-		EquipPlayerWeapon(client, wpn);
+		if (!MalletSwapWeaponAndPurge(client, wpn, slot))
+		{
+			PrintToServer("[tf2ware::GiveClientWeapon] [WARNING] MalletSwapWeaponAndPurge returned FALSE!");
+			return;
+		}
         
         if (input == true)
 		{
