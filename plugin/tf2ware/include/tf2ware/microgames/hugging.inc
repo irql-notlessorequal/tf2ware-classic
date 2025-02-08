@@ -1,6 +1,6 @@
 // Hugging module
 
-new String:var_heavy_love[][] = {"imgay/tf2ware/heavy_ilu.wav", "vo/heavy_specialcompleted08.wav", "vo/heavy_award04.wav"};
+new String:var_heavy_love[][] = {"imgay/tf2ware/heavy_ilu.wav", "vo/heavy_specialcompleted08.mp3", "vo/heavy_award04.mp3"};
 
 public Hugging_Init() {
     AddToForward(g_OnMapStart, INVALID_HANDLE, Hugging_OnMapStart);

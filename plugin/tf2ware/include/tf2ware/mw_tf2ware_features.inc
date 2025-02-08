@@ -174,11 +174,14 @@ stock bool:IsPlayerTaunting(client)
 public RemoveClientWeapons(i) {
     if (GetConVarBool(ww_log)) LogMessage("Removing all client weapons");
     RemoveFakeWeapon(i);
-    if (IsValidClient(i) && (IsPlayerAlive(i)) && (g_Winner[i] == 0)) {
+    if (IsValidClient(i) && (IsPlayerAlive(i)) && (g_Winner[i] == 0))
+	{
         SetClientSlot(i, 0);
-        for (new j=0; j<=5; j++) {
+        for (new j = 0; j <= 5; j++)
+		{
             TF2_RemoveWeaponSlot(i, j);
         }
+
         SetWeaponState(i, false);
     }
 }
@@ -196,25 +199,32 @@ public SetWeaponAmmo(client, slot1, slot2) {
 public Action:SetWeaponState(client, bool:input) {
     new ActiveWeapon = GetEntDataEnt2(client,FindSendPropOffs("CTFPlayer", "m_hActiveWeapon"));
     new iEntity = g_PlayerVisibleWeapon[client];
-    if (IsValidEntity(ActiveWeapon)) {
-        if (input == true) {
+    if (IsValidEntity(ActiveWeapon))
+	{
+        if (input == true)
+		{
             SetEntityRenderColor(ActiveWeapon, 255, 255, 255, 255);
             SetEntityRenderMode(ActiveWeapon, RENDER_NORMAL);
             SetEntProp(client, Prop_Send, "m_bDrawViewmodel", 1);
         }
-        else {
+        else
+		{
             SetEntityRenderColor(ActiveWeapon, 255, 255, 255, 0);
             SetEntityRenderMode(ActiveWeapon, RENDER_TRANSCOLOR);
             SetWeaponAmmo(client, 0, 0);
             SetEntProp(client, Prop_Send, "m_bDrawViewmodel", 0);
         }
     }
-    if (iEntity > 0 && IsValidEntity(iEntity)) {
-        if (input == true) {
+
+    if (iEntity > 0 && IsValidEntity(iEntity))
+	{
+        if (input == true)
+		{
             SetEntityRenderColor(iEntity, 255, 255, 255, 255);
             SetEntityRenderMode(iEntity, RENDER_NORMAL);
         }
-        else {
+        else
+		{
             SetEntityRenderColor(iEntity, 255, 255, 255, 0);
             SetEntityRenderMode(iEntity, RENDER_TRANSCOLOR);
         }
@@ -222,9 +232,8 @@ public Action:SetWeaponState(client, bool:input) {
 }
 
 public Action:GiveClientWeapon(client, String:weapon[128], slot, bool:input) {
-    if (IsValidClient(client) && IsPlayerAlive(client)) {
-		TF2_RemoveWeaponSlot(client, slot);
-
+    if (IsValidClient(client) && IsPlayerAlive(client))
+	{
 		int weaponIdx = -1;
 		if (!MalletGetWeaponIndex(128, weapon, weaponIdx))
 		{
@@ -239,6 +248,7 @@ public Action:GiveClientWeapon(client, String:weapon[128], slot, bool:input) {
 			return;
 		}
 
+		RemoveClientWeapons(client);
 		EquipPlayerWeapon(client, wpn);
         
         if (input == true)
@@ -306,15 +316,18 @@ RemoveFakeWeapon(&iClient) {
 }
 
 public Action:RemoveClientSlot(i, slot) {
-    if (IsValidClient(i) && (IsPlayerAlive(i))) {
+    if (IsValidClient(i) && (IsPlayerAlive(i)))
+	{
         TF2_RemoveWeaponSlot(i, slot);
     }
 }
 
 public Action:RemoveAllWeapons() {
     if (GetConVarBool(ww_log)) LogMessage("Removing all weapons");
-    for (new i = 1; i <= MaxClients; i++) {
-        if (IsValidClient(i) && (IsPlayerAlive(i))) {
+    for (new i = 1; i <= MaxClients; i++)
+	{
+        if (IsValidClient(i) && (IsPlayerAlive(i)))
+		{
             RemoveClientWeapons(i);
         }
     }
@@ -485,57 +498,111 @@ stock FindEntityByClassname2(startEnt, const String:classname[]) {
 // OVERHEAD SCORES //
 /////////////////////
 
-stock CreateSprite(client) {
-    if (IsValidClient(client))
+stock CreateAllSprites() {
+    for (new client = 1; client <= MaxClients; client++)
+	{
+        if (IsValidClient(client))
+		{
+            CreateSprite(client);
+        }
+    }
+}
+
+stock CreateSprite(client)
+{
+    if (IsValidClient(client) && (SpecialRound != 4))
 	{
         DestroySprite(client);
-        if (IsPlayerAlive(client) && g_Points[client] > 0)
+        if (IsPlayerAlive(client) && ((g_Points[client] > 0) || g_AlwaysShowPoints))
 		{
             // Sprite name
-            new points = g_Points[client];
-            if (points > 19) points = 19;
-            if (g_Winner[client] > 0) points = 99;
             decl String:sprite[256];
-            Format(sprite, sizeof(sprite), "materials/imgay/tf2ware_points%d.vmt", points);
+            decl String:scale[12];   
+            Format(scale, sizeof(scale), "0.2");
+            
+            if (status == 2 && StrEqual(minigame, "Ghostbusters")) {
+                if (g_Mission[client] == 0)
+				{
+					Format(sprite, sizeof(sprite), "materials/tf2ware/medicsign2.vmt");
+				}
+
+                if (g_Mission[client] == 1)
+				{
+                    Format(sprite, sizeof(sprite), "materials/tf2ware/ghost2.vmt");
+                    Format(scale, sizeof(scale), "0.5");
+                }
+
+                if (g_Mission[client] == 2)
+				{
+                    Format(sprite, sizeof(sprite), "materials/tf2ware/frankenstein.vmt");
+                    Format(scale, sizeof(scale), "0.3");
+                }
+            }
+            else
+			{
+                new points = g_Points[client];
+                if (points > 20) points = 20;
+                if (g_Winner[client] > 0) points = 99;
+                Format(sprite, sizeof(sprite), "materials/tf2ware/tf2ware_points%d.vmt", points);
+            }
 
             new Float:vOrigin[3];
             GetClientAbsOrigin(client, vOrigin);
-
+            
             vOrigin[2] += 100;
-
+            
             new ent = CreateEntityByName("env_sprite");
-            if (IsValidEntity(ent)) {
+            if (IsValidEntity(ent))
+			{
+                decl String:strName[32];
+                Format(strName, sizeof(strName), "target%i", client);
+                DispatchKeyValue(client, "targetname", strName);
+            
                 DispatchKeyValue(ent, "classname", "env_sprite");
                 DispatchKeyValue(ent, "spawnflags", "1");
-                DispatchKeyValue(ent, "scale", "0.2");
+                DispatchKeyValue(ent, "scale", scale);
                 DispatchKeyValue(ent, "rendermode", "1");
                 DispatchKeyValue(ent, "rendercolor", "255 255 255");
                 DispatchKeyValue(ent, "model", sprite);
                 DispatchSpawn(ent);
                 TeleportEntity(ent, vOrigin, NULL_VECTOR, NULL_VECTOR);
-                CAttach(ent, client, "");
-
+                
+                DispatchKeyValue(ent, "parentname", strName);
+                SetVariantString("!activator");
+                AcceptEntityInput(ent, "SetParent", client, ent, 0);
+                SetVariantString("head");
+                AcceptEntityInput(ent, "SetParentAttachment", client, ent, 0);
+                
                 g_Sprites[client] = ent;
             }
-		}
-	}
+        }
+    }
 }
 
-stock DestroyAllSprites() {
-    for (new client = 1; client <= MaxClients; client++) {
+stock DestroyAllSprites()
+{
+    for (new client = 1; client <= MaxClients; client++)
+	{
         if (IsValidClient(client)) {
             DestroySprite(client);
         }
     }
 }
 
-stock DestroySprite(client) {
-    if (IsValidClient(client)) {
+stock DestroySprite(client)
+{
+    if (IsValidClient(client))
+	{
         new ent = g_Sprites[client];
-        if ((g_Sprites[client] > 0) && IsValidEntity(ent)) {
-            CDetach(ent);
-            AcceptEntityInput(ent, "kill");
-            g_Sprites[client] = 0;
+        if (ent > 0 && IsValidEdict(ent))
+		{
+            new String:classname[64];
+            GetEdictClassname(ent, classname, sizeof(classname));
+            if(StrEqual(classname, "env_sprite", false))
+			{
+                AcceptEntityInput(ent, "kill");
+            }
         }
     }
+    g_Sprites[client] = 0;
 }

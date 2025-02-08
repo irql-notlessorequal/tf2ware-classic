@@ -909,6 +909,7 @@ StartMinigame()
 		CreateTimer(GetSpeedMultiplier(MUSIC_INFO_LEN), Game_Start);
 		if (SpecialRound == 6) g_attack = true;
 		else g_attack = false;
+		CreateAllSprites();
 	}
 }
 
