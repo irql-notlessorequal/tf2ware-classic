@@ -66,19 +66,17 @@ stock CreateSprite(client)
 			GetClientAbsOrigin(client, vOrigin);
 			
 			/* Put above player. */
-			vOrigin[1] += 90.0;
+			vOrigin[2] += 90.0;
 			
 			new ent = CreateEntityByName("env_sprite");
 			if (IsValidEntity(ent))
 			{
-				decl String:strName[16];
-				Format(strName, sizeof(strName), "client%d", client);
-				DispatchKeyValue(client, "targetname", strName);
+				DispatchKeyValueVector(ent, "origin", vOrigin);
+				DispatchKeyValueVector(ent, "angles", NULL_VECTOR);
 
-				SetEntityModel(ent, sprite);
-				SetEntityRenderColor(ent);			
-				SetEntityRenderMode(ent, RENDER_TRANSCOLOR);
-			
+				DispatchKeyValue(ent, "model", sprite);
+				DispatchKeyValue(ent, "rendermode", "1");
+				DispatchKeyValue(ent, "rendercolor", "255 255 255");
 				DispatchKeyValue(ent, "classname", "env_sprite");
 				DispatchKeyValue(ent, "spawnflags", "1");
 				DispatchKeyValue(ent, "scale", scale);
@@ -89,12 +87,9 @@ stock CreateSprite(client)
 					return;
 				}
 
-				TeleportEntity(ent, vOrigin, NULL_VECTOR, NULL_VECTOR);              
-				SetVariantString(strName);
+				/* Explodes here. */
+				ParentEntity(client, ent, "head", true);
 
-				ParentEntity(client, ent, "head", true);     
-
-				AcceptEntityInput(ent, "Display", ent, ent, 0);
 				g_Sprites[client] = ent;
 				PrintToServer("[TF2Ware] (DEBUG) [CreateSprite] Created env_sprite (%s) %i for %i at {%f, %f, %f}!", sprite, ent, client,
 					vOrigin[0], vOrigin[1], vOrigin[2]);
@@ -103,20 +98,28 @@ stock CreateSprite(client)
 	}
 }
 
-stock void ParentEntity(int parent, int attachment, const char[] attachPoint = "", bool maintainOffset = false)
+stock bool ParentEntity(int parent, int attachment, const char[] attachPoint = "", bool maintainOffset = false)
 {
 	SetVariantString("!activator");
-	AcceptEntityInput(attachment, "SetParent", parent, attachment, 0);
+	if (!AcceptEntityInput(attachment, "SetParent", parent, attachment, 0))
+	{
+		return false;
+	}
 	
 	if (strlen(attachPoint) > 0)
 	{
 		SetVariantString(attachPoint);
-		AcceptEntityInput(attachment,
-				maintainOffset ? "SetParentAttachmentMaintainOffset" : "SetParentAttachment",
-				parent, parent);
+		
+		if (!AcceptEntityInput(attachment,
+			maintainOffset ? "SetParentAttachmentMaintainOffset" : "SetParentAttachment",
+			parent, parent))
+		{
+			return false;
+		}
 	}
-}
 
+	return true;
+}
 
 stock DestroyAllSprites()
 {

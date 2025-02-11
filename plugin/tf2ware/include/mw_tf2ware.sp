@@ -22,7 +22,7 @@
 
 #define MAX_MINIGAMES		 40
 
-#define PLUGIN_VERSION		 "1.0.2"
+#define PLUGIN_VERSION		 "0.0.11"
 
 #define MUSIC2_START		 "imgay/tf2ware/tf2ware_intro.mp3"
 #define MUSIC2_START_LEN	 2.18
@@ -471,7 +471,7 @@ public Action:Timer_DisplayVersion(Handle:timer, any:client)
 	if (IsValidClient(client))
 	{
 		SetHudTextParams(0.63, 0.73, 25.0, 255, 255, 255, 255, 1, 3.0, 0.0, 3.0);
-		ShowHudText(client, 1, "v%s", PLUGIN_VERSION);
+		ShowHudText(client, 1, "c%s", PLUGIN_VERSION);
 	}
 	return Plugin_Handled;
 }

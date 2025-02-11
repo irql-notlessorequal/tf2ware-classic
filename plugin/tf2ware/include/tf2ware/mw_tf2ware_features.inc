@@ -1,6 +1,3 @@
-#include <sdktools_entinput>
-#include <sdktools_functions>
-
 #include "mallet.inc"
 
 #if defined(ENABLE_ATTACHMENTS)
