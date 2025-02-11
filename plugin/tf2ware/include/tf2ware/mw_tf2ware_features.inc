@@ -1,5 +1,8 @@
 #include "mallet.inc"
+
+#if defined(ENABLE_ATTACHMENTS)
 #include "attachments.inc"
+#endif
 
 new g_PlayerVisibleWeapon[MAXPLAYERS+1] = -1;
 
@@ -254,7 +257,7 @@ public Action:GiveClientWeapon(client, String:weapon[128], slot, bool:input) {
 			return;
 		}
         
-        if (input == true)
+        if (input)
 		{
             if (StrEqual(weapon, "tf_weapon_revolver")) SetWeaponAmmo(client, 6, 24);
             if (StrEqual(weapon, "tf_weapon_shotgun_primary")) SetWeaponAmmo(client, 6, 32);
@@ -269,6 +272,7 @@ public Action:GiveClientWeapon(client, String:weapon[128], slot, bool:input) {
         // Create a model everyone else can oodle at
         RemoveFakeWeapon(client);
         
+#if defined ENABLE_ATTACHMENTS
         decl String:strModel[PLATFORM_MAX_PATH];
         Format(strModel, sizeof(strModel), "");
         
@@ -291,15 +295,14 @@ public Action:GiveClientWeapon(client, String:weapon[128], slot, bool:input) {
         if (StrEqual(weapon, "tf_weapon_medigun")) Format(strModel, sizeof(strModel), "models/weapons/w_models/w_medigun.mdl");
         
         if (!StrEqual(strModel, "")) {
-#if defined ENABLE_ATTACHMENTS
             new iEntity = Attachable_CreateAttachable(client);
             if (iEntity > 0 && IsValidEdict(iEntity)) {
                 
                 SetEntityModel(iEntity, strModel);
                 g_PlayerVisibleWeapon[client] = iEntity;
             }
+		}
 #endif
-        }
         
         
         SetWeaponState(client, input);
