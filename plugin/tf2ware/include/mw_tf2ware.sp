@@ -171,6 +171,7 @@ new Handle:g_PlayerDeath;
 #include tf2ware/microgames/ghostbusters.inc
 
 #include tf2ware/mw_tf2ware_features.inc
+#include tf2ware/overhead_scores.inc
 #include tf2ware/special.inc
 #include tf2ware/vocalize.inc
 
@@ -396,6 +397,21 @@ public OnMapStart()
 		PrecacheModel("models/weapons/w_models/w_medigun.mdl", true);
 
 		decl String:input[512];
+
+		for (int i = 0; i <= 20; i++)
+		{
+            Format(input, sizeof(input), "materials/tf2ware/tf2ware_points%d.vmt", i);
+            PrecacheModel(input, true);
+            Format(input, sizeof(input), "materials/tf2ware/tf2ware_points%d.vtf", i);
+            PrecacheModel(input, true);
+        }
+
+		{
+			Format(input, sizeof(input), "materials/tf2ware/tf2ware_points99.vmt");
+			PrecacheModel(input, true);
+			Format(input, sizeof(input), "materials/tf2ware/tf2ware_points99.vtf");
+			PrecacheModel(input, true);
+		}
 
 		KvGotoFirstSubKey(MinigameConf);
 		decl id;
