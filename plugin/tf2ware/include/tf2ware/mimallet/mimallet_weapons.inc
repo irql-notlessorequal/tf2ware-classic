@@ -2,6 +2,7 @@
 #include <tf2_stocks>
 
 #include "mimallet_defines.inc"
+#include "mimallet_weapons_wearable.inc"
 
 bool GetCompatibleSaxxyWeapon(const TFClassType type, char weaponName[24])
 {
