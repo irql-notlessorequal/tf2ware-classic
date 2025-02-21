@@ -11,7 +11,12 @@
 #include <tf2_stocks>
 #include <sdkhooks>
 #include <geoip>
+
+#if defined(ENABLE_MALLET)
 #include <mallet>
+#else
+#include "tf2ware/mimallet/mimallet_weapons_wearable.inc"
+#endif
 
 // Fixes
 #include "colors.inc"
@@ -198,6 +203,13 @@ public OnPluginStart()
 	// Check for SDKHooks
 	if (GetExtensionFileStatus("sdkhooks.ext") < 1)
 		SetFailState("SDK Hooks is not loaded.");
+
+#if !defined(ENABLE_MALLET)
+	if (!MimalletInitWearables())
+	{
+		SetFailState("MimalletInitWearables returned FALSE.");
+	}
+#endif
 
 	// Find collision group offsets
 	g_offsCollisionGroup = FindSendPropOffs("CBaseEntity", "m_CollisionGroup");

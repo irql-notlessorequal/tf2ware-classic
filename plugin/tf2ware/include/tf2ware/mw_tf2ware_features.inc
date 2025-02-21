@@ -1,4 +1,10 @@
+#if defined(ENABLE_MALLET)
 #include "mallet.inc"
+#else
+#include "mimallet/mimallet_weapons.inc"
+#include "mimallet/mimallet_weapons_db.inc"
+#include "mimallet/mimallet_weapons_wearable.inc"
+#endif
 
 #if defined(ENABLE_ATTACHMENTS)
 #include "attachments.inc"

@@ -3,7 +3,13 @@ The original TF2Ware from 2011, fixed up and working!
 
 # Changes over the original
 
-TODO
+- No longer breaks when trying to use the plugin in non-TF2Ware only mode. (TODO)
+- No longer requires a `gamedata.txt` file, works out of the box.
+- Fixes for changes in Team Fortress 2. (player freeze)
+- QoL fixes.
+- Restored overhead player scores as an option.
+- Code refactor.
+- Cleanup. 
 
 # Installation.
 
