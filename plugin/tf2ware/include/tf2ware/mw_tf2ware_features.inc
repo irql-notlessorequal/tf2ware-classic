@@ -3,6 +3,7 @@
 #else
 #include "mimallet/mimallet_weapons.inc"
 #include "mimallet/mimallet_weapons_db.inc"
+#include "mimallet/mimallet_weapons_misc.inc"
 #include "mimallet/mimallet_weapons_wearable.inc"
 #endif
 
@@ -274,11 +275,11 @@ public Action:GiveClientWeapon(client, String:weapon[128], slot, bool:input) {
             if (StrEqual(weapon, "tf_weapon_rocketlauncher")) SetWeaponAmmo(client, 4, 20);
             if (StrEqual(weapon, "tf_weapon_pipebomblauncher")) SetWeaponAmmo(client, 8, 24);
         }
-        
+
+#if defined ENABLE_ATTACHMENTS
         // Create a model everyone else can oodle at
         RemoveFakeWeapon(client);
         
-#if defined ENABLE_ATTACHMENTS
         decl String:strModel[PLATFORM_MAX_PATH];
         Format(strModel, sizeof(strModel), "");
         
@@ -315,8 +316,8 @@ public Action:GiveClientWeapon(client, String:weapon[128], slot, bool:input) {
     }
 }
 
-RemoveFakeWeapon(&iClient) {
 #if defined ENABLE_ATTACHMENTS
+RemoveFakeWeapon(&iClient) {
     new iEntity = g_PlayerVisibleWeapon[iClient];
     g_PlayerVisibleWeapon[iClient] = -1;
     
@@ -324,8 +325,8 @@ RemoveFakeWeapon(&iClient) {
         if (Attachable_IsHooked(iEntity)) Attachable_UnhookEntity(iEntity);
         RemoveEdict(iEntity);
     }
-#endif
 }
+#endif
 
 public Action:RemoveClientSlot(i, slot) {
     if (IsValidClient(i) && (IsPlayerAlive(i)))

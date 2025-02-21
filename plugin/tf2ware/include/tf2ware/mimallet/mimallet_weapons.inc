@@ -56,7 +56,7 @@ bool GetCompatibleSaxxyWeapon(const TFClassType type, char weaponName[24])
 	}
 }
 
-int MalletCreateWeapon(int client, int weaponId, const char[] weaponName, int level, int quality, int weaponSlot)
+public int MalletCreateWeapon(int client, int weaponId, const char[] weaponName, int level, int quality, int weaponSlot)
 {
 	if (TypeIsWearable(weaponName))
 	{
