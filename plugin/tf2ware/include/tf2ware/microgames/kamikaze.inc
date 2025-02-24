@@ -80,7 +80,8 @@ public Kamikaze_TimerMinigame(timer) {
     }
 }
 
-public Kamikaze_justEntered(client) {
+public void Kamikaze_justEntered(int client)
+{
     if (IsValidClient(client)) {
         if (g_Mission[client] == 0) {
             SetClientClass(client, "heavy");
@@ -95,15 +96,18 @@ public Kamikaze_justEntered(client) {
                 g_bomb = 0;
             }
             
-            g_bomb = CreateEntityByName("prop_dynamic");
+            g_bomb = CreateEntityByName("prop_dynamic_override");
             
-            if (IsValidEdict(g_bomb)) { 
+            if (IsValidEdict(g_bomb))
+			{ 
                 decl String:strName[32];
                 Format(strName, sizeof(strName), "target%i", client);
                 DispatchKeyValue(client, "targetname", strName);
             
                 DispatchKeyValue(g_bomb, "model", WW_BOMB_MODEL);
                 DispatchSpawn(g_bomb);
+
+				AcceptEntityInput(g_bomb, "TurnOn", g_bomb, g_bomb, 0);
                 
                 DispatchKeyValue(g_bomb, "parentname", strName);
                 SetVariantString("!activator");
