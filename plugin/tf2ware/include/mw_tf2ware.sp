@@ -2043,7 +2043,9 @@ public Player_Death(Handle:event, const String:name[], bool:dontBroadcast)
 		}
 	}
 
+#if defined(ENABLE_ATTACHMENTS)
 	RemoveFakeWeapon(client);
+#endif
 }
 
 // Some convenience functions for parsing the configuration file more simply.

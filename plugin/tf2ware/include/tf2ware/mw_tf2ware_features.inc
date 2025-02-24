@@ -183,7 +183,11 @@ stock bool:IsPlayerTaunting(client)
 
 public RemoveClientWeapons(i) {
     if (GetConVarBool(ww_log)) LogMessage("Removing all client weapons");
+
+#if defined(ENABLE_ATTACHMENTS)
     RemoveFakeWeapon(i);
+#endif
+
     if (IsValidClient(i) && (IsPlayerAlive(i)) && (g_Winner[i] == 0))
 	{
         SetClientSlot(i, 0);

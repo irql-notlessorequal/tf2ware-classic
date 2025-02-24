@@ -1,7 +1,7 @@
 #include <tf2>
 #include <tf2_stocks>
 
-static Handle hSDKIsWearable = INVALID_HANDLE;
+static Handle hSDKRemoveWearable = INVALID_HANDLE;
 
 public bool MimalletInitWearables()
 {

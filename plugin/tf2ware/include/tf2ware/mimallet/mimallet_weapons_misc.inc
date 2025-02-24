@@ -46,7 +46,7 @@ bool InternalSwapWeaponAndPurge(int client, int weaponEntity, int slot)
 	return true;
 }
 
-public int MalletSwapWeaponAndPurge(int client, int weaponEntity, int slots)
+public int MalletSwapWeaponAndPurge(int client, int weaponEntity, int slot)
 {
 	return InternalSwapWeaponAndPurge(client, weaponEntity, slot);
 }
