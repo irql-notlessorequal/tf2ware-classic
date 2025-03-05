@@ -116,16 +116,16 @@ Microgame currentMicrogame;
 
 #include "tf2ware/microgames/airblast.inc"
 #include "tf2ware/microgames/spycrab.inc"
+#include "tf2ware/microgames/barrel.inc"
 
 #if 0
 #include "tf2ware/microgames/kamikaze.inc"
 #include "tf2ware/microgames/math.inc"
-#include "tf2ware/microgames/sawrun.inc"
-#include "tf2ware/microgames/barrel.inc"
 #include "tf2ware/microgames/needlejump.inc"
 #include "tf2ware/microgames/hopscotch.inc"
 #endif
 
+#include "tf2ware/microgames/sawrun.inc"
 #include "tf2ware/microgames/simonsays.inc"
 
 
@@ -198,6 +198,13 @@ public void OnPluginStart()
 	ww_gamemode		 = CreateConVar("ww_gamemode", "-1", "Gamemode", FCVAR_PLUGIN);
 	ww_force_special = CreateConVar("ww_force_special", "0", "Forces a specific Special Round on Special Round", FCVAR_PLUGIN);
 	ww_overhead_scores = CreateConVar("ww_overhead_scores", "0", "Re-enables overhead scores, a feature that was long removed.", FCVAR_PLUGIN);
+
+	// MINIGAME REGISTRATION
+	AddMiniGame(MG_AIRBLAST, new Airblast());
+	AddMiniGame(MG_BARREL, new Barrel());
+	AddMiniGame(MG_SAW_RUN, new Sawrun());
+	AddMiniGame(MG_SIMON_SAYS, new SimonSays());
+	AddMiniGame(MG_SPYCRAB, new Spycrab());
 }
 
 public void OnMapStart()
@@ -271,26 +278,17 @@ public void OnMapStart()
 
 		// FORWARDS FOR MINIGAMES
 		g_OnMapStart			= CreateForward(ET_Ignore);
-		g_OnAlmostEnd			= CreateForward(ET_Ignore);
-
-		// MINIGAME REGISTRATION
-		AddMiniGame(new Airblast());
-		AddMiniGame(new SimonSays());
-		AddMiniGame(new Spycrab());
 
 #if 0
 		RegMinigame("HitEnemy", HitEnemy_OnMinigame);
-		RegMinigame("Spycrab", Spycrab_OnMinigame);
 		RegMinigame("Kamikaze", Kamikaze_OnMinigame);
 		RegMinigame("Math", Math_OnMinigame);
-		RegMinigame("SawRun", SawRun_OnMinigame);
 		RegMinigame("Barrel", Barrel_OnMinigame);
 		RegMinigame("Needlejump", Needlejump_OnMinigame);
 		RegMinigame("Hopscotch", Hopscotch_OnMinigame);
 		RegMinigame("Airblast", Airblast_OnMinigame);
 		RegMinigame("Movement", Movement_OnMinigame);
 		RegMinigame("Flood", Flood_OnMinigame);
-		RegMinigame("SimonSays", SimonSays_OnMinigame);
 		RegMinigame("BBall", BBall_OnMinigame);
 		RegMinigame("Hugging", Hugging_OnMinigame, Hugging_Init);
 		RegMinigame("RedFloor", RedFloor_OnMinigame);
@@ -438,10 +436,240 @@ public void OnMapStart()
 	}
 }
 
+/////////////////////////////////////////
+
+/**
+ * I cannot believe this fucking works, I honestly prefer to have to make
+ * this unholy abomination than have to deal with the previous Mecha code.
+ * 
+ * My eyes weep at this.
+ * Have fun trying to add custom microgames to this.
+ * 
+ * tl;dr I should really start working on "source.js"
+ */
+
+void DispatchOnClientJustEntered(int client)
+{
+	switch (view_as<Microgames>(currentMicrogame))
+	{
+		case MG_AIRBLAST:
+		{
+			view_as<Airblast>(currentMicrogame).OnClientJustEntered(client);
+		}
+
+		case MG_BARREL:
+		{
+			view_as<Barrel>(currentMicrogame).OnClientJustEntered(client);
+		}
+
+		case MG_SAW_RUN:
+		{
+			view_as<Sawrun>(currentMicrogame).OnClientJustEntered(client);
+		}
+
+		case MG_SIMON_SAYS:
+		{
+			view_as<SimonSays>(currentMicrogame).OnClientJustEntered(client);
+		}
+
+		case MG_SPYCRAB:
+		{
+			view_as<Spycrab>(currentMicrogame).OnClientJustEntered(client);
+		}
+
+		default:
+		{
+			PrintToServer("[TF2Ware] [DispatchOnClientJustEntered] Ignoring dispatch for unknown microgame %d.", currentMicrogame);
+		}
+	}
+}
+
+void DispatchOnMicrogameStart()
+{
+	switch (view_as<Microgames>(currentMicrogame))
+	{
+		case MG_AIRBLAST:
+		{
+			view_as<Airblast>(currentMicrogame).OnMicrogameStart();
+		}
+
+		case MG_BARREL:
+		{
+			view_as<Barrel>(currentMicrogame).OnMicrogameStart();
+		}
+		
+		case MG_SAW_RUN:
+		{
+			view_as<Sawrun>(currentMicrogame).OnMicrogameStart();
+		}
+
+		case MG_SIMON_SAYS:
+		{
+			view_as<SimonSays>(currentMicrogame).OnMicrogameStart();
+		}
+
+		case MG_SPYCRAB:
+		{
+			view_as<Spycrab>(currentMicrogame).OnMicrogameStart();
+		}
+
+		default:
+		{
+			PrintToServer("[TF2Ware] [DispatchOnMicrogameStart] Ignoring dispatch for unknown microgame %d.", currentMicrogame);
+		}
+	}
+}
+
+void DispatchOnMicrogameTimer(int timeLeft)
+{
+	switch (view_as<Microgames>(currentMicrogame))
+	{
+		case MG_AIRBLAST:
+		{
+			view_as<Airblast>(currentMicrogame).OnMicrogameTimer(timeLeft);
+		}
+
+		case MG_BARREL:
+		{
+			view_as<Barrel>(currentMicrogame).OnMicrogameTimer(timeLeft);
+		}
+
+		case MG_SAW_RUN:
+		{
+			view_as<Sawrun>(currentMicrogame).OnMicrogameTimer(timeLeft);
+		}
+
+		case MG_SIMON_SAYS:
+		{
+			view_as<SimonSays>(currentMicrogame).OnMicrogameTimer(timeLeft);
+		}
+
+		case MG_SPYCRAB:
+		{
+			view_as<Spycrab>(currentMicrogame).OnMicrogameTimer(timeLeft);
+		}
+
+		default:
+		{
+			PrintToServer("[TF2Ware] [DispatchOnMicrogameTimer] Ignoring dispatch for unknown microgame %d.", currentMicrogame);
+		}
+	}
+}
+
+void DispatchOnMicrogameEnd()
+{
+	switch (view_as<Microgames>(currentMicrogame))
+	{
+		case MG_AIRBLAST:
+		{
+			view_as<Airblast>(currentMicrogame).OnMicrogameEnd();
+		}
+
+		case MG_BARREL:
+		{
+			view_as<Barrel>(currentMicrogame).OnMicrogameEnd();
+		}
+
+		case MG_SAW_RUN:
+		{
+			view_as<Sawrun>(currentMicrogame).OnMicrogameEnd();
+		}
+
+		case MG_SIMON_SAYS:
+		{
+			view_as<SimonSays>(currentMicrogame).OnMicrogameEnd();
+		}
+
+		case MG_SPYCRAB:
+		{
+			view_as<Spycrab>(currentMicrogame).OnMicrogameEnd();
+		}
+
+		default:
+		{
+			PrintToServer("[TF2Ware] [DispatchOnMicrogameEnd] Ignoring dispatch for unknown microgame %d.", currentMicrogame);
+		}
+	}	
+}
+
+void DispatchOnMicrogamePostEnd()
+{
+	switch (view_as<Microgames>(currentMicrogame))
+	{
+		case MG_AIRBLAST:
+		{
+			view_as<Airblast>(currentMicrogame).OnMicrogamePostEnd();
+		}
+
+		case MG_BARREL:
+		{
+			view_as<Barrel>(currentMicrogame).OnMicrogamePostEnd();
+		}
+
+		case MG_SAW_RUN:
+		{
+			view_as<Sawrun>(currentMicrogame).OnMicrogamePostEnd();
+		}
+
+		case MG_SIMON_SAYS:
+		{
+			view_as<SimonSays>(currentMicrogame).OnMicrogamePostEnd();
+		}
+
+		case MG_SPYCRAB:
+		{
+			view_as<Spycrab>(currentMicrogame).OnMicrogamePostEnd();
+		}
+
+		default:
+		{
+			PrintToServer("[TF2Ware] [DispatchOnMicrogamePostEnd] Ignoring dispatch for unknown microgame %d.", currentMicrogame);
+		}
+	}
+}
+
+void DispatchOnMicrogameFrame()
+{
+	switch (view_as<Microgames>(currentMicrogame))
+	{
+		case MG_AIRBLAST:
+		{
+			view_as<Airblast>(currentMicrogame).OnMicrogameFrame();
+		}
+
+		case MG_BARREL:
+		{
+			view_as<Barrel>(currentMicrogame).OnMicrogameFrame();
+		}
+
+		case MG_SAW_RUN:
+		{
+			view_as<Sawrun>(currentMicrogame).OnMicrogameFrame();
+		}
+
+		case MG_SIMON_SAYS:
+		{
+			view_as<SimonSays>(currentMicrogame).OnMicrogameFrame();
+		}
+
+		case MG_SPYCRAB:
+		{
+			view_as<Spycrab>(currentMicrogame).OnMicrogameFrame();
+		}
+
+		default:
+		{
+			PrintToServer("[TF2Ware] [DispatchOnMicrogameFrame] Ignoring dispatch for unknown microgame %d.", currentMicrogame);
+		}
+	}
+}
+
 public Microgame GetCurrentMicrogame()
 {
 	return currentMicrogame;
 }
+
+/////////////////////////////////////////
 
 public Action OnGetGameDescription(char gameDesc[64])
 {
@@ -642,8 +870,7 @@ public EventInventoryApplication(Handle:event, const String:name[], bool:dontBro
 
 		if (status == 2 && IsClientParticipating(client))
 		{
-			Microgame mg = GetCurrentMicrogame();
-			mg.OnClientJustEntered(client);
+			DispatchOnClientJustEntered(client);
 
 			if (GetConVarBool(ww_overhead_scores))
 			{
@@ -729,11 +956,10 @@ public void OnGameFrame()
 	if (!GetConVarBool(ww_enable))
 		return;
 
-	Microgame mg = GetCurrentMicrogame();
-	if (!mg)
+	if (!currentMicrogame)
 		return;
 
-	mg.OnMicrogameFrame();
+	DispatchOnMicrogameFrame();
 
 #if 0
 	if (GetConVarBool(ww_enable) && g_enabled && (status == 2) && (g_OnGameFrame_Minigames != INVALID_HANDLE))
@@ -755,9 +981,6 @@ public void OnGameFrame()
 				}
 			}
 		}
-
-		Microgame mg;
-		mg.OnMicrogameFrame();
 	}
 #endif
 }
@@ -786,8 +1009,9 @@ int RollMinigame()
 	/**
 	 * TODO: Rewrite the entire boss logic since it's a clusterfuck at the moment.
 	 */
-	currentMicrogame = GetRandomMicrogame();
-	return currentMicrogame.GetMicrogameIdentifier();
+	int idx;
+	currentMicrogame = GetRandomMicrogame(idx);
+	return idx;
 }
 
 public Player_Team(Handle: event, const String: name[], bool: dontBroadcast)
@@ -1024,8 +1248,7 @@ public Action CountDown_Timer(Handle hTimer)
 		CreateTimer(GetSpeedMultiplier(0.4), CountDown_Timer);
 		if (bossBattle != 1)
 		{
-			Microgame mg = GetCurrentMicrogame();
-			mg.OnMicrogameTimer(timeleft);
+			DispatchOnMicrogameTimer(timeleft);
 		}
 		if (timeleft == 2)
 		{
@@ -1046,8 +1269,8 @@ public Action EndGame(Handle hTimer)
 	if (status == 2)
 	{
 		if (GetConVarBool(ww_log)) LogMessage("Microgame %s, (id:%d) ended!", minigame, iMinigame);
-		Microgame mg = GetCurrentMicrogame();
-		mg.OnMicrogameEnd();	
+		
+		DispatchOnMicrogameEnd();
 
 		g_AlwaysShowPoints = false;
 		status = 0;
@@ -1069,7 +1292,7 @@ public Action EndGame(Handle hTimer)
 		/**
 		 * Send a late end event here to maintain compatiblity.
 		 */
-		mg.OnMicrogamePostEnd();
+		DispatchOnMicrogamePostEnd();
 
 		CleanupAllVocalizations();
 
@@ -1116,9 +1339,6 @@ public Action EndGame(Handle hTimer)
 				EmitSoundToClient(i, sound, SOUND_FROM_PLAYER, SNDCHAN_AUTO, SNDLEVEL_NORMAL, SND_NOFLAGS, SNDVOL_NORMAL, GetSoundMultiplier());
 			}
 		}
-
-		// Clear all functions from forwards
-		RemoveAllFromForward(g_OnAlmostEnd, INVALID_HANDLE);
 
 		for (new i = 1; i <= MaxClients; i++)
 		{
@@ -1981,18 +2201,15 @@ RemoveNotifyFlag(String:name[128])
 	SetConVarFlags(cv1, flags);
 }
 
-InitMinigame(id)
+void InitMinigame(int id)
 {
-	GiveId();
-	Call_StartFunction(INVALID_HANDLE, g_initFuncs[id - 1]);
-	Call_Finish();
+	DispatchOnMicrogameStart();
 
 	for (int i = 1; i <= MaxClients; i++)
 	{
 		if (IsValidClient(i) && IsClientParticipating(i))
 		{
-			Microgame mg = GetCurrentMicrogame();
-			mg.OnClientJustEntered(i);
+			DispatchOnClientJustEntered(i);
 		}
 	}
 }

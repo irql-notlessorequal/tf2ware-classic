@@ -8,11 +8,9 @@ static int SPYCRAB_SKY_SPRITE = -1;
 
 methodmap Spycrab < Microgame
 {
-	public native Spycrab();
-
-	public int GetMicrogameIdentifier()
+	public Spycrab()
 	{
-		return MG_SPYCRAB;
+		return view_as<Spycrab>(MG_SPYCRAB);
 	}
 
 	public void OnMicrogameStart()
@@ -113,50 +111,5 @@ public Spycrab_OnMinigame() {
 	} else {
 		Spycrab_sprite_sky = -1;
 	}*/
-}
-
-public void Spycrab_TimerMinigame(int timer) {
-	if (timer == 3) {
-		float min;
-		float ang[3];
-		int duck;
-		
-		for (int i = 1; i <= MaxClients; i++) {
-			min = -35.0;
-			if (IsValidClient(i) && IsPlayerAlive(i) && IsClientParticipating(i)) {
-				if (GetEntProp(i, Prop_Send, "m_nPlayerCond") & 16) SetEntProp(i, Prop_Send, "m_nPlayerCond", 0);
-				SetEntPropFloat(i, Prop_Send, "m_flCloakMeter", 0.0);
-				TF2_RemovePlayerDisguise(i);
-				
-				duck = (GetEntData(i, FindSendPropOffs("CTFPlayer", "m_fFlags")) & 2);
-			  
-				GetClientEyeAngles(i, ang);
-				if (ang[0] > min || duck == 0) {
-					ForcePlayerSuicide(i);
-					SetStateClient(i, false, true);
-					// Explain to the client what he should've done so he isn't left clueless.
-					// We should probably add a translation file but I have no clue how those work D:
-					if (g_Country[i] == 1) {
-					if (ang[0] > min && duck == 0) CPrintToChat(i, "{default}Le spycrab {red}si abbassano {default}e {red}guardano su{default}!");
-					else if (ang[0] > min) CPrintToChat(i, "{default}Le spycrab {default}si abbassano e {red}guardano su{default}!");
-					else CPrintToChat(i, "{default}Le spycrab {red}si abbassano{default} e guardano su!");
-					}
-					else {
-						if (ang[0] > min && duck == 0) CPrintToChat(i, "{default}Spycrabs {red}crouch {default}and {red}look up{default}!");
-						else if (ang[0] > min) CPrintToChat(i, "{default}Spycrabs {default}crouch and {red}look up{default}!");
-						else CPrintToChat(i, "{default}Spycrabs {red}crouch{default} and look up!");
-					}
-				}
-			}
-		}
-	}
-}
-
-public Spycrab_justEntered(client) {
-	if (IsValidClient(client)) {
-		RemoveClientWeapons(client);
-		SetClientClass(client, "spy");
-		GiveClientWeapon(client, "tf_weapon_pda_spy", 3, true);
-	}
 }
 #endif
