@@ -113,6 +113,7 @@ Microgame currentMicrogame;
 #endif
 
 #include "tf2ware/microgames/airblast.inc"
+#include "tf2ware/microgames/colortext.inc"
 #include "tf2ware/microgames/spycrab.inc"
 #include "tf2ware/microgames/barrel.inc"
 #include "tf2ware/microgames/kamikaze.inc"
@@ -136,7 +137,6 @@ Microgame currentMicrogame;
 #include "tf2ware/microgames/snipertarget.inc"
 #include "tf2ware/microgames/airraid.inc"
 #include "tf2ware/microgames/jumprope.inc"
-#include "tf2ware/microgames/colortext.inc"
 #include "tf2ware/microgames/frogger.inc"
 #include "tf2ware/microgames/goomba.inc"
 #include "tf2ware/microgames/ghostbusters.inc"
@@ -199,6 +199,7 @@ public void OnPluginStart()
 
 	// MINIGAME REGISTRATION
 	AddMiniGame(MG_AIRBLAST, new Airblast());
+	AddMiniGame(MG_COLOR_TEXT, new ColorText());
 	AddMiniGame(MG_BARREL, new Barrel());
 	AddMiniGame(MG_KAMIKAZE, new Kamikaze());
 	AddMiniGame(MG_SAW_RUN, new Sawrun());
@@ -291,7 +292,6 @@ public void OnMapStart()
 		RegMinigame("SniperTarget", SniperTarget_OnMinigame, SniperTarget_Init);
 		RegMinigame("Airraid", Airraid_OnMinigame);
 		RegMinigame("JumpRope", JumpRope_OnMinigame);
-		RegMinigame("ColorText", ColorText_OnMinigame);
 		RegMinigame("Frogger", Frogger_OnMinigame, Frogger_Init);
 		RegMinigame("Goomba", Goomba_OnMinigame);
 		RegMinigame("Ghostbusters", Ghostbusters_OnMinigame, Ghostbusters_Init);
@@ -457,6 +457,11 @@ void DispatchOnMicrogameSetup()
 			view_as<Barrel>(currentMicrogame).OnMicrogameSetup();
 		}
 
+		case MG_COLOR_TEXT:
+		{
+			view_as<ColorText>(currentMicrogame).OnMicrogameSetup();
+		}
+
 		case MG_KAMIKAZE:
 		{
 			view_as<Kamikaze>(currentMicrogame).OnMicrogameSetup();
@@ -496,6 +501,11 @@ void DispatchOnClientJustEntered(int client)
 		case MG_BARREL:
 		{
 			view_as<Barrel>(currentMicrogame).OnClientJustEntered(client);
+		}
+
+		case MG_COLOR_TEXT:
+		{
+			view_as<ColorText>(currentMicrogame).OnClientJustEntered(client);
 		}
 
 		case MG_KAMIKAZE:
@@ -539,6 +549,11 @@ void DispatchOnMicrogameStart()
 			view_as<Barrel>(currentMicrogame).OnMicrogameStart();
 		}
 
+		case MG_COLOR_TEXT:
+		{
+			view_as<ColorText>(currentMicrogame).OnMicrogameStart();
+		}
+
 		case MG_KAMIKAZE:
 		{
 			view_as<Kamikaze>(currentMicrogame).OnMicrogameStart();
@@ -578,6 +593,11 @@ void DispatchOnMicrogameTimer(int timeLeft)
 		case MG_BARREL:
 		{
 			view_as<Barrel>(currentMicrogame).OnMicrogameTimer(timeLeft);
+		}
+
+		case MG_COLOR_TEXT:
+		{
+			view_as<ColorText>(currentMicrogame).OnMicrogameTimer(timeLeft);
 		}
 
 		case MG_KAMIKAZE:
@@ -621,6 +641,11 @@ void DispatchOnMicrogameEnd()
 			view_as<Barrel>(currentMicrogame).OnMicrogameEnd();
 		}
 
+		case MG_COLOR_TEXT:
+		{
+			view_as<ColorText>(currentMicrogame).OnMicrogameEnd();
+		}
+
 		case MG_KAMIKAZE:
 		{
 			view_as<Kamikaze>(currentMicrogame).OnMicrogameEnd();
@@ -662,6 +687,11 @@ void DispatchOnMicrogamePostEnd()
 			view_as<Barrel>(currentMicrogame).OnMicrogamePostEnd();
 		}
 
+		case MG_COLOR_TEXT:
+		{
+			view_as<ColorText>(currentMicrogame).OnMicrogamePostEnd();
+		}
+
 		case MG_KAMIKAZE:
 		{
 			view_as<Kamikaze>(currentMicrogame).OnMicrogamePostEnd();
@@ -701,6 +731,11 @@ void DispatchOnMicrogameFrame()
 		case MG_BARREL:
 		{
 			view_as<Barrel>(currentMicrogame).OnMicrogameFrame();
+		}
+
+		case MG_COLOR_TEXT:
+		{
+			view_as<ColorText>(currentMicrogame).OnMicrogameFrame();
 		}
 
 		case MG_KAMIKAZE:
