@@ -64,3 +64,37 @@ enum SpecialRounds
 
 	_MAX = THIRDPERSON
 };
+
+enum Microgames
+{
+	MG_NONE = 0,
+
+	/* */
+
+	MG_HIT_ENEMY = 1,
+	MG_KAMIKAZE = 2,
+	MG_BARREL = 3,
+	MG_SAW_RUN = 4,
+	MG_NEEDLE_JUMP = 5,
+	MG_HOPSCOTCH = 6,
+	/* */
+	MG_AIRBLAST = 8,
+	MG_MATH = 9,
+	MG_MOVEMENT = 10,
+	MG_FLOOD = 11,
+	/* */
+	MG_BBALL = 13,
+	MG_HUGGING = 14,
+	MG_SIMON_SAYS = 15,
+	MG_RED_FLOOR = 16,
+	MG_SPYCRAB = 17,
+	MG_SNIPER_TARGET = 18,
+	MG_AIR_RAID = 19,
+	MG_JUMP_ROPE = 20,
+	MG_COLOR_TEXT = 21,
+	MG_FROGGER = 22,
+	MG_GOOMBA = 23,
+	MG_PINATA = 24,
+	MG_GHOSTBUSTERS = 25,
+	MG_MANDRILL = 26
+}

@@ -21,6 +21,11 @@ methodmap SimonSays < Microgame
 {
 	public native SimonSays();
 
+	public int GetMicrogameIdentifier()
+	{
+		return MG_SIMON_SAYS;
+	}
+
 	public void OnMicrogameStart()
 	{
 		simon_action = GetRandomInt(0,2);
