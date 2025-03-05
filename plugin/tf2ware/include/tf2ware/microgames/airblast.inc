@@ -1,63 +1,74 @@
-// Airblast module
+#include "../microgame.inc"
+methodmap Airblast < Microgame
+{
+	public native Airblast();
 
-public Airblast_OnMinigame() {
-    AddToForward(g_justEntered, INVALID_HANDLE, Airblast_justEntered);
-    AddToForward(g_OnEndMinigame, INVALID_HANDLE, Airblast_End);
-    // Hopscotch game has the same exact check
-    AddToForward(g_OnAlmostEnd, INVALID_HANDLE, Airblast_CheckDeadPlayers);
-    
-    SetStateAll(true);
-    g_attack = true;
+	public int GetMicrogameIdentifier()
+	{
+		return 1;
+	}
+
+	public void OnClientJustEntered(int client)
+	{
+		if (IsValidClient(client))
+		{
+			SDKHook(client, SDKHook_PreThink, Airblast_RemoveLeftClick);
+	
+			RemoveClientWeapons(client);
+			SetClientClass(client, "pyro");
+			GiveClientWeapon(client, "tf_weapon_flamethrower", 0, true);
+			SetClientClass(client, "pyro");
+		
+			float vel[3];
+			vel[0] = 0.0;
+			vel[1] = 0.0;
+			vel[2] = 0.0;
+		
+			int total = GetActivePlayers();
+			float posa = 360 / total * (g_Id[client] - 1);
+		
+			float pos[3];
+			pos[0] = 3544.661133 + (Cosine(DegToRad(posa)) * 220.0);
+			pos[1] = -160.203690 - (Sine(DegToRad(posa)) * 220.0);
+			pos[2] = -91.027405;
+
+			float ang[3];
+			ang[0] = 0.0;
+			ang[1] = (180 - posa);
+			ang[2] = 0.0;
+			TeleportEntity(client, pos, ang, vel);
+		}
+	}
+
+	public void OnMicrogameEnd()
+	{
+		for (int i = 1; i <= MaxClients; i++)
+		{
+			SDKUnhook(i, SDKHook_PreThink, Airblast_RemoveLeftClick);
+		}
+	}
 }
 
-public Airblast_justEntered(client) {
-    if (IsValidClient(client)) {
-        SDKHook(client, SDKHook_PreThink, Airblast_RemoveLeftClick);
-    
-        RemoveClientWeapons(client);
-        SetClientClass(client, "pyro");
-        GiveClientWeapon(client, "tf_weapon_flamethrower", 0, true);
-        SetClientClass(client, "pyro");
-        
-        decl Float:vel[3];
-        vel[0] = 0.0;
-        vel[1] = 0.0;
-        vel[2] = 0.0;
-        
-        new total = GetActivePlayers();
-        new posa = 360 / total * (g_Id[client]-1);
-        
-        decl Float:pos[3];
-        pos[0] = 3544.661133   + (Cosine(DegToRad(float(posa)))*220.0);
-        pos[1] = -160.203690  - (Sine(DegToRad(float(posa)))*220.0);
-        pos[2] = -91.027405;
-
-        decl Float:ang[3];
-        ang[0] = 0.0;
-        ang[1] = float(180-posa);
-        ang[2] = 0.0;
-        TeleportEntity(client, pos, ang, vel);
-    }
+void Airblast_RemoveLeftClick(int client)
+{
+	int iButtons = GetClientButtons(client);
+	if ((status == 2))
+	{
+		if ((iButtons & IN_ATTACK))
+		{
+			iButtons &= ~IN_ATTACK;
+			SetEntProp(client, Prop_Data, "m_nButtons", iButtons);
+		}
+	}
 }
 
-public Airblast_RemoveLeftClick(client) {
-    new iButtons = GetClientButtons(client);
-    if ((status == 2) && GetConVarBool(ww_enable) && g_enabled) {
-        if ((iButtons & IN_ATTACK)) {
-            iButtons &= ~IN_ATTACK;
-            SetEntProp(client, Prop_Data, "m_nButtons", iButtons);
-        }
-    }
-}
-
-public Airblast_CheckDeadPlayers() {
-    for (new i = 1; i <= MaxClients; i++) {
-        if (IsValidClient(i) && (!(IsPlayerAlive(i))) && IsClientParticipating(i)) SetStateClient(i, false, true);
-    }
-}
-
-public Airblast_End() {
-    for (new i = 1; i <= MaxClients; i++) {
-        SDKUnhook(i, SDKHook_PreThink, Airblast_RemoveLeftClick);
-    }
+void Airblast_CheckDeadPlayers()
+{
+	for (int i = 1; i <= MaxClients; i++)
+	{
+		if (IsValidClient(i) && (!(IsPlayerAlive(i))) && IsClientParticipating(i))
+		{
+			SetStateClient(i, false, true);
+		}
+	}
 }
