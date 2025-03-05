@@ -46,6 +46,11 @@
 #define GAMEMODE_WIPEOUT		1
 #define GAMEMODE_WIPEOUT_HEIGHT 1190.0
 
+#define WW_BOMB "pl_hoodoo/alarm_clock_ticking_3.wav"
+#define WW_BOMB_MODEL "models/custom/dirty_bomb_cart.mdl"
+#define PARTICLE_BOMB "cinefx_goldrush_embers"
+#define PARTICLE_EXPLODE "cinefx_goldrush_initial_smoke"
+
 enum SpecialRounds
 {
 	NONE = 0,
