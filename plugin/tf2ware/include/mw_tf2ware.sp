@@ -127,13 +127,13 @@ Microgame currentMicrogame;
 #include "tf2ware/microgames/sawrun.inc"
 #include "tf2ware/microgames/simonsays.inc"
 #include "tf2ware/microgames/movement.inc"
+#include "tf2ware/microgames/snipertarget.inc"
 
 #if 0
 #include "tf2ware/microgames/flood.inc"
 #include "tf2ware/microgames/bball.inc"
 #include "tf2ware/microgames/hugging.inc"
 #include "tf2ware/microgames/redfloor.inc"
-#include "tf2ware/microgames/snipertarget.inc"
 #include "tf2ware/microgames/airraid.inc"
 #include "tf2ware/microgames/jumprope.inc"
 #include "tf2ware/microgames/frogger.inc"
@@ -204,6 +204,7 @@ public void OnPluginStart()
 	AddMiniGame(MG_MOVEMENT, new Movement());
 	AddMiniGame(MG_SAW_RUN, new Sawrun());
 	AddMiniGame(MG_SIMON_SAYS, new SimonSays());
+	AddMiniGame(MG_SNIPER_TARGET, new SniperTarget());
 	AddMiniGame(MG_SPYCRAB, new Spycrab());
 }
 
@@ -482,6 +483,11 @@ void DispatchOnMicrogameSetup()
 			view_as<SimonSays>(currentMicrogame).OnMicrogameSetup();
 		}
 
+		case MG_SNIPER_TARGET:
+		{
+			view_as<SniperTarget>(currentMicrogame).OnMicrogameSetup();
+		}
+
 		case MG_SPYCRAB:
 		{
 			view_as<Spycrab>(currentMicrogame).OnMicrogameSetup();
@@ -531,6 +537,11 @@ void DispatchOnClientJustEntered(int client)
 		case MG_SIMON_SAYS:
 		{
 			view_as<SimonSays>(currentMicrogame).OnClientJustEntered(client);
+		}
+
+		case MG_SNIPER_TARGET:
+		{
+			view_as<SniperTarget>(currentMicrogame).OnClientJustEntered(client);
 		}
 
 		case MG_SPYCRAB:
@@ -584,6 +595,11 @@ void DispatchOnMicrogameStart()
 			view_as<SimonSays>(currentMicrogame).OnMicrogameStart();
 		}
 
+		case MG_SNIPER_TARGET:
+		{
+			view_as<SniperTarget>(currentMicrogame).OnMicrogameStart();
+		}
+
 		case MG_SPYCRAB:
 		{
 			view_as<Spycrab>(currentMicrogame).OnMicrogameStart();
@@ -633,6 +649,11 @@ void DispatchOnMicrogameTimer(int timeLeft)
 		case MG_SIMON_SAYS:
 		{
 			view_as<SimonSays>(currentMicrogame).OnMicrogameTimer(timeLeft);
+		}
+
+		case MG_SNIPER_TARGET:
+		{
+			view_as<SniperTarget>(currentMicrogame).OnMicrogameTimer(timeLeft);
 		}
 
 		case MG_SPYCRAB:
@@ -686,6 +707,11 @@ void DispatchOnMicrogameEnd()
 			view_as<SimonSays>(currentMicrogame).OnMicrogameEnd();
 		}
 
+		case MG_SNIPER_TARGET:
+		{
+			view_as<SniperTarget>(currentMicrogame).OnMicrogameEnd();
+		}
+
 		case MG_SPYCRAB:
 		{
 			view_as<Spycrab>(currentMicrogame).OnMicrogameEnd();
@@ -737,6 +763,11 @@ void DispatchOnMicrogamePostEnd()
 			view_as<SimonSays>(currentMicrogame).OnMicrogamePostEnd();
 		}
 
+		case MG_SNIPER_TARGET:
+		{
+			view_as<SniperTarget>(currentMicrogame).OnMicrogamePostEnd();
+		}
+
 		case MG_SPYCRAB:
 		{
 			view_as<Spycrab>(currentMicrogame).OnMicrogamePostEnd();
@@ -786,6 +817,11 @@ void DispatchOnMicrogameFrame()
 		case MG_SIMON_SAYS:
 		{
 			view_as<SimonSays>(currentMicrogame).OnMicrogameFrame();
+		}
+
+		case MG_SNIPER_TARGET:
+		{
+			view_as<SniperTarget>(currentMicrogame).OnMicrogameFrame();
 		}
 
 		case MG_SPYCRAB:
