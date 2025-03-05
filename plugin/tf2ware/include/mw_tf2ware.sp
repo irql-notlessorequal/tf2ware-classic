@@ -98,8 +98,6 @@ char materialpath[512]			   = "tf2ware/";
 // Name of current minigame being played
 char minigame[24];
 // VALID iMinigame FORWARD HANDLERS //////////////
-new Handle:g_OnMapStart;
-new Handle:g_OnAlmostEnd;
 
 /** We need to define it hear since we only just have imported the enum. */
 int SpecialRound = NONE;
@@ -117,9 +115,9 @@ Microgame currentMicrogame;
 #include "tf2ware/microgames/airblast.inc"
 #include "tf2ware/microgames/spycrab.inc"
 #include "tf2ware/microgames/barrel.inc"
+#include "tf2ware/microgames/kamikaze.inc"
 
 #if 0
-#include "tf2ware/microgames/kamikaze.inc"
 #include "tf2ware/microgames/math.inc"
 #include "tf2ware/microgames/needlejump.inc"
 #include "tf2ware/microgames/hopscotch.inc"
@@ -202,6 +200,7 @@ public void OnPluginStart()
 	// MINIGAME REGISTRATION
 	AddMiniGame(MG_AIRBLAST, new Airblast());
 	AddMiniGame(MG_BARREL, new Barrel());
+	AddMiniGame(MG_KAMIKAZE, new Kamikaze());
 	AddMiniGame(MG_SAW_RUN, new Sawrun());
 	AddMiniGame(MG_SIMON_SAYS, new SimonSays());
 	AddMiniGame(MG_SPYCRAB, new Spycrab());
@@ -276,9 +275,6 @@ public void OnMapStart()
 		ResetWinners();
 		SetMissionAll(0);
 
-		// FORWARDS FOR MINIGAMES
-		g_OnMapStart			= CreateForward(ET_Ignore);
-
 #if 0
 		RegMinigame("HitEnemy", HitEnemy_OnMinigame);
 		RegMinigame("Kamikaze", Kamikaze_OnMinigame);
@@ -330,8 +326,7 @@ public void OnMapStart()
 
 		if (GetConVarBool(ww_log)) LogMessage("Calling OnMapStart Forward");
 
-		Call_StartForward(g_OnMapStart);
-		Call_Finish();
+		DispatchOnMicrogameSetup();
 
 		precacheSound(MUSIC_START);
 		precacheSound(MUSIC_WIN);
@@ -448,6 +443,47 @@ public void OnMapStart()
  * tl;dr I should really start working on "source.js"
  */
 
+void DispatchOnMicrogameSetup()
+{
+	switch (view_as<Microgames>(currentMicrogame))
+	{
+		case MG_AIRBLAST:
+		{
+			view_as<Airblast>(currentMicrogame).OnMicrogameSetup();
+		}
+
+		case MG_BARREL:
+		{
+			view_as<Barrel>(currentMicrogame).OnMicrogameSetup();
+		}
+
+		case MG_KAMIKAZE:
+		{
+			view_as<Kamikaze>(currentMicrogame).OnMicrogameSetup();
+		}
+
+		case MG_SAW_RUN:
+		{
+			view_as<Sawrun>(currentMicrogame).OnMicrogameSetup();
+		}
+
+		case MG_SIMON_SAYS:
+		{
+			view_as<SimonSays>(currentMicrogame).OnMicrogameSetup();
+		}
+
+		case MG_SPYCRAB:
+		{
+			view_as<Spycrab>(currentMicrogame).OnMicrogameSetup();
+		}
+
+		default:
+		{
+			PrintToServer("[TF2Ware] [DispatchOnMicrogameSetup] Ignoring dispatch for unknown microgame %d.", currentMicrogame);
+		}
+	}
+}
+
 void DispatchOnClientJustEntered(int client)
 {
 	switch (view_as<Microgames>(currentMicrogame))
@@ -460,6 +496,11 @@ void DispatchOnClientJustEntered(int client)
 		case MG_BARREL:
 		{
 			view_as<Barrel>(currentMicrogame).OnClientJustEntered(client);
+		}
+
+		case MG_KAMIKAZE:
+		{
+			view_as<Kamikaze>(currentMicrogame).OnClientJustEntered(client);
 		}
 
 		case MG_SAW_RUN:
@@ -496,6 +537,11 @@ void DispatchOnMicrogameStart()
 		case MG_BARREL:
 		{
 			view_as<Barrel>(currentMicrogame).OnMicrogameStart();
+		}
+
+		case MG_KAMIKAZE:
+		{
+			view_as<Kamikaze>(currentMicrogame).OnMicrogameStart();
 		}
 		
 		case MG_SAW_RUN:
@@ -534,6 +580,11 @@ void DispatchOnMicrogameTimer(int timeLeft)
 			view_as<Barrel>(currentMicrogame).OnMicrogameTimer(timeLeft);
 		}
 
+		case MG_KAMIKAZE:
+		{
+			view_as<Kamikaze>(currentMicrogame).OnMicrogameTimer(timeLeft);
+		}
+
 		case MG_SAW_RUN:
 		{
 			view_as<Sawrun>(currentMicrogame).OnMicrogameTimer(timeLeft);
@@ -568,6 +619,11 @@ void DispatchOnMicrogameEnd()
 		case MG_BARREL:
 		{
 			view_as<Barrel>(currentMicrogame).OnMicrogameEnd();
+		}
+
+		case MG_KAMIKAZE:
+		{
+			view_as<Kamikaze>(currentMicrogame).OnMicrogameEnd();
 		}
 
 		case MG_SAW_RUN:
@@ -606,6 +662,11 @@ void DispatchOnMicrogamePostEnd()
 			view_as<Barrel>(currentMicrogame).OnMicrogamePostEnd();
 		}
 
+		case MG_KAMIKAZE:
+		{
+			view_as<Kamikaze>(currentMicrogame).OnMicrogamePostEnd();
+		}
+
 		case MG_SAW_RUN:
 		{
 			view_as<Sawrun>(currentMicrogame).OnMicrogamePostEnd();
@@ -640,6 +701,11 @@ void DispatchOnMicrogameFrame()
 		case MG_BARREL:
 		{
 			view_as<Barrel>(currentMicrogame).OnMicrogameFrame();
+		}
+
+		case MG_KAMIKAZE:
+		{
+			view_as<Kamikaze>(currentMicrogame).OnMicrogameFrame();
 		}
 
 		case MG_SAW_RUN:
