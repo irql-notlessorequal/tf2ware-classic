@@ -126,10 +126,9 @@ Microgame currentMicrogame;
 
 #include "tf2ware/microgames/sawrun.inc"
 #include "tf2ware/microgames/simonsays.inc"
-
+#include "tf2ware/microgames/movement.inc"
 
 #if 0
-#include "tf2ware/microgames/movement.inc"
 #include "tf2ware/microgames/flood.inc"
 #include "tf2ware/microgames/bball.inc"
 #include "tf2ware/microgames/hugging.inc"
@@ -202,6 +201,7 @@ public void OnPluginStart()
 	AddMiniGame(MG_COLOR_TEXT, new ColorText());
 	AddMiniGame(MG_BARREL, new Barrel());
 	AddMiniGame(MG_KAMIKAZE, new Kamikaze());
+	AddMiniGame(MG_MOVEMENT, new Movement());
 	AddMiniGame(MG_SAW_RUN, new Sawrun());
 	AddMiniGame(MG_SIMON_SAYS, new SimonSays());
 	AddMiniGame(MG_SPYCRAB, new Spycrab());
@@ -467,6 +467,11 @@ void DispatchOnMicrogameSetup()
 			view_as<Kamikaze>(currentMicrogame).OnMicrogameSetup();
 		}
 
+		case MG_MOVEMENT:
+		{
+			view_as<Movement>(currentMicrogame).OnMicrogameSetup();
+		}
+
 		case MG_SAW_RUN:
 		{
 			view_as<Sawrun>(currentMicrogame).OnMicrogameSetup();
@@ -513,6 +518,11 @@ void DispatchOnClientJustEntered(int client)
 			view_as<Kamikaze>(currentMicrogame).OnClientJustEntered(client);
 		}
 
+		case MG_MOVEMENT:
+		{
+			view_as<Movement>(currentMicrogame).OnClientJustEntered(client);
+		}
+
 		case MG_SAW_RUN:
 		{
 			view_as<Sawrun>(currentMicrogame).OnClientJustEntered(client);
@@ -557,6 +567,11 @@ void DispatchOnMicrogameStart()
 		case MG_KAMIKAZE:
 		{
 			view_as<Kamikaze>(currentMicrogame).OnMicrogameStart();
+		}
+
+		case MG_MOVEMENT:
+		{
+			view_as<Movement>(currentMicrogame).OnMicrogameStart();
 		}
 		
 		case MG_SAW_RUN:
@@ -605,6 +620,11 @@ void DispatchOnMicrogameTimer(int timeLeft)
 			view_as<Kamikaze>(currentMicrogame).OnMicrogameTimer(timeLeft);
 		}
 
+		case MG_MOVEMENT:
+		{
+			view_as<Movement>(currentMicrogame).OnMicrogameTimer(timeLeft);
+		}
+
 		case MG_SAW_RUN:
 		{
 			view_as<Sawrun>(currentMicrogame).OnMicrogameTimer(timeLeft);
@@ -649,6 +669,11 @@ void DispatchOnMicrogameEnd()
 		case MG_KAMIKAZE:
 		{
 			view_as<Kamikaze>(currentMicrogame).OnMicrogameEnd();
+		}
+
+		case MG_MOVEMENT:
+		{
+			view_as<Movement>(currentMicrogame).OnMicrogameEnd();
 		}
 
 		case MG_SAW_RUN:
@@ -697,6 +722,11 @@ void DispatchOnMicrogamePostEnd()
 			view_as<Kamikaze>(currentMicrogame).OnMicrogamePostEnd();
 		}
 
+		case MG_MOVEMENT:
+		{
+			view_as<Movement>(currentMicrogame).OnMicrogamePostEnd();
+		}
+
 		case MG_SAW_RUN:
 		{
 			view_as<Sawrun>(currentMicrogame).OnMicrogamePostEnd();
@@ -741,6 +771,11 @@ void DispatchOnMicrogameFrame()
 		case MG_KAMIKAZE:
 		{
 			view_as<Kamikaze>(currentMicrogame).OnMicrogameFrame();
+		}
+
+		case MG_MOVEMENT:
+		{
+			view_as<Movement>(currentMicrogame).OnMicrogameFrame();
 		}
 
 		case MG_SAW_RUN:
