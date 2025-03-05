@@ -19,11 +19,9 @@ new simon_or_someone;
 
 methodmap SimonSays < Microgame
 {
-	public native SimonSays();
-
-	public int GetMicrogameIdentifier()
+	public SimonSays()
 	{
-		return MG_SIMON_SAYS;
+		return view_as<SimonSays>(MG_SIMON_SAYS);
 	}
 
 	public void OnMicrogameStart()

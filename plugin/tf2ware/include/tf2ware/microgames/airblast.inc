@@ -1,11 +1,15 @@
 #include "../microgame.inc"
 methodmap Airblast < Microgame
 {
-	public native Airblast();
-
-	public int GetMicrogameIdentifier()
+	public Airblast()
 	{
-		return MG_AIRBLAST;
+		return view_as<Airblast>(MG_AIRBLAST);
+	}
+
+	public void OnMicrogameStart()
+	{
+		SetStateAll(true);
+		g_attack = true;
 	}
 
 	public void OnClientJustEntered(int client)
@@ -36,7 +40,19 @@ methodmap Airblast < Microgame
 			ang[0] = 0.0;
 			ang[1] = (180 - posa);
 			ang[2] = 0.0;
+
 			TeleportEntity(client, pos, ang, vel);
+		}
+	}
+
+	public void OnMicrogameEnd()
+	{
+		for (int i = 1; i <= MaxClients; i++)
+		{
+			if (IsValidClient(i) && (!(IsPlayerAlive(i))) && IsClientParticipating(i))
+			{
+				SetStateClient(i, false, true);
+			}
 		}
 	}
 
@@ -58,17 +74,6 @@ void Airblast_RemoveLeftClick(int client)
 		{
 			iButtons &= ~IN_ATTACK;
 			SetEntProp(client, Prop_Data, "m_nButtons", iButtons);
-		}
-	}
-}
-
-void Airblast_CheckDeadPlayers()
-{
-	for (int i = 1; i <= MaxClients; i++)
-	{
-		if (IsValidClient(i) && (!(IsPlayerAlive(i))) && IsClientParticipating(i))
-		{
-			SetStateClient(i, false, true);
 		}
 	}
 }
