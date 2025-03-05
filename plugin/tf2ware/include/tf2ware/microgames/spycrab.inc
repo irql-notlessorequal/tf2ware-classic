@@ -10,9 +10,24 @@ methodmap Spycrab < Microgame
 {
 	public native Spycrab();
 
+	public int GetMicrogameIdentifier()
+	{
+		return MG_SPYCRAB;
+	}
+
 	public void OnMicrogameStart()
 	{
 		SetStateAll(true);
+	}
+
+	public void OnClientJustEntered(int client)
+	{
+		if (IsValidClient(client))
+		{
+			RemoveClientWeapons(client);
+			SetClientClass(client, "spy");
+			GiveClientWeapon(client, "tf_weapon_pda_spy", 3, true);
+		}
 	}
 
 	public void OnMicrogameTimer(int timeLeft)
@@ -64,6 +79,7 @@ methodmap Spycrab < Microgame
 	}
 };
 
+#if 0
 public Spycrab_OnMinigame() {
 	AddToForward(g_justEntered, INVALID_HANDLE, Spycrab_justEntered);
 	AddToForward(g_OnTimerMinigame, INVALID_HANDLE, Spycrab_TimerMinigame);
@@ -143,3 +159,4 @@ public Spycrab_justEntered(client) {
 		GiveClientWeapon(client, "tf_weapon_pda_spy", 3, true);
 	}
 }
+#endif

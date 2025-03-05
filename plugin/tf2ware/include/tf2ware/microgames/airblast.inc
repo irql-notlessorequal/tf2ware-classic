@@ -5,7 +5,7 @@ methodmap Airblast < Microgame
 
 	public int GetMicrogameIdentifier()
 	{
-		return 1;
+		return MG_AIRBLAST;
 	}
 
 	public void OnClientJustEntered(int client)
@@ -40,7 +40,7 @@ methodmap Airblast < Microgame
 		}
 	}
 
-	public void OnMicrogameEnd()
+	public void OnMicrogamePostEnd()
 	{
 		for (int i = 1; i <= MaxClients; i++)
 		{

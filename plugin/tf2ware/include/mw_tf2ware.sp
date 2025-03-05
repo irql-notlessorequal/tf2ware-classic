@@ -99,12 +99,7 @@ char materialpath[512]			   = "tf2ware/";
 char minigame[24];
 // VALID iMinigame FORWARD HANDLERS //////////////
 new Handle:g_OnMapStart;
-new Handle:g_justEntered;
 new Handle:g_OnAlmostEnd;
-new Handle:g_OnTimerMinigame;
-new Handle:g_OnEndMinigame;
-new Handle:g_OnGameFrame_Minigames;
-new Handle:g_PlayerDeath;
 
 /** We need to define it hear since we only just have imported the enum. */
 int SpecialRound = NONE;
@@ -276,14 +271,13 @@ public void OnMapStart()
 
 		// FORWARDS FOR MINIGAMES
 		g_OnMapStart			= CreateForward(ET_Ignore);
-		g_justEntered			= CreateForward(ET_Ignore, Param_Cell);
 		g_OnAlmostEnd			= CreateForward(ET_Ignore);
-		g_OnTimerMinigame		= CreateForward(ET_Ignore, Param_Cell);
-		g_OnEndMinigame			= CreateForward(ET_Ignore);
-		g_OnGameFrame_Minigames = CreateForward(ET_Ignore);
-		g_PlayerDeath			= CreateForward(ET_Ignore, Param_Cell);
 
 		// MINIGAME REGISTRATION
+		AddMiniGame(new Airblast());
+		AddMiniGame(new SimonSays());
+		AddMiniGame(new Spycrab());
+
 #if 0
 		RegMinigame("HitEnemy", HitEnemy_OnMinigame);
 		RegMinigame("Spycrab", Spycrab_OnMinigame);
@@ -648,9 +642,8 @@ public EventInventoryApplication(Handle:event, const String:name[], bool:dontBro
 
 		if (status == 2 && IsClientParticipating(client))
 		{
-			Call_StartForward(g_justEntered);
-			Call_PushCell(client);
-			Call_Finish();
+			Microgame mg = GetCurrentMicrogame();
+			mg.OnClientJustEntered(client);
 
 			if (GetConVarBool(ww_overhead_scores))
 			{
@@ -694,9 +687,9 @@ public EventInventoryApplication(Handle:event, const String:name[], bool:dontBro
 	}
 }
 
-precacheSound(String:var0[])
+void precacheSound(char[] var0)
 {
-	new String:buffer[128];
+	char buffer[128];
 	PrecacheSound(var0, true);
 	Format(buffer, sizeof(buffer), "sound/%s", var0);
 	AddFileToDownloadsTable(buffer);
@@ -769,7 +762,7 @@ public void OnGameFrame()
 #endif
 }
 
-public Action:StartMinigame_timer(Handle:hTimer)
+public Action StartMinigame_timer(Handle hTimer)
 {
 	if (status == 0)
 	{
@@ -778,7 +771,7 @@ public Action:StartMinigame_timer(Handle:hTimer)
 	return Plugin_Stop;
 }
 
-public Action:StartMinigame_timer2(Handle:hTimer)
+public Action StartMinigame_timer2(Handle hTimer)
 {
 	if (status == 10)
 	{
@@ -788,47 +781,13 @@ public Action:StartMinigame_timer2(Handle:hTimer)
 	return Plugin_Stop;
 }
 
-RollMinigame()
+int RollMinigame()
 {
-	if (GetConVarBool(ww_log) && bossBattle != 1) LogMessage("Rolling normal microgame...");
-	if (GetConVarBool(ww_log) && bossBattle == 1) LogMessage("Rolling boss microgame...");
-	new Handle:roll = CreateArray();
-	new bool:accept = false;
-	new out			  = 1;
-	new iplayers	  = GetActivePlayers();
-	for (new i = 1; i <= sizeof(g_name); i++)
-	{
-		if (StrEqual(g_name[i - 1], "")) continue;
-		accept		   = true;
-		new gameisboss = GetMinigameConfNum(g_name[i - 1], "boss", 0);
-		if (iplayers < GetMinigameConfNum(g_name[i - 1], "minplayers", 1)) accept = false;
-		if ((bossBattle == 1) && (!gameisboss)) accept = false;
-		if ((bossBattle != 1) && (gameisboss)) accept = false;
-		if (i == g_lastminigame) accept = false;
-		if (i == g_lastboss) accept = false;
-		if (!GetMinigameConfNum(g_name[i - 1], "enable", 1)) accept = false;
-		for (new j = 0; j < GetMinigameConfNum(g_name[i - 1], "chance", 1); j++)
-		{
-			if (accept) PushArrayCell(roll, i);
-		}
-		if (GetConVarBool(ww_log) && (accept)) LogMessage("-- Microgame #%d allowed", i);
-		if (GetConVarBool(ww_log) && (accept == false)) LogMessage("-- Microgame #%d NOT allowed", i);
-	}
-
-	if (GetArraySize(roll) > 0) out = GetArrayCell(roll, GetRandomInt(0, GetArraySize(roll) - 1));
-	CloseHandle(roll);
-
-	new force = GetConVarInt(ww_force);
-	if (force > 0)
-	{
-		if (force - 1 < sizeof(g_name) && !StrEqual(g_name[force - 1], "")) out = GetConVarInt(ww_force);
-		else PrintToServer("Warning: Couldn't find a game with id %d, continuing with random roll.", GetConVarInt(ww_force));
-	}
-
-	if (GetConVarBool(ww_log)) LogMessage("Rolled microgame was: %s (id:%d)", g_name[out - 1], out);
-
-	if (GetConVarBool(ww_log)) LogMessage("Roll end");
-	return out;
+	/**
+	 * TODO: Rewrite the entire boss logic since it's a clusterfuck at the moment.
+	 */
+	currentMicrogame = GetRandomMicrogame();
+	return currentMicrogame.GetMicrogameIdentifier();
 }
 
 public Player_Team(Handle: event, const String: name[], bool: dontBroadcast)
@@ -1087,8 +1046,8 @@ public Action EndGame(Handle hTimer)
 	if (status == 2)
 	{
 		if (GetConVarBool(ww_log)) LogMessage("Microgame %s, (id:%d) ended!", minigame, iMinigame);
-		Call_StartForward(g_OnAlmostEnd);
-		Call_Finish();
+		Microgame mg = GetCurrentMicrogame();
+		mg.OnMicrogameEnd();	
 
 		g_AlwaysShowPoints = false;
 		status = 0;
@@ -1107,8 +1066,10 @@ public Action EndGame(Handle hTimer)
 
 		g_attack = (SpecialRound == BONK);
 
-		Microgame mg = GetCurrentMicrogame();
-		mg.OnMicrogameEnd();
+		/**
+		 * Send a late end event here to maintain compatiblity.
+		 */
+		mg.OnMicrogamePostEnd();
 
 		CleanupAllVocalizations();
 
@@ -1157,12 +1118,7 @@ public Action EndGame(Handle hTimer)
 		}
 
 		// Clear all functions from forwards
-		RemoveAllFromForward(g_justEntered, INVALID_HANDLE);
 		RemoveAllFromForward(g_OnAlmostEnd, INVALID_HANDLE);
-		RemoveAllFromForward(g_OnTimerMinigame, INVALID_HANDLE);
-		RemoveAllFromForward(g_OnEndMinigame, INVALID_HANDLE);
-		RemoveAllFromForward(g_OnGameFrame_Minigames, INVALID_HANDLE);
-		RemoveAllFromForward(g_PlayerDeath, INVALID_HANDLE);
 
 		for (new i = 1; i <= MaxClients; i++)
 		{
@@ -2031,30 +1987,28 @@ InitMinigame(id)
 	Call_StartFunction(INVALID_HANDLE, g_initFuncs[id - 1]);
 	Call_Finish();
 
-	for (new i = 1; i <= MaxClients; i++)
+	for (int i = 1; i <= MaxClients; i++)
 	{
 		if (IsValidClient(i) && IsClientParticipating(i))
 		{
-			Call_StartForward(g_justEntered);
-			Call_PushCell(i);
-			Call_Finish();
+			Microgame mg = GetCurrentMicrogame();
+			mg.OnClientJustEntered(i);
 		}
 	}
 }
 
-public Player_Death(Handle:event, const String:name[], bool:dontBroadcast)
+public void Player_Death(Handle event, const char[] name, bool dontBroadcast)
 {
-	new client = GetClientOfUserId(GetEventInt(event, "userid"));
+	int client = GetClientOfUserId(GetEventInt(event, "userid"));
 
 	DestroySprite(client);
 
 	if (GetConVarBool(ww_enable) && (status == 2))
 	{
-		if (g_PlayerDeath != INVALID_HANDLE && IsValidClient(client) && IsClientParticipating(client))
+		if (IsValidClient(client) && IsClientParticipating(client))
 		{
-			Call_StartForward(g_PlayerDeath);
-			Call_PushCell(client);
-			Call_Finish();
+			Microgame mg = GetCurrentMicrogame();
+			mg.OnClientDeath(client);
 		}
 	}
 
@@ -2064,7 +2018,7 @@ public Player_Death(Handle:event, const String:name[], bool:dontBroadcast)
 }
 
 // Some convenience functions for parsing the configuration file more simply.
-GotoGameConf(String:game[])
+void GotoGameConf(char[] game)
 {
 	if (!KvJumpToKey(MinigameConf, game))
 	{
