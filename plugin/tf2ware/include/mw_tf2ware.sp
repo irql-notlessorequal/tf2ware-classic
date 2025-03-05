@@ -25,123 +25,78 @@
 	#include <attachables>
 #endif
 
-#define MAX_MINIGAMES		 40
+/**
+ * Provides defines and core enums.
+ */
+#include "tf2ware/tf2ware_core.inc"
 
-#define PLUGIN_VERSION		 "0.0.11"
-
-#define MUSIC2_START		 "imgay/tf2ware/tf2ware_intro.mp3"
-#define MUSIC2_START_LEN	 2.18
-#define MUSIC2_WIN			 "imgay/tf2ware/tf2ware_win.mp3"
-#define MUSIC2_FAIL			 "imgay/tf2ware/tf2ware_fail.mp3"
-#define MUSIC2_END_LEN		 2.2
-#define MUSIC2_SPEEDUP		 "imgay/tf2ware/tf2ware_speedup.mp3"
-#define MUSIC2_SPEEDUP_LEN	 3.29
-#define MUSIC2_BOSS			 "imgay/tf2ware/boss.mp3"
-#define MUSIC2_BOSS_LEN		 3.9
-#define MUSIC2_GAMEOVER		 "imgay/tf2ware/warioman_gameover.mp3"
-#define MUSIC2_GAMEOVER_LEN	 8.17
-
-#define MUSIC_START			 "imgay/tf2ware/warioman_intro.mp3"
-#define MUSIC_START_LEN		 2.17
-#define MUSIC_WIN			 "imgay/tf2ware/warioman_win.mp3"
-#define MUSIC_FAIL			 "imgay/tf2ware/warioman_fail.mp3"
-#define MUSIC_END_LEN		 2.19
-#define MUSIC_SPEEDUP		 "imgay/tf2ware/warioman_speedup.mp3"
-#define MUSIC_SPEEDUP_LEN	 3.9
-#define MUSIC_BOSS			 "imgay/tf2ware/warioman_boss.mp3"
-#define MUSIC_BOSS_LEN		 4.2
-#define MUSIC_GAMEOVER		 "imgay/tf2ware/warioman_gameover.mp3"
-#define MUSIC_GAMEOVER_LEN	 8.17
-
-#define SOUND_COMPLETE		 "imgay/tf2ware/complete_me.mp3"
-#define SOUND_COMPLETE_YOU	 "imgay/tf2ware/complete_you.mp3"
-#define SOUND_MINISCORE		 "items/pumpkin_drop.wav"
-#define SOUND_HEAVY_KISS	 "vo/heavy_generic01.wav"
-#define MUSIC_WAITING		 "imgay/tf2ware/waitingforplayers.mp3"
-#define MUSIC_SPECIAL		 "imgay/tf2ware/specialround.mp3"
-#define MUSIC_SPECIAL_LEN	 13.5
-#define SOUND_SELECT		 "imgay/tf2ware/select.mp3"
-
-#define SND_CHANNEL_SPECIFIC 32
-
-#define PARTICLE_WIN_BLUE	 "teleportedin_blue"
-#define PARTICLE_WIN_RED	 "teleportedin_red"
-
-#define TF2_PLAYER_TAUNTING	 (1 << 7)	 // 128        Taunting
-
-#define GAMEMODE_NORMAL			0
-#define GAMEMODE_WIPEOUT		1
-#define GAMEMODE_WIPEOUT_HEIGHT 1190.0
-
-new String:g_name[MAX_MINIGAMES][24];
+char g_name[MAX_MINIGAMES][24];
 new Function:g_initFuncs[MAX_MINIGAMES];
 
 // Language strings
-new String:var_lang[][] = { "", "it/" };
+char var_lang[][] = { "", "it/" };
 
 // Handles
-new Handle:ww_enable;
-new Handle:ww_speed;
-new Handle:ww_music;
-new Handle:ww_force;
-new Handle:ww_log;
-new Handle:ww_special;
-new Handle:ww_gamemode;
-new Handle:ww_force_special;
-new Handle:ww_overhead_scores;
-new Handle:ww_allowedCommands;
-new Handle:hudScore;
+Handle ww_enable = INVALID_HANDLE;
+Handle ww_speed = INVALID_HANDLE;
+Handle ww_music = INVALID_HANDLE;
+Handle ww_force = INVALID_HANDLE;
+Handle ww_log = INVALID_HANDLE;
+Handle ww_special = INVALID_HANDLE;
+Handle ww_gamemode = INVALID_HANDLE;
+Handle ww_force_special = INVALID_HANDLE;
+Handle ww_overhead_scores = INVALID_HANDLE;
+Handle ww_allowedCommands = INVALID_HANDLE;
+Handle hudScore = INVALID_HANDLE;
 // REPLACE WEAPON
-new Handle:microgametimer		  = INVALID_HANDLE;
+Handle microgametimer = INVALID_HANDLE;
 
 // Keyvalues configuration handle
 new Handle:MinigameConf		  = INVALID_HANDLE;
 
 // Bools
-new bool:g_Complete[MAXPLAYERS + 1];
-new bool:g_Spawned[MAXPLAYERS + 1];
-new bool:g_ModifiedOverlay[MAXPLAYERS + 1];
-new bool:g_attack	 = false;
-new bool:g_enabled = false;
-new bool:g_first	 = false;
-new bool:g_waiting = true;
-new bool:g_AlwaysShowPoints = false;
+bool g_Complete[MAXPLAYERS + 1];
+bool g_Spawned[MAXPLAYERS + 1];
+bool g_ModifiedOverlay[MAXPLAYERS + 1];
+bool g_attack	 = false;
+bool g_enabled = false;
+bool g_first	 = false;
+bool g_waiting = true;
+bool g_AlwaysShowPoints = false;
 
 // Ints
-new g_Mission[MAXPLAYERS + 1];
-new g_NeedleDelay[MAXPLAYERS + 1];
-new g_Points[MAXPLAYERS + 1];
-new g_Id[MAXPLAYERS + 1];
-new g_Winner[MAXPLAYERS + 1];
-new g_Minipoints[MAXPLAYERS + 1];
-new g_Country[MAXPLAYERS + 1];
-new g_Sprites[MAXPLAYERS+1];
-new Float:currentSpeed;
-new iMinigame;
-new status;
-new randommini;
-new g_offsCollisionGroup;
-new timeleft = 8;
-new white;
-new g_HaloSprite;
-new g_ExplosionSprite;
-new g_result = 0;
-new String:g_mathquestion[24];
-new g_bomb								   = 0;
-new Roundstarts							   = 0;
-new g_lastminigame						   = 0;
-new g_lastboss							   = 0;
-new g_minigamestotal					   = 0;
-new bossBattle							   = 0;
-new SpecialRound						   = 0;
-new bool:g_Participating[MAXPLAYERS + 1] = false;
-new g_Gamemode							   = 0;
+int g_Mission[MAXPLAYERS + 1];
+int g_NeedleDelay[MAXPLAYERS + 1];
+int g_Points[MAXPLAYERS + 1];
+int g_Id[MAXPLAYERS + 1];
+int g_Winner[MAXPLAYERS + 1];
+int g_Minipoints[MAXPLAYERS + 1];
+int g_Country[MAXPLAYERS + 1];
+int g_Sprites[MAXPLAYERS+1];
+float currentSpeed;
+int iMinigame;
+int status;
+int randommini;
+int g_offsCollisionGroup;
+int timeleft = 8;
+int white;
+int g_HaloSprite;
+int g_ExplosionSprite;
+int g_result = 0;
+char g_mathquestion[24];
+int g_bomb								   = 0;
+int Roundstarts							   = 0;
+int g_lastminigame						   = 0;
+int g_lastboss							   = 0;
+int g_minigamestotal					   = 0;
+int bossBattle							   = 0;
+bool g_Participating[MAXPLAYERS + 1] = false;
+int g_Gamemode							   = 0;
 
 // Strings
-new String:materialpath[512]			   = "tf2ware/";
+char materialpath[512]			   = "tf2ware/";
 // Name of current minigame being played
-new String:minigame[24];
-
+char minigame[24];
 // VALID iMinigame FORWARD HANDLERS //////////////
 new Handle:g_OnMapStart;
 new Handle:g_justEntered;
@@ -150,37 +105,57 @@ new Handle:g_OnTimerMinigame;
 new Handle:g_OnEndMinigame;
 new Handle:g_OnGameFrame_Minigames;
 new Handle:g_PlayerDeath;
+
+/** We need to define it hear since we only just have imported the enum. */
+int SpecialRound = NONE;
+Microgame currentMicrogame;
 /////////////////////////////////////////
 
-#include tf2ware/microgames/hitenemy.inc
-#include tf2ware/microgames/spycrab.inc
-#include tf2ware/microgames/kamikaze.inc
-#include tf2ware/microgames/math.inc
-#include tf2ware/microgames/sawrun.inc
-#include tf2ware/microgames/barrel.inc
-#include tf2ware/microgames/needlejump.inc
-#include tf2ware/microgames/hopscotch.inc
-#include tf2ware/microgames/airblast.inc
-#include tf2ware/microgames/movement.inc
-#include tf2ware/microgames/flood.inc
-#include tf2ware/microgames/simonsays.inc
-#include tf2ware/microgames/bball.inc
-#include tf2ware/microgames/hugging.inc
-#include tf2ware/microgames/redfloor.inc
-#include tf2ware/microgames/snipertarget.inc
-#include tf2ware/microgames/airraid.inc
-#include tf2ware/microgames/jumprope.inc
-#include tf2ware/microgames/colortext.inc
-#include tf2ware/microgames/frogger.inc
-#include tf2ware/microgames/goomba.inc
-#include tf2ware/microgames/ghostbusters.inc
+#include "tf2ware/microgame.inc"
 
-#include tf2ware/mw_tf2ware_features.inc
-#include tf2ware/overhead_scores.inc
-#include tf2ware/special.inc
-#include tf2ware/vocalize.inc
+/////////////////////////////////////////
 
-public Plugin:myinfo = {
+#if 0
+#include "tf2ware/microgames/hitenemy.inc"
+#endif
+
+#include "tf2ware/microgames/airblast.inc"
+#include "tf2ware/microgames/spycrab.inc"
+
+#if 0
+#include "tf2ware/microgames/kamikaze.inc"
+#include "tf2ware/microgames/math.inc"
+#include "tf2ware/microgames/sawrun.inc"
+#include "tf2ware/microgames/barrel.inc"
+#include "tf2ware/microgames/needlejump.inc"
+#include "tf2ware/microgames/hopscotch.inc"
+#endif
+
+#include "tf2ware/microgames/simonsays.inc"
+
+
+#if 0
+#include "tf2ware/microgames/movement.inc"
+#include "tf2ware/microgames/flood.inc"
+#include "tf2ware/microgames/bball.inc"
+#include "tf2ware/microgames/hugging.inc"
+#include "tf2ware/microgames/redfloor.inc"
+#include "tf2ware/microgames/snipertarget.inc"
+#include "tf2ware/microgames/airraid.inc"
+#include "tf2ware/microgames/jumprope.inc"
+#include "tf2ware/microgames/colortext.inc"
+#include "tf2ware/microgames/frogger.inc"
+#include "tf2ware/microgames/goomba.inc"
+#include "tf2ware/microgames/ghostbusters.inc"
+#endif
+
+#include "tf2ware/mw_tf2ware_features.inc"
+#include "tf2ware/overhead_scores.inc"
+#include "tf2ware/special.inc"
+#include "tf2ware/vocalize.inc"
+
+public Plugin myinfo =
+{
 	name		= "TF2Ware Classic",
 	author		= "Mecha the Slag, IRQL_NOT_LESS_OR_EQUAL",
 	description = "Wario Ware in Team Fortress 2!",
@@ -188,7 +163,7 @@ public Plugin:myinfo = {
 	url			= "https://github.com/irql-notlessorequal/tf2ware-classic"
 };
 
-public OnPluginStart()
+public void OnPluginStart()
 {
 	// G A M E  C H E C K //
 	decl String:game[32];
@@ -230,7 +205,7 @@ public OnPluginStart()
 	ww_overhead_scores = CreateConVar("ww_overhead_scores", "0", "Re-enables overhead scores, a feature that was long removed.", FCVAR_PLUGIN);
 }
 
-public OnMapStart()
+public void OnMapStart()
 {
 	// Check if the map has tf2ware at the beginning, otherwise tf2ware should be disabled
 	// (A bit hacky I suppose)
@@ -309,6 +284,7 @@ public OnMapStart()
 		g_PlayerDeath			= CreateForward(ET_Ignore, Param_Cell);
 
 		// MINIGAME REGISTRATION
+#if 0
 		RegMinigame("HitEnemy", HitEnemy_OnMinigame);
 		RegMinigame("Spycrab", Spycrab_OnMinigame);
 		RegMinigame("Kamikaze", Kamikaze_OnMinigame);
@@ -331,6 +307,7 @@ public OnMapStart()
 		RegMinigame("Frogger", Frogger_OnMinigame, Frogger_Init);
 		RegMinigame("Goomba", Goomba_OnMinigame);
 		RegMinigame("Ghostbusters", Ghostbusters_OnMinigame, Ghostbusters_Init);
+#endif
 
 		// CHEATS
 		HookConVarChange(FindConVar("sv_cheats"), OnConVarChanged_SvCheats);
@@ -343,7 +320,9 @@ public OnMapStart()
 		UpdateClientCheatValue();
 		HookAllCheatCommands();
 
+#if 0
 		DestroyAllBarrels();
+#endif
 
 		// HUD
 		hudScore = CreateHudSynchronizer();
@@ -465,17 +444,22 @@ public OnMapStart()
 	}
 }
 
-public Action:OnGetGameDescription(String:gameDesc[64])
+public Microgame GetCurrentMicrogame()
+{
+	return currentMicrogame;
+}
+
+public Action OnGetGameDescription(char gameDesc[64])
 {
 	if (g_enabled)
 	{
 		Format(gameDesc, sizeof(gameDesc), "TF2Ware Classic");
+		return Plugin_Changed;
 	}
 	else
 	{
-		Format(gameDesc, sizeof(gameDesc), "Team Fortress");
+		return Plugin_Continue;
 	}
-	return Plugin_Changed;
 }
 
 public Action:Timer_DisplayVersion(Handle:timer, any:client)
@@ -613,7 +597,7 @@ public Action:OnTakeDamageClient(victim, &attacker, &inflictor, &Float: damage, 
 public OnPreThink(client)
 {
 	new iButtons = GetClientButtons(client);
-	if ((status != 2) && GetConVarBool(ww_enable) && g_enabled && (g_Winner[client] == 0) && !(SpecialRound == 6 && status != 5))
+	if ((status != 2) && GetConVarBool(ww_enable) && g_enabled && (g_Winner[client] == 0) && !(SpecialRound == BONK && status != 5))
 	{
 		if ((iButtons & IN_ATTACK2) || (iButtons & IN_ATTACK))
 		{
@@ -679,7 +663,7 @@ public EventInventoryApplication(Handle:event, const String:name[], bool:dontBro
 			CreateSprite(client);
 		}
 
-		if ((status == 2 && g_attack) || (g_Winner[client] > 0) || (SpecialRound == 6))
+		if ((status == 2 && g_attack) || (g_Winner[client] > 0) || (SpecialRound == BONK))
 		{
 			SetWeaponState(client, true);
 		}
@@ -690,7 +674,7 @@ public EventInventoryApplication(Handle:event, const String:name[], bool:dontBro
 
 		HandlePlayerItems(client);
 
-		if (SpecialRound == 4)
+		if (SpecialRound == SINGLEPLAYER)
 		{
 			SetEntityRenderMode(client, RENDER_TRANSCOLOR);
 			SetEntityRenderColor(client, 255, 255, 255, 0);
@@ -747,8 +731,18 @@ public OverheadScoresChanged(Handle:cvar, const String:oldVal[], const String:ne
 	}
 }
 
-public OnGameFrame()
+public void OnGameFrame()
 {
+	if (!GetConVarBool(ww_enable))
+		return;
+
+	Microgame mg = GetCurrentMicrogame();
+	if (!mg)
+		return;
+
+	mg.OnMicrogameFrame();
+
+#if 0
 	if (GetConVarBool(ww_enable) && g_enabled && (status == 2) && (g_OnGameFrame_Minigames != INVALID_HANDLE))
 	{
 		Call_StartForward(g_OnGameFrame_Minigames);
@@ -768,7 +762,11 @@ public OnGameFrame()
 				}
 			}
 		}
+
+		Microgame mg;
+		mg.OnMicrogameFrame();
 	}
+#endif
 }
 
 public Action:StartMinigame_timer(Handle:hTimer)
@@ -893,7 +891,7 @@ StartMinigame()
 		RespawnAll();
 		RemoveAllParticipants();
 		UpdateHud(GetSpeedMultiplier(MUSIC_INFO_LEN));
-		if (SpecialRound == 4) NoCollision(true);
+		if (SpecialRound == SINGLEPLAYER) NoCollision(true);
 
 		currentSpeed = GetConVarFloat(ww_speed);
 		ServerCommand("host_timescale %f", GetHostMultiplier(1.0));
@@ -950,8 +948,8 @@ StartMinigame()
 		if (bossBattle == 1) g_lastboss = iMinigame;
 		else g_lastminigame = iMinigame;
 		CreateTimer(GetSpeedMultiplier(MUSIC_INFO_LEN), Game_Start);
-		if (SpecialRound == 6) g_attack = true;
-		else g_attack = false;
+
+		g_attack = (SpecialRound == BONK);
 
 		if (GetConVarBool(ww_overhead_scores))
 		{
@@ -969,12 +967,12 @@ public Action:Game_Start(Handle: hTimer)
 		// Spawn everyone so they can participate
 		RespawnAll();
 
-		if (SpecialRound == 4) 
+		if (SpecialRound == SINGLEPLAYER) 
 		{
 			NoCollision(true);
 		}
 
-		if (SpecialRound == 7)
+		if (SpecialRound == NO_TOUCHING)
 		{
 			for (new i = 1; i <= MaxClients; i++)
 			{
@@ -1022,8 +1020,7 @@ public Action:Game_Start(Handle: hTimer)
 		SetMissionAll(0);
 
 		// noone can attack
-		if (SpecialRound == 6) g_attack = true;
-		else g_attack = false;
+		g_attack = (SpecialRound == BONK);
 
 		// initiate mission
 		InitMinigame(iMinigame);
@@ -1060,7 +1057,7 @@ PrintMissionText()
 	}
 }
 
-public Action:CountDown_Timer(Handle:hTimer)
+public Action CountDown_Timer(Handle hTimer)
 {
 	if ((status == 2) && (timeleft > 0))
 	{
@@ -1068,13 +1065,12 @@ public Action:CountDown_Timer(Handle:hTimer)
 		CreateTimer(GetSpeedMultiplier(0.4), CountDown_Timer);
 		if (bossBattle != 1)
 		{
-			Call_StartForward(g_OnTimerMinigame);
-			Call_PushCell(timeleft);
-			Call_Finish();
+			Microgame mg = GetCurrentMicrogame();
+			mg.OnMicrogameTimer(timeleft);
 		}
 		if (timeleft == 2)
 		{
-			for (new i = 1; i <= MaxClients; i++)
+			for (int i = 1; i <= MaxClients; i++)
 			{
 				if (IsValidClient(i) && (!(IsFakeClient(i))) && g_ModifiedOverlay[i] == false)
 				{
@@ -1085,7 +1081,7 @@ public Action:CountDown_Timer(Handle:hTimer)
 	}
 }
 
-public Action:EndGame(Handle:hTimer)
+public Action EndGame(Handle hTimer)
 {
 	microgametimer = INVALID_HANDLE;
 	if (status == 2)
@@ -1109,11 +1105,10 @@ public Action:EndGame(Handle:hTimer)
 			Format(MUSIC_INFO_FAIL, sizeof(MUSIC_INFO_FAIL), MUSIC2_FAIL);
 		}
 
-		if (SpecialRound == 6) g_attack = true;
-		else g_attack = false;
+		g_attack = (SpecialRound == BONK);
 
-		Call_StartForward(g_OnEndMinigame);
-		Call_Finish();
+		Microgame mg = GetCurrentMicrogame();
+		mg.OnMicrogameEnd();
 
 		CleanupAllVocalizations();
 
@@ -1185,7 +1180,7 @@ public Action:EndGame(Handle:hTimer)
 		}
 		UpdateHud(GetSpeedMultiplier(MUSIC_INFO_LEN));
 
-		new bool:bHandlePoints = true;
+		bool bHandlePoints = true;
 		if (g_Gamemode == GAMEMODE_WIPEOUT)
 		{
 			new bool:bSomeoneWon = false;
@@ -1199,7 +1194,11 @@ public Action:EndGame(Handle:hTimer)
 				CPrintToChatAll("{red}DRAW{default}... playing new boss!");
 			}
 		}
-		if (bHandlePoints) HandOutPoints();
+
+		if (bHandlePoints)
+		{
+			HandOutPoints();
+		}
 
 		// RESPAWN START
 		if (GetMinigameConfNum(minigame, "endrespawn", 0) > 0) RespawnAll(true, false);
@@ -1215,12 +1214,11 @@ public Action:EndGame(Handle:hTimer)
 			}
 		}
 
-		if (SpecialRound == 4) NoCollision(true);
-		else NoCollision(false);
+		NoCollision(SpecialRound == BONK);
 
-		if (SpecialRound == 7)
+		if (SpecialRound == THIRDPERSON)
 		{
-			for (new i = 1; i <= MaxClients; i++)
+			for (int i = 1; i <= MaxClients; i++)
 			{
 				if (IsValidClient(i) && !IsFakeClient(i)) ClientCommand(i, "wait; thirdperson");
 			}
@@ -1228,7 +1226,7 @@ public Action:EndGame(Handle:hTimer)
 
 		// RESPAWN END
 
-		new bool:speedup = false;
+		bool speedup = false;
 		g_minigamestotal += 1;
 
 		if (bossBattle == 1) bossBattle = 2;
@@ -1257,7 +1255,7 @@ public Action:EndGame(Handle:hTimer)
 				speedup	   = true;
 				bossBattle = 1;
 			}
-			if ((g_minigamestotal >= 19) && bossBattle == 2 && SpecialRound == 3 && Special_TwoBosses == false)
+			if ((g_minigamestotal >= 19) && bossBattle == 2 && SpecialRound == DOUBLE_BOSS_BATTLE && Special_TwoBosses == false)
 			{
 				speedup			  = true;
 				bossBattle		  = 1;
@@ -1308,8 +1306,14 @@ public Action:Speedup_timer(Handle:hTimer)
 			if (GetConVarBool(ww_log)) LogMessage("Boss part 2");
 
 			// Set the Speed. If special round, we want it to be a tad faster ;)
-			if (SpecialRound == 1) SetConVarFloat(ww_speed, 3.0);
-			else SetConVarFloat(ww_speed, 1.0);
+			if (SpecialRound == SUPER_SPEED)
+			{
+				SetConVarFloat(ww_speed, 3.0);
+			}
+			else
+			{
+				SetConVarFloat(ww_speed, 1.0);
+			}
 
 			if (GetConVarBool(ww_log)) LogMessage("Boss part 3");
 
@@ -1399,8 +1403,16 @@ public Action:Victory_timer(Handle:hTimer)
 		DestroyAllSprites();
 		ResetWinners();
 
-		new targetscore = GetHighestScore();
-		if (SpecialRound == 5) targetscore = GetLowestScore();
+		int targetscore;
+		if (SpecialRound == LEAST_IS_BEST)
+		{
+			targetscore = GetLowestScore();
+		}
+		else
+		{
+			targetscore = GetHighestScore();
+		}
+
 		new winnernumber		  = 0;
 		new Handle:ArrayWinners = CreateArray();
 		decl String:winnerstring_prefix[128];
@@ -1421,8 +1433,8 @@ public Action:Victory_timer(Handle:hTimer)
 					if (g_Points[i] > 0) bAccepted = true;
 				}
 				else {
-					if (SpecialRound != 5 && g_Points[i] >= targetscore) bAccepted = true;
-					if (SpecialRound == 5 && g_Points[i] <= targetscore) bAccepted = true;
+					if (SpecialRound != LEAST_IS_BEST && g_Points[i] >= targetscore) bAccepted = true;
+					if (SpecialRound == LEAST_IS_BEST && g_Points[i] <= targetscore) bAccepted = true;
 				}
 				if (bAccepted)
 				{
@@ -1465,7 +1477,7 @@ public Action:Victory_timer(Handle:hTimer)
 		if (SpecialRound > 0)
 		{
 			CPrintToChatAll("The {lightgreen}Special Round{default} is over!");
-			ResetSpecialRoundEffect();
+			ResetSpecialRoundEffect(SpecialRound);
 			SpecialRound = 0;
 			ShowGameText("Special Round is over!");
 		}
@@ -1487,10 +1499,13 @@ public Action:Restartall_timer(Handle:hTimer)
 		bossBattle = 0;
 
 		// Set the game speed
-		if (SpecialRound == 1) SetConVarFloat(ww_speed, 3.0);
+		if (SpecialRound == SUPER_SPEED) SetConVarFloat(ww_speed, 3.0);
 		else SetConVarFloat(ww_speed, 1.0);
 
-		if (SpecialRound > 0) AddSpecialRoundEffect();
+		if (SpecialRound > 0)
+		{
+			AddSpecialRoundEffect(SpecialRound);
+		}
 
 		currentSpeed = GetConVarFloat(ww_speed);
 		ResetScores();
@@ -1504,7 +1519,7 @@ public Action:Restartall_timer(Handle:hTimer)
 		}
 
 		// Roll special round
-		if ((GetRandomInt(0, 9) == 5 || GetConVarBool(ww_special)) && SpecialRound == 0)
+		if ((GetRandomInt(0, 9) == 5 || GetConVarBool(ww_special)) && SpecialRound == NONE)
 		{
 			status = 6;
 			StartSpecialRound();
