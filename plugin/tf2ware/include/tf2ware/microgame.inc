@@ -95,3 +95,68 @@ public Microgame GetRandomMicrogame(int &idx)
 
 	return mg;
 }
+
+public void DispatchOnMicrogameSetup()
+{
+	if (MICROGAME_SNAPSHOT == null)
+	{
+		MICROGAME_SNAPSHOT = MICROGAMES.Snapshot();
+	}
+
+	for (int idx = 0; idx < MICROGAME_SNAPSHOT.Length; idx++)
+	{
+		int key = MICROGAME_SNAPSHOT.GetKey(idx);
+		switch (view_as<Microgames>(key))
+		{
+			case MG_AIRBLAST:
+			{
+				view_as<Airblast>(key).OnMicrogameSetup();
+			}
+
+			case MG_BARREL:
+			{
+				view_as<Barrel>(key).OnMicrogameSetup();
+			}
+
+			case MG_COLOR_TEXT:
+			{
+				view_as<ColorText>(key).OnMicrogameSetup();
+			}
+
+			case MG_KAMIKAZE:
+			{
+				view_as<Kamikaze>(key).OnMicrogameSetup();
+			}
+
+			case MG_MOVEMENT:
+			{
+				view_as<Movement>(key).OnMicrogameSetup();
+			}
+
+			case MG_SAW_RUN:
+			{
+				view_as<Sawrun>(key).OnMicrogameSetup();
+			}
+
+			case MG_SIMON_SAYS:
+			{
+				view_as<SimonSays>(key).OnMicrogameSetup();
+			}
+
+			case MG_SNIPER_TARGET:
+			{
+				view_as<SniperTarget>(key).OnMicrogameSetup();
+			}
+
+			case MG_SPYCRAB:
+			{
+				view_as<Spycrab>(key).OnMicrogameSetup();
+			}
+
+			default:
+			{
+				PrintToServer("[TF2Ware] [DispatchOnMicrogameSetup] Ignoring dispatch for unknown microgame %d.", key);
+			}
+		}
+	}
+}

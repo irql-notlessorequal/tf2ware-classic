@@ -443,63 +443,6 @@ public void OnMapStart()
  * 
  * tl;dr I should really start working on "source.js"
  */
-
-void DispatchOnMicrogameSetup()
-{
-	switch (view_as<Microgames>(currentMicrogame))
-	{
-		case MG_AIRBLAST:
-		{
-			view_as<Airblast>(currentMicrogame).OnMicrogameSetup();
-		}
-
-		case MG_BARREL:
-		{
-			view_as<Barrel>(currentMicrogame).OnMicrogameSetup();
-		}
-
-		case MG_COLOR_TEXT:
-		{
-			view_as<ColorText>(currentMicrogame).OnMicrogameSetup();
-		}
-
-		case MG_KAMIKAZE:
-		{
-			view_as<Kamikaze>(currentMicrogame).OnMicrogameSetup();
-		}
-
-		case MG_MOVEMENT:
-		{
-			view_as<Movement>(currentMicrogame).OnMicrogameSetup();
-		}
-
-		case MG_SAW_RUN:
-		{
-			view_as<Sawrun>(currentMicrogame).OnMicrogameSetup();
-		}
-
-		case MG_SIMON_SAYS:
-		{
-			view_as<SimonSays>(currentMicrogame).OnMicrogameSetup();
-		}
-
-		case MG_SNIPER_TARGET:
-		{
-			view_as<SniperTarget>(currentMicrogame).OnMicrogameSetup();
-		}
-
-		case MG_SPYCRAB:
-		{
-			view_as<Spycrab>(currentMicrogame).OnMicrogameSetup();
-		}
-
-		default:
-		{
-			PrintToServer("[TF2Ware] [DispatchOnMicrogameSetup] Ignoring dispatch for unknown microgame %d.", currentMicrogame);
-		}
-	}
-}
-
 void DispatchOnClientJustEntered(int client)
 {
 	switch (view_as<Microgames>(currentMicrogame))
