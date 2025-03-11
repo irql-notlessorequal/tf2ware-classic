@@ -1273,18 +1273,11 @@ public void OnGameFrame()
 	if (!GetConVarBool(ww_enable))
 		return;
 
-	if (GetConVarBool(ww_overhead_scores))
+
+	if (currentMicrogame)
 	{
-		/**
-		 * Enjoy the tickrate dip.
-		 */
-		OverheadScoresUpdate();
+		DispatchOnMicrogameFrame();
 	}
-
-	if (!currentMicrogame)
-		return;
-
-	DispatchOnMicrogameFrame();
 
 #if 0
 	if (GetConVarBool(ww_enable) && g_enabled && (status == 2) && (g_OnGameFrame_Minigames != INVALID_HANDLE))
@@ -1308,6 +1301,14 @@ public void OnGameFrame()
 		}
 	}
 #endif
+
+	if (GetConVarBool(ww_overhead_scores))
+	{
+		/**
+		 * Enjoy the tickrate dip.
+		 */
+		OverheadScoresUpdate();
+	}
 }
 
 public Action StartMinigame_timer(Handle hTimer)

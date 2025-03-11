@@ -104,34 +104,9 @@ stock CreateSprite(client)
 				SetEntityMoveType(ent, MOVETYPE_NOCLIP);
 
 				g_Sprites[client] = ent;
-				PrintToServer("[TF2Ware] (DEBUG) [CreateSprite] Created env_sprite (%s) %i for %i at {%f, %f, %f}!", sprite, ent, client,
-					vOrigin[0], vOrigin[1], vOrigin[2]);
 			}
 		}
 	}
-}
-
-stock bool ParentEntity(int parent, int attachment, const char[] attachPoint = "", bool maintainOffset = false)
-{
-	SetVariantString("!activator");
-	if (!AcceptEntityInput(attachment, "SetParent", parent, attachment, 0))
-	{
-		return false;
-	}
-	
-	if (strlen(attachPoint) > 0)
-	{
-		SetVariantString(attachPoint);
-		
-		if (!AcceptEntityInput(attachment,
-			maintainOffset ? "SetParentAttachmentMaintainOffset" : "SetParentAttachment",
-			parent, parent))
-		{
-			return false;
-		}
-	}
-
-	return true;
 }
 
 stock DestroyAllSprites()
@@ -168,7 +143,7 @@ stock OverheadScoresUpdate()
 	for (int i = 1; i <= MaxClients; i++)
 	{
 		int ent = g_Sprites[i];
-		if (ent > 0 && IsPlayerAlive(i))
+		if (ent > 0 && IsClientInGame(i))
 		{
 			float vOrigin[3];
 			GetClientAbsOrigin(i, vOrigin);

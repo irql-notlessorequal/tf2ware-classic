@@ -117,18 +117,25 @@ methodmap Kamikaze < Microgame
 					g_bomb = 0;
 				}
 			
-				g_bomb = CreateEntityByName("prop_dynamic_override");
-			
+				g_bomb = CreateEntityByName("prop_dynamic");
 				if (IsValidEdict(g_bomb))
 				{ 
 					char strName[32];
 					Format(strName, sizeof(strName), "target%i", client);
-					DispatchKeyValue(client, "targetname", strName);
-			
-					DispatchKeyValue(g_bomb, "model", WW_BOMB_MODEL);
-					DispatchSpawn(g_bomb);
 
-					AcceptEntityInput(g_bomb, "TurnOn", g_bomb, g_bomb, 0);
+					DispatchKeyValue(client, "targetname", strName);
+					DispatchKeyValue(g_bomb, "model", WW_BOMB_MODEL);
+
+					DispatchKeyValue(g_bomb, "spawnflags", "1");
+					DispatchKeyValue(g_bomb, "rendermode", "1");
+					DispatchKeyValue(g_bomb, "rendercolor", "255 255 255");
+					
+					if (!DispatchSpawn(g_bomb))
+					{
+						return;
+					}
+
+					ActivateEntity(g_bomb);
 				
 					DispatchKeyValue(g_bomb, "parentname", strName);
 					SetVariantString("!activator");
