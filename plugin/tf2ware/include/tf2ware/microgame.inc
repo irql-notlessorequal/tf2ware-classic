@@ -118,6 +118,11 @@ public void DispatchOnMicrogameSetup()
 				view_as<Barrel>(key).OnMicrogameSetup();
 			}
 
+			case MG_BBALL:
+			{
+				view_as<BBall>(currentMicrogame).OnMicrogameSetup();
+			}
+
 			case MG_COLOR_TEXT:
 			{
 				view_as<ColorText>(key).OnMicrogameSetup();

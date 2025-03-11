@@ -128,10 +128,10 @@ Microgame currentMicrogame;
 #include "tf2ware/microgames/simonsays.inc"
 #include "tf2ware/microgames/movement.inc"
 #include "tf2ware/microgames/snipertarget.inc"
+#include "tf2ware/microgames/bball.inc"
 
 #if 0
 #include "tf2ware/microgames/flood.inc"
-#include "tf2ware/microgames/bball.inc"
 #include "tf2ware/microgames/hugging.inc"
 #include "tf2ware/microgames/redfloor.inc"
 #include "tf2ware/microgames/airraid.inc"
@@ -198,8 +198,9 @@ public void OnPluginStart()
 
 	// MINIGAME REGISTRATION
 	AddMiniGame(MG_AIRBLAST, new Airblast());
-	AddMiniGame(MG_COLOR_TEXT, new ColorText());
+	AddMiniGame(MG_BBALL, new BBall());
 	AddMiniGame(MG_BARREL, new Barrel());
+	AddMiniGame(MG_COLOR_TEXT, new ColorText());
 	AddMiniGame(MG_KAMIKAZE, new Kamikaze());
 	AddMiniGame(MG_MOVEMENT, new Movement());
 	AddMiniGame(MG_SAW_RUN, new Sawrun());
@@ -457,6 +458,11 @@ void DispatchOnClientJustEntered(int client)
 			view_as<Barrel>(currentMicrogame).OnClientJustEntered(client);
 		}
 
+		case MG_BBALL:
+		{
+			view_as<BBall>(currentMicrogame).OnClientJustEntered(client);
+		}
+
 		case MG_COLOR_TEXT:
 		{
 			view_as<ColorText>(currentMicrogame).OnClientJustEntered(client);
@@ -511,6 +517,11 @@ void DispatchOnMicrogameStart()
 		case MG_BARREL:
 		{
 			view_as<Barrel>(currentMicrogame).OnMicrogameStart();
+		}
+
+		case MG_BBALL:
+		{
+			view_as<BBall>(currentMicrogame).OnMicrogameStart();
 		}
 
 		case MG_COLOR_TEXT:
@@ -569,6 +580,11 @@ void DispatchOnMicrogameTimer(int timeLeft)
 			view_as<Barrel>(currentMicrogame).OnMicrogameTimer(timeLeft);
 		}
 
+		case MG_BBALL:
+		{
+			view_as<BBall>(currentMicrogame).OnMicrogameTimer(timeLeft);
+		}
+
 		case MG_COLOR_TEXT:
 		{
 			view_as<ColorText>(currentMicrogame).OnMicrogameTimer(timeLeft);
@@ -623,6 +639,11 @@ void DispatchOnMicrogameEnd()
 		case MG_BARREL:
 		{
 			view_as<Barrel>(currentMicrogame).OnMicrogameEnd();
+		}
+
+		case MG_BBALL:
+		{
+			view_as<BBall>(currentMicrogame).OnMicrogameEnd();
 		}
 
 		case MG_COLOR_TEXT:
@@ -681,6 +702,11 @@ void DispatchOnMicrogamePostEnd()
 			view_as<Barrel>(currentMicrogame).OnMicrogamePostEnd();
 		}
 
+		case MG_BBALL:
+		{
+			view_as<BBall>(currentMicrogame).OnMicrogamePostEnd();
+		}
+
 		case MG_COLOR_TEXT:
 		{
 			view_as<ColorText>(currentMicrogame).OnMicrogamePostEnd();
@@ -735,6 +761,11 @@ void DispatchOnMicrogameFrame()
 		case MG_BARREL:
 		{
 			view_as<Barrel>(currentMicrogame).OnMicrogameFrame();
+		}
+
+		case MG_BBALL:
+		{
+			view_as<BBall>(currentMicrogame).OnMicrogameFrame();
 		}
 
 		case MG_COLOR_TEXT:

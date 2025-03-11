@@ -501,7 +501,7 @@ public GetHealtarget(client) {
     return GetEntDataEnt2(weapon, FindSendPropInfo("CWeaponMedigun", "m_hHealingTarget"));
 }
 
-GetClientMaxHealth(iClient) {
+int GetClientMaxHealth(int iClient) {
     return TF2_GetPlayerResourceData(iClient, TFResource_MaxHealth);
 }
 
