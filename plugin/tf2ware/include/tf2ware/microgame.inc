@@ -128,6 +128,11 @@ public void DispatchOnMicrogameSetup()
 				view_as<ColorText>(key).OnMicrogameSetup();
 			}
 
+			case MG_FLOOD:
+			{
+				view_as<Flood>(currentMicrogame).OnMicrogameSetup();
+			}
+
 			case MG_KAMIKAZE:
 			{
 				view_as<Kamikaze>(key).OnMicrogameSetup();

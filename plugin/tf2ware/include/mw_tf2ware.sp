@@ -100,7 +100,7 @@ char minigame[24];
 // VALID iMinigame FORWARD HANDLERS //////////////
 
 /** We need to define it hear since we only just have imported the enum. */
-int SpecialRound = NONE;
+SpecialRounds SpecialRound = NONE;
 Microgame currentMicrogame;
 /////////////////////////////////////////
 
@@ -117,6 +117,7 @@ Microgame currentMicrogame;
 #include "tf2ware/microgames/spycrab.inc"
 #include "tf2ware/microgames/barrel.inc"
 #include "tf2ware/microgames/kamikaze.inc"
+#include "tf2ware/microgames/flood.inc"
 
 #if 0
 #include "tf2ware/microgames/math.inc"
@@ -131,7 +132,6 @@ Microgame currentMicrogame;
 #include "tf2ware/microgames/bball.inc"
 
 #if 0
-#include "tf2ware/microgames/flood.inc"
 #include "tf2ware/microgames/hugging.inc"
 #include "tf2ware/microgames/redfloor.inc"
 #include "tf2ware/microgames/airraid.inc"
@@ -201,6 +201,7 @@ public void OnPluginStart()
 	AddMiniGame(MG_BBALL, new BBall());
 	AddMiniGame(MG_BARREL, new Barrel());
 	AddMiniGame(MG_COLOR_TEXT, new ColorText());
+	AddMiniGame(MG_FLOOD, new Flood());
 	AddMiniGame(MG_KAMIKAZE, new Kamikaze());
 	AddMiniGame(MG_MOVEMENT, new Movement());
 	AddMiniGame(MG_SAW_RUN, new Sawrun());
@@ -468,6 +469,11 @@ void DispatchOnClientJustEntered(int client)
 			view_as<ColorText>(currentMicrogame).OnClientJustEntered(client);
 		}
 
+		case MG_FLOOD:
+		{
+			view_as<Flood>(currentMicrogame).OnClientJustEntered(client);
+		}
+
 		case MG_KAMIKAZE:
 		{
 			view_as<Kamikaze>(currentMicrogame).OnClientJustEntered(client);
@@ -527,6 +533,11 @@ void DispatchOnMicrogameStart()
 		case MG_COLOR_TEXT:
 		{
 			view_as<ColorText>(currentMicrogame).OnMicrogameStart();
+		}
+
+		case MG_FLOOD:
+		{
+			view_as<Flood>(currentMicrogame).OnMicrogameStart();
 		}
 
 		case MG_KAMIKAZE:
@@ -590,6 +601,11 @@ void DispatchOnMicrogameTimer(int timeLeft)
 			view_as<ColorText>(currentMicrogame).OnMicrogameTimer(timeLeft);
 		}
 
+		case MG_FLOOD:
+		{
+			view_as<Flood>(currentMicrogame).OnMicrogameTimer(timeLeft);
+		}
+
 		case MG_KAMIKAZE:
 		{
 			view_as<Kamikaze>(currentMicrogame).OnMicrogameTimer(timeLeft);
@@ -649,6 +665,11 @@ void DispatchOnMicrogameEnd()
 		case MG_COLOR_TEXT:
 		{
 			view_as<ColorText>(currentMicrogame).OnMicrogameEnd();
+		}
+
+		case MG_FLOOD:
+		{
+			view_as<Flood>(currentMicrogame).OnMicrogameEnd();
 		}
 
 		case MG_KAMIKAZE:
@@ -712,6 +733,11 @@ void DispatchOnMicrogamePostEnd()
 			view_as<ColorText>(currentMicrogame).OnMicrogamePostEnd();
 		}
 
+		case MG_FLOOD:
+		{
+			view_as<Flood>(currentMicrogame).OnMicrogamePostEnd();
+		}
+
 		case MG_KAMIKAZE:
 		{
 			view_as<Kamikaze>(currentMicrogame).OnMicrogamePostEnd();
@@ -773,6 +799,11 @@ void DispatchOnMicrogameFrame()
 			view_as<ColorText>(currentMicrogame).OnMicrogameFrame();
 		}
 
+		case MG_FLOOD:
+		{
+			view_as<Flood>(currentMicrogame).OnMicrogameFrame();
+		}
+
 		case MG_KAMIKAZE:
 		{
 			view_as<Kamikaze>(currentMicrogame).OnMicrogameFrame();
@@ -806,6 +837,72 @@ void DispatchOnMicrogameFrame()
 		default:
 		{
 			PrintToServer("[TF2Ware] [DispatchOnMicrogameFrame] Ignoring dispatch for unknown microgame %d.", currentMicrogame);
+		}
+	}
+}
+
+void DispatchOnClientDeath(int client)
+{
+	switch (view_as<Microgames>(currentMicrogame))
+	{
+		case MG_AIRBLAST:
+		{
+			view_as<Airblast>(currentMicrogame).OnClientDeath(client);
+		}
+
+		case MG_BARREL:
+		{
+			view_as<Barrel>(currentMicrogame).OnClientDeath(client);
+		}
+
+		case MG_BBALL:
+		{
+			view_as<BBall>(currentMicrogame).OnClientDeath(client);
+		}
+
+		case MG_COLOR_TEXT:
+		{
+			view_as<ColorText>(currentMicrogame).OnClientDeath(client);
+		}
+
+		case MG_FLOOD:
+		{
+			view_as<Flood>(currentMicrogame).OnClientDeath(client);
+		}
+
+		case MG_KAMIKAZE:
+		{
+			view_as<Kamikaze>(currentMicrogame).OnClientDeath(client);
+		}
+
+		case MG_MOVEMENT:
+		{
+			view_as<Movement>(currentMicrogame).OnClientDeath(client);
+		}
+
+		case MG_SAW_RUN:
+		{
+			view_as<Sawrun>(currentMicrogame).OnClientDeath(client);
+		}
+
+		case MG_SIMON_SAYS:
+		{
+			view_as<SimonSays>(currentMicrogame).OnClientDeath(client);
+		}
+
+		case MG_SNIPER_TARGET:
+		{
+			view_as<SniperTarget>(currentMicrogame).OnClientDeath(client);
+		}
+
+		case MG_SPYCRAB:
+		{
+			view_as<Spycrab>(currentMicrogame).OnClientDeath(client);
+		}
+
+		default:
+		{
+			PrintToServer("[TF2Ware] [DispatchOnClientDeath] Ignoring dispatch for unknown microgame %d.", currentMicrogame);
 		}
 	}
 }
@@ -1352,7 +1449,7 @@ public Action:Game_Start(Handle: hTimer)
 		g_attack = (SpecialRound == BONK);
 
 		// initiate mission
-		InitMinigame(iMinigame);
+		InitMinigame();
 
 		// show the mission text
 		PrintMissionText();
@@ -2347,7 +2444,7 @@ RemoveNotifyFlag(String:name[128])
 	SetConVarFlags(cv1, flags);
 }
 
-void InitMinigame(int id)
+void InitMinigame()
 {
 	DispatchOnMicrogameStart();
 
@@ -2362,16 +2459,18 @@ void InitMinigame(int id)
 
 public void Player_Death(Handle event, const char[] name, bool dontBroadcast)
 {
+	if (!GetConVarBool(ww_enable))
+		return;
+
 	int client = GetClientOfUserId(GetEventInt(event, "userid"));
 
 	DestroySprite(client);
 
-	if (GetConVarBool(ww_enable) && (status == 2))
+	if (status == 2)
 	{
 		if (IsValidClient(client) && IsClientParticipating(client))
 		{
-			Microgame mg = GetCurrentMicrogame();
-			mg.OnClientDeath(client);
+			DispatchOnClientDeath(client);
 		}
 	}
 

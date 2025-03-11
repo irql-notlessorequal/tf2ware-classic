@@ -149,14 +149,17 @@ stock ClientParticle(client, String:effect[128], Float:time) {
         ActivateEntity(strIParticle);
         AcceptEntityInput(strIParticle, "start");
         
-        CreateTimer(time, killprop_timer, strIParticle);
+        CreateTimer(time, KillProp_Timer, strIParticle);
     }
 }
 
-public Action:killprop_timer(Handle:hTimer, any:prop) {
-    if (IsValidEntity(prop)) {
+public Action KillProp_Timer(Handle hTimer, any prop)
+{
+    if (IsValidEntity(prop))
+	{
         AcceptEntityInput(prop, "Kill" );
     }
+	
     return Plugin_Stop;
 }
 
