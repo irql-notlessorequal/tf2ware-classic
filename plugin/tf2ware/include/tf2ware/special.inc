@@ -24,7 +24,7 @@ char var_special_desc[][] = {
 };
 
 public Special_NoTouch(entity, other) {
-	if (SpecialRound != 2) return;
+	if (SpecialRound != NO_TOUCHING) return;
 	if (StrEqual(minigame, "Hugging")) return;
 
 	new String:classname[64];
@@ -45,7 +45,7 @@ public Special_NoTouch(entity, other) {
 
 
 public Action:Special_DamagePush(victim, &attacker, &inflictor, &Float:damage, &damagetype) {
-	if (IsValidClient(attacker) && IsValidClient(victim) && SpecialRound == 6)
+	if (IsValidClient(attacker) && IsValidClient(victim) && SpecialRound == BONK)
 	{
 		char Weapon[128];
 		GetClientWeapon(attacker, Weapon, sizeof(Weapon));

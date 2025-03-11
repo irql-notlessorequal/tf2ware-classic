@@ -29,7 +29,7 @@ methodmap Airblast < Microgame
 			vel[2] = 0.0;
 		
 			int total = GetActivePlayers();
-			float posa = 360 / total * (g_Id[client] - 1);
+			float posa = 360 / total * float(g_Id[client] - 1);
 		
 			float pos[3];
 			pos[0] = 3544.661133 + (Cosine(DegToRad(posa)) * 220.0);

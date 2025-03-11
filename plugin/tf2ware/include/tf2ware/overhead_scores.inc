@@ -17,7 +17,7 @@ stock CreateAllSprites() {
 
 stock CreateSprite(client)
 {
-	if (IsValidClient(client) && (SpecialRound != 4))
+	if (IsValidClient(client) && (SpecialRound != SINGLEPLAYER))
 	{
 		DestroySprite(client);
 

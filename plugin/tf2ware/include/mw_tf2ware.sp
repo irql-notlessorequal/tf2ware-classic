@@ -1267,7 +1267,10 @@ public Player_Team(Handle: event, const String: name[], bool: dontBroadcast)
 	if (GetConVarBool(ww_enable) && g_enabled)
 	{
 		CreateTimer(0.1, StartMinigame_timer);
-		if (oldteam < 2 && newteam >= 2) GiveSpecialRoundInfo();
+		if (oldteam < 2 && newteam >= 2)
+		{
+			GiveSpecialRoundInfo();
+		}
 	}
 }
 
@@ -1305,8 +1308,8 @@ StartMinigame()
 		SetConVarInt(FindConVar("mp_respawnwavetime"), 199);
 		SetConVarInt(FindConVar("mp_friendlyfire"), 1);
 
-		new Float:MUSIC_INFO_LEN = MUSIC_START_LEN;
-		decl String:MUSIC_INFO[PLATFORM_MAX_PATH];
+		float MUSIC_INFO_LEN = MUSIC_START_LEN;
+		char MUSIC_INFO[PLATFORM_MAX_PATH];
 		Format(MUSIC_INFO, sizeof(MUSIC_INFO), MUSIC_START);
 		if (g_Gamemode == GAMEMODE_WIPEOUT)
 		{
@@ -1317,7 +1320,10 @@ StartMinigame()
 		RespawnAll();
 		RemoveAllParticipants();
 		UpdateHud(GetSpeedMultiplier(MUSIC_INFO_LEN));
-		if (SpecialRound == SINGLEPLAYER) NoCollision(true);
+		if (SpecialRound == SINGLEPLAYER)
+		{
+			NoCollision(true);
+		}
 
 		currentSpeed = GetConVarFloat(ww_speed);
 		ServerCommand("host_timescale %f", GetHostMultiplier(1.0));
@@ -1422,13 +1428,27 @@ public Action:Game_Start(Handle: hTimer)
 		}
 
 		// Play the microgame's music
-		new String:sound[512];
+		char sound[512];
 		Format(sound, sizeof(sound), "imgay/tf2ware/minigame_%d.mp3", iMinigame);
-		if (StrEqual(minigame, "Ghostbusters") && GetRandomInt(1, 3) == 1) Format(sound, sizeof(sound), "imgay/tf2ware/minigame_%d_alt.mp3", iMinigame);
-		new channel = SNDCHAN_AUTO;
-		if (GetMinigameConfNum(minigame, "dynamic", 0)) channel = SND_CHANNEL_SPECIFIC;
-		if (GetConVarBool(ww_music)) EmitSoundToClient(1, sound, SOUND_FROM_PLAYER, channel, SNDLEVEL_NORMAL, SND_NOFLAGS, SNDVOL_NORMAL, GetSoundMultiplier());
-		else EmitSoundToAll(sound, SOUND_FROM_PLAYER, channel, SNDLEVEL_NORMAL, SND_NOFLAGS, SNDVOL_NORMAL, GetSoundMultiplier());
+		if (StrEqual(minigame, "Ghostbusters") && GetRandomInt(1, 3) == 1)
+		{
+			Format(sound, sizeof(sound), "imgay/tf2ware/minigame_%d_alt.mp3", iMinigame);
+		}
+		
+		int channel = SNDCHAN_AUTO;
+		if (GetMinigameConfNum(minigame, "dynamic", 0))
+		{
+			channel = SND_CHANNEL_SPECIFIC;
+		}
+
+		if (GetConVarBool(ww_music))
+		{
+			EmitSoundToClient(1, sound, SOUND_FROM_PLAYER, channel, SNDLEVEL_NORMAL, SND_NOFLAGS, SNDVOL_NORMAL, GetSoundMultiplier());
+		}
+		else
+		{
+			EmitSoundToAll(sound, SOUND_FROM_PLAYER, channel, SNDLEVEL_NORMAL, SND_NOFLAGS, SNDVOL_NORMAL, GetSoundMultiplier());
+		}
 
 		// Set everyone's state to fail
 		SetStateAll(false);
@@ -1504,6 +1524,8 @@ public Action CountDown_Timer(Handle hTimer)
 			}
 		}
 	}
+
+	return Plugin_Continue;
 }
 
 public Action EndGame(Handle hTimer)
@@ -1893,11 +1915,11 @@ public Action:Victory_timer(Handle:hTimer)
 		CPrintToChatAll("%s %s (%i %s)!", winnerstring_prefix, winnerstring_names, targetscore, pointsname);
 		CloseHandle(ArrayWinners);
 
-		if (SpecialRound > 0)
+		if (SpecialRound != NONE)
 		{
 			CPrintToChatAll("The {lightgreen}Special Round{default} is over!");
 			ResetSpecialRoundEffect(SpecialRound);
-			SpecialRound = 0;
+			SpecialRound = NONE;
 			ShowGameText("Special Round is over!");
 		}
 
@@ -1921,7 +1943,7 @@ public Action:Restartall_timer(Handle:hTimer)
 		if (SpecialRound == SUPER_SPEED) SetConVarFloat(ww_speed, 3.0);
 		else SetConVarFloat(ww_speed, 1.0);
 
-		if (SpecialRound > 0)
+		if (SpecialRound != NONE)
 		{
 			AddSpecialRoundEffect(SpecialRound);
 		}
@@ -1963,8 +1985,14 @@ public StartSpecialRound()
 	{
 		RespawnAll();
 		SetConVarBool(ww_special, false);
-		if (GetConVarInt(ww_force_special) <= 0) SpecialRound = GetRandomInt(1, SPECIAL_TOTAL);
-		else SpecialRound = GetConVarInt(ww_force_special);
+		if (GetConVarInt(ww_force_special) <= 0)
+		{
+			SpecialRound = view_as<SpecialRounds>(GetRandomInt(1, SPECIAL_TOTAL));
+		}
+		else
+		{
+			SpecialRound = view_as<SpecialRounds>(GetConVarInt(ww_force_special));
+		}
 
 		if (GetConVarBool(ww_music)) EmitSoundToClient(1, MUSIC_SPECIAL);
 		else EmitSoundToAll(MUSIC_SPECIAL);
@@ -2020,10 +2048,11 @@ public Action:SpecialRound_timer(Handle: hTimer)
 
 GiveSpecialRoundInfo()
 {
-	if (SpecialRound > 0)
+	if (SpecialRound != NONE)
 	{
 		decl String:Text[128];
-		Format(Text, sizeof(Text), "SPECIAL ROUND: %s!\n%s", var_special_name[SpecialRound - 1], var_special_desc[SpecialRound - 1]);
+		Format(Text, sizeof(Text), "SPECIAL ROUND: %s!\n%s",
+			var_special_name[SpecialRound - 1], var_special_desc[SpecialRound - 1]);
 		ShowGameText(Text, "leaderboard_dominated");
 	}
 }
@@ -2293,7 +2322,7 @@ UpdateHud(Float:time)
 	new colorG = 255;
 	new colorB = 0;
 	Format(scorename, sizeof(scorename), "Points:");
-	if (g_Gamemode == GAMEMODE_WIPEOUT && SpecialRound != 7)
+	if (g_Gamemode == GAMEMODE_WIPEOUT && SpecialRound != THIRDPERSON)
 	{
 		Format(scorename, sizeof(scorename), "Lives:");
 	}
@@ -2304,12 +2333,25 @@ UpdateHud(Float:time)
 			Format(add, sizeof(add), "");
 			if (g_Gamemode == GAMEMODE_WIPEOUT)
 			{
-				if (!g_Complete[i] && IsClientParticipating(i) && bossBattle != 1 && SpecialRound != 7) Format(add, sizeof(add), "-1");
-				if (!g_Complete[i] && IsClientParticipating(i) && bossBattle == 1 && SpecialRound != 7) Format(add, sizeof(add), "-5");
+				if (!g_Complete[i] && IsClientParticipating(i) && bossBattle != 1 && SpecialRound != THIRDPERSON)
+				{
+					Format(add, sizeof(add), "-1");
+				}
+				if (!g_Complete[i] && IsClientParticipating(i) && bossBattle == 1 && SpecialRound != THIRDPERSON)
+				{
+					Format(add, sizeof(add), "-5");
+				}
 			}
-			else {
-				if (g_Complete[i] && IsClientParticipating(i) && bossBattle != 1 && SpecialRound != 7) Format(add, sizeof(add), "+1");
-				if (g_Complete[i] && IsClientParticipating(i) && bossBattle == 1 && SpecialRound != 7) Format(add, sizeof(add), "+5");
+			else
+			{
+				if (g_Complete[i] && IsClientParticipating(i) && bossBattle != 1 && SpecialRound != THIRDPERSON)
+				{
+					Format(add, sizeof(add), "+1");
+				}
+				if (g_Complete[i] && IsClientParticipating(i) && bossBattle == 1 && SpecialRound != THIRDPERSON)
+				{
+					Format(add, sizeof(add), "+5");
+				}
 			}
 			Format(output, sizeof(output), "%s %i %s", scorename, g_Points[i], add);
 			SetHudTextParams(0.3, 0.70, time, colorR, colorG, colorB, 0);
