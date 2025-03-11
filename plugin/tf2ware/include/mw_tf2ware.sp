@@ -92,6 +92,7 @@ int g_minigamestotal					   = 0;
 int bossBattle							   = 0;
 bool g_Participating[MAXPLAYERS + 1] = false;
 int g_Gamemode							   = 0;
+int gVelocityOffset = -1;
 
 // Strings
 char materialpath[512]			   = "tf2ware/";
@@ -183,6 +184,12 @@ public void OnPluginStart()
 	if (g_offsCollisionGroup == -1)
 	{
 		PrintToServer("* FATAL ERROR: Failed to get offset for CBaseEntity::m_CollisionGroup");
+	}
+
+	gVelocityOffset = FindSendPropInfo("CBasePlayer", "m_vecVelocity[0]");
+	if (gVelocityOffset == -1)
+	{
+		PrintToServer("* FATAL ERROR: Failed to get offset for CBaseEntity::m_vecVelocity[0]");
 	}
 
 	// ConVars
@@ -907,6 +914,73 @@ void DispatchOnClientDeath(int client)
 	}
 }
 
+bool DispatchIsMicrogamePlayable(Microgame mg, int players)
+{
+	switch (view_as<Microgames>(mg))
+	{
+		case MG_AIRBLAST:
+		{
+			return view_as<Airblast>(mg).IsMicrogamePlayable(players);
+		}
+
+		case MG_BARREL:
+		{
+			return view_as<Barrel>(mg).IsMicrogamePlayable(players);
+		}
+
+		case MG_BBALL:
+		{
+			return view_as<BBall>(mg).IsMicrogamePlayable(players);
+		}
+
+		case MG_COLOR_TEXT:
+		{
+			return view_as<ColorText>(mg).IsMicrogamePlayable(players);
+		}
+
+		case MG_FLOOD:
+		{
+			return view_as<Flood>(mg).IsMicrogamePlayable(players);
+		}
+
+		case MG_KAMIKAZE:
+		{
+			return view_as<Kamikaze>(mg).IsMicrogamePlayable(players);
+		}
+
+		case MG_MOVEMENT:
+		{
+			return view_as<Movement>(mg).IsMicrogamePlayable(players);
+		}
+
+		case MG_SAW_RUN:
+		{
+			return view_as<Sawrun>(mg).IsMicrogamePlayable(players);
+		}
+
+		case MG_SIMON_SAYS:
+		{
+			return view_as<SimonSays>(mg).IsMicrogamePlayable(players);
+		}
+
+		case MG_SNIPER_TARGET:
+		{
+			return view_as<SniperTarget>(mg).IsMicrogamePlayable(players);
+		}
+
+		case MG_SPYCRAB:
+		{
+			return view_as<Spycrab>(mg).IsMicrogamePlayable(players);
+		}
+
+		default:
+		{
+			PrintToServer("[TF2Ware] [DispatchIsMicrogamePlayable] Ignoring dispatch for unknown microgame %d.", mg);
+			return true;
+		}
+	}
+}
+
 public Microgame GetCurrentMicrogame()
 {
 	return currentMicrogame;
@@ -1199,6 +1273,14 @@ public void OnGameFrame()
 	if (!GetConVarBool(ww_enable))
 		return;
 
+	if (GetConVarBool(ww_overhead_scores))
+	{
+		/**
+		 * Enjoy the tickrate dip.
+		 */
+		OverheadScoresUpdate();
+	}
+
 	if (!currentMicrogame)
 		return;
 
@@ -1250,11 +1332,62 @@ public Action StartMinigame_timer2(Handle hTimer)
 int RollMinigame()
 {
 	/**
-	 * TODO: Rewrite the entire boss logic since it's a clusterfuck at the moment.
+	 * Rewrite the entire boss logic since it's a clusterfuck at the moment.
+	 * 
+	 * Remaining logic TODO:
+	 * - Handle disablement of microgames (probably won't be a feature anymore)
+	 * - Handle `ww_force`
+	 * - Do we still handle the "chance" value?
 	 */
-	int idx;
-	currentMicrogame = GetRandomMicrogame(idx);
-	return idx;
+	Microgame candidate;
+	int candidateIndex;
+
+	int players = GetClientCount();
+	static int lastPlayedIndex = -1;
+
+	do
+	{
+		candidate = GetRandomMicrogame(candidateIndex);
+
+		/**
+		 * Don't play the same thing.
+		 */
+		if (lastPlayedIndex == candidateIndex)
+		{
+			continue;
+		}
+		
+		/**
+		 * Don't play boss microgames if we're not at the boss.
+		 */
+		if (bossBattle == 0 && IsBossMicrogame(candidate))
+		{
+			continue;
+		}
+
+		/**
+		 * However, if we are at a boss then we need only
+		 * boss microgames.
+		 */
+		if (bossBattle != 0 && !IsBossMicrogame(candidate))
+		{
+			continue;
+		}
+
+		/**
+		 * If we don't have enough players, try another microgame.
+		 */
+		if (!DispatchIsMicrogamePlayable(candidate, players))
+		{
+			continue;
+		}
+
+		currentMicrogame = candidate;
+		lastPlayedIndex = candidateIndex;
+		break;
+	} while (true);
+
+	return candidateIndex;
 }
 
 public Player_Team(Handle: event, const String: name[], bool: dontBroadcast)

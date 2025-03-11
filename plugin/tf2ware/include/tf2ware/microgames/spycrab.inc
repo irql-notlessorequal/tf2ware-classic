@@ -16,33 +16,31 @@ methodmap Spycrab < Microgame
 		SetStateAll(true);
 
 		/**
-		 * NOTE: I couldn't get the sprite to face downwards. I don't know why, it makes no sense.
-		 * 
 		 * Let's put a cute little spycrab in the spy.
 		 */	
-		float vOrigin[3];
-		float vAngle[3];
+		float vOrigin[3] = { -5.0, -5.0, 1000.0 };
+		float vAngle[3] = { 90.0, 0.0, 0.0 };
 	
-		vOrigin[0] = -5.0;
-		vOrigin[1] = -5.0;
-		vOrigin[2] = 470.0;
-		vAngle[0] = 90.0;
-		vAngle[1] = 0.0;
-		vAngle[2] = 0.0;
-	
-		int ent = CreateEntityByName("env_sprite_oriented");
+		int ent = CreateEntityByName("env_sprite");
 		if (IsValidEntity(ent))
-		{            
+		{
+			DispatchKeyValueVector(ent, "origin", vOrigin);
+			DispatchKeyValueVector(ent, "angles", vAngle);
+
+			DispatchKeyValueFloat(ent, "scale", 1.0);
+
 			DispatchKeyValue(ent, "classname", "env_sprite");
 			DispatchKeyValue(ent, "spawnflags", "1");
-			DispatchKeyValue(ent, "scale", "1.0");
 			DispatchKeyValue(ent, "rendermode", "1");
 			DispatchKeyValue(ent, "rendercolor", "255 255 255");
 			DispatchKeyValue(ent, "model", SPRITE_SPYCRAB_SKY);
-			DispatchSpawn(ent);
-			TeleportEntity(ent, vOrigin, vAngle, NULL_VECTOR);
-			SPYCRAB_SKY_SPRITE = ent;
-		} else
+			
+			if (DispatchSpawn(ent))
+			{
+				SPYCRAB_SKY_SPRITE = ent;
+			}
+		}
+		else
 		{
 			SPYCRAB_SKY_SPRITE = -1;
 		}

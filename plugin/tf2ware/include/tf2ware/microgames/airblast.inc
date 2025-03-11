@@ -6,6 +6,11 @@ methodmap Airblast < Microgame
 		return view_as<Airblast>(MG_AIRBLAST);
 	}
 
+	public bool IsMicrogamePlayable(int players)
+	{
+		return players >= 2;
+	}
+
 	public void OnMicrogameStart()
 	{
 		SetStateAll(true);
@@ -38,7 +43,7 @@ methodmap Airblast < Microgame
 
 			float ang[3];
 			ang[0] = 0.0;
-			ang[1] = (180 - posa);
+			ang[1] = (180.0 - posa);
 			ang[2] = 0.0;
 
 			TeleportEntity(client, pos, ang, vel);

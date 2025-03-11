@@ -1,0 +1,6 @@
+"Sprite"
+{
+	"$baseTexture" "tf2ware/spycrab"
+	"$spriteorientation" "oriented"
+	"$spriteorigin" "[ 0.50 0.50 ]"
+}

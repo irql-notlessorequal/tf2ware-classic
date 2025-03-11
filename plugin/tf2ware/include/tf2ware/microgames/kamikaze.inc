@@ -7,6 +7,11 @@ methodmap Kamikaze < Microgame
 		return view_as<Kamikaze>(MG_KAMIKAZE);
 	}
 
+	public bool IsMicrogamePlayable(int players)
+	{
+		return players >= 4;
+	}
+
 	public void OnMicrogameSetup()
 	{
 		PrecacheModel(WW_BOMB_MODEL, true);

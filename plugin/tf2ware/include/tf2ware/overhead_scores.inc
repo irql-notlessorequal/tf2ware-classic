@@ -5,6 +5,8 @@
 #include <sdktools_entinput>
 #include <sdktools_functions>
 
+#define OVERHEAD_SCORE_OFFSET 90.0
+
 stock CreateAllSprites() {
 	for (new client = 1; client <= MaxClients; client++)
 	{
@@ -25,9 +27,8 @@ stock CreateSprite(client)
 		if (IsPlayerAlive(client))
 		{
 			// Sprite name
-			decl String:sprite[256];
-			decl String:scale[12];   
-			Format(scale, sizeof(scale), "0.2");
+			char sprite[256];
+			float scale = 0.2;
 			
 			if (status == 2 && StrEqual(minigame, "Ghostbusters")) {
 				if (g_Mission[client] == 0)
@@ -38,18 +39,18 @@ stock CreateSprite(client)
 				if (g_Mission[client] == 1)
 				{
 					Format(sprite, sizeof(sprite), "materials/tf2ware/ghost2.vmt");
-					Format(scale, sizeof(scale), "0.5");
+					scale = 0.5;
 				}
 
 				if (g_Mission[client] == 2)
 				{
 					Format(sprite, sizeof(sprite), "materials/tf2ware/frankenstein.vmt");
-					Format(scale, sizeof(scale), "0.3");
+					scale = 0.3;
 				}
 			}
 			else
 			{
-				new points = g_Points[client];
+				int points = g_Points[client];
 				if (points > 20)
 				{
 					points = 20;
@@ -59,14 +60,15 @@ stock CreateSprite(client)
 				{
 					points = 99;
 				}
+
 				Format(sprite, sizeof(sprite), "materials/tf2ware/tf2ware_points%d.vmt", points);
 			}
 
-			new Float:vOrigin[3];
+			float vOrigin[3];
 			GetClientAbsOrigin(client, vOrigin);
 			
 			/* Put above player. */
-			vOrigin[2] += 90.0;
+			vOrigin[2] += OVERHEAD_SCORE_OFFSET;
 			
 			new ent = CreateEntityByName("env_sprite");
 			if (IsValidEntity(ent))
@@ -74,12 +76,14 @@ stock CreateSprite(client)
 				DispatchKeyValueVector(ent, "origin", vOrigin);
 				DispatchKeyValueVector(ent, "angles", NULL_VECTOR);
 
-				DispatchKeyValue(ent, "model", sprite);
-				DispatchKeyValue(ent, "rendermode", "1");
-				DispatchKeyValue(ent, "rendercolor", "255 255 255");
 				DispatchKeyValue(ent, "classname", "env_sprite");
 				DispatchKeyValue(ent, "spawnflags", "1");
-				DispatchKeyValue(ent, "scale", scale);
+
+				DispatchKeyValueFloat(ent, "scale", scale);
+
+				DispatchKeyValue(ent, "rendermode", "1");
+				DispatchKeyValue(ent, "rendercolor", "255 255 255");
+				DispatchKeyValue(ent, "model", sprite);
 
 				if (!DispatchSpawn(ent))
 				{
@@ -87,8 +91,17 @@ stock CreateSprite(client)
 					return;
 				}
 
-				/* Explodes here. */
-				ParentEntity(client, ent, "head", true);
+				/**
+				 * Apparently we can't parent models to entities, unless the
+				 * documentation that I am reading is incorrect.
+				 * 
+				 * Meaning we need to update the entities manually ourselves.
+				 * 
+				 * Which is fucking horrible.
+				 * 
+				 * This is why overhead scores are disabled by default.
+				 */
+				SetEntityMoveType(ent, MOVETYPE_NOCLIP);
 
 				g_Sprites[client] = ent;
 				PrintToServer("[TF2Ware] (DEBUG) [CreateSprite] Created env_sprite (%s) %i for %i at {%f, %f, %f}!", sprite, ent, client,
@@ -148,4 +161,24 @@ stock DestroySprite(client)
 		}
 	}
 	g_Sprites[client] = 0;
+}
+
+stock OverheadScoresUpdate()
+{
+	for (int i = 1; i <= MaxClients; i++)
+	{
+		int ent = g_Sprites[i];
+		if (ent > 0 && IsPlayerAlive(i))
+		{
+			float vOrigin[3];
+			GetClientAbsOrigin(i, vOrigin);
+
+			vOrigin[2] += OVERHEAD_SCORE_OFFSET;
+
+			float vVelocity[3];
+			GetEntDataVector(i, gVelocityOffset, vVelocity);
+
+			TeleportEntity(ent, vOrigin, NULL_VECTOR, vVelocity);
+		}
+	}
 }

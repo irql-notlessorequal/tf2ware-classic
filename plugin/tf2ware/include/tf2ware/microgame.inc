@@ -29,6 +29,13 @@ methodmap Microgame < Handle
 	{
 	}
 
+	/* Queries */
+
+	public bool IsMicrogamePlayable(int players)
+	{
+		return true;
+	}
+
 	/* Players */
 
 	public void OnClientJustEntered(int client)
@@ -94,6 +101,23 @@ public Microgame GetRandomMicrogame(int &idx)
 	}
 
 	return mg;
+}
+
+public bool IsBossMicrogame(Microgame mg)
+{
+	switch (mg)
+	{
+		case MG_BBALL, MG_HUGGING, MG_RED_FLOOR, MG_JUMP_ROPE, MG_FROGGER,
+			 MG_GHOSTBUSTERS, MG_MANDRILL:
+		{
+			return true;
+		}
+
+		default:
+		{
+			return false;
+		}
+	}
 }
 
 public void DispatchOnMicrogameSetup()
