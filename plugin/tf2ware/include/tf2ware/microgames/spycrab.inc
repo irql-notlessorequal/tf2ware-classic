@@ -1,8 +1,6 @@
 // Spycrab module
 
-//#define SPRITE_SPYCRAB_SKY "materials/tf2ware/spycrab.vmt"
-
-//new Spycrab_sprite_sky = -1;
+#define SPRITE_SPYCRAB_SKY "materials/tf2ware/spycrab.vmt"
 
 static int SPYCRAB_SKY_SPRITE = -1;
 
@@ -16,6 +14,47 @@ methodmap Spycrab < Microgame
 	public void OnMicrogameStart()
 	{
 		SetStateAll(true);
+
+		/**
+		 * NOTE: I couldn't get the sprite to face downwards. I don't know why, it makes no sense.
+		 * 
+		 * Let's put a cute little spycrab in the spy.
+		 */	
+		float vOrigin[3];
+		float vAngle[3];
+	
+		vOrigin[0] = -5.0;
+		vOrigin[1] = -5.0;
+		vOrigin[2] = 470.0;
+		vAngle[0] = 90.0;
+		vAngle[1] = 0.0;
+		vAngle[2] = 0.0;
+	
+		int ent = CreateEntityByName("env_sprite_oriented");
+		if (IsValidEntity(ent))
+		{            
+			DispatchKeyValue(ent, "classname", "env_sprite");
+			DispatchKeyValue(ent, "spawnflags", "1");
+			DispatchKeyValue(ent, "scale", "1.0");
+			DispatchKeyValue(ent, "rendermode", "1");
+			DispatchKeyValue(ent, "rendercolor", "255 255 255");
+			DispatchKeyValue(ent, "model", SPRITE_SPYCRAB_SKY);
+			DispatchSpawn(ent);
+			TeleportEntity(ent, vOrigin, vAngle, NULL_VECTOR);
+			SPYCRAB_SKY_SPRITE = ent;
+		} else
+		{
+			SPYCRAB_SKY_SPRITE = -1;
+		}
+	}
+
+	public void OnMicrogameEnd()
+	{
+		if ((SPYCRAB_SKY_SPRITE > 0) && IsValidEntity(SPYCRAB_SKY_SPRITE))
+		{
+			AcceptEntityInput(SPYCRAB_SKY_SPRITE, "Kill");
+			SPYCRAB_SKY_SPRITE = -1;
+		}
 	}
 
 	public void OnClientJustEntered(int client)
@@ -76,40 +115,3 @@ methodmap Spycrab < Microgame
 		}
 	}
 };
-
-#if 0
-public Spycrab_OnMinigame() {
-	AddToForward(g_justEntered, INVALID_HANDLE, Spycrab_justEntered);
-	AddToForward(g_OnTimerMinigame, INVALID_HANDLE, Spycrab_TimerMinigame);
-
-	SetStateAll(true);
-	
-	/* NOTE: I couldn't get the sprite to face downwards. I don't know why, it makes no sense.
-	//Let's put a cute little spycrab in the spy
-	
-	new Float:vOrigin[3];
-	new Float:vAngle[3];
-	
-	vOrigin[0] = -5.0;
-	vOrigin[1] = -5.0;
-	vOrigin[2] = 470.0;
-	vAngle[0] = 90.0;
-	vAngle[1] = 0.0;
-	vAngle[2] = 0.0;
-	
-	new ent = CreateEntityByName("env_sprite_oriented");
-	if (IsValidEntity(ent)) {            
-		DispatchKeyValue(ent, "classname", "env_sprite");
-		DispatchKeyValue(ent, "spawnflags", "1");
-		DispatchKeyValue(ent, "scale", "1.0");
-		DispatchKeyValue(ent, "rendermode", "1");
-		DispatchKeyValue(ent, "rendercolor", "255 255 255");
-		DispatchKeyValue(ent, "model", SPRITE_SPYCRAB_SKY);
-		DispatchSpawn(ent);
-		TeleportEntity(ent, vOrigin, vAngle, NULL_VECTOR);
-		Spycrab_sprite_sky = ent;
-	} else {
-		Spycrab_sprite_sky = -1;
-	}*/
-}
-#endif

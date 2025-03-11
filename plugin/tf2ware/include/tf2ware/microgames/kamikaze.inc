@@ -50,7 +50,7 @@ methodmap Kamikaze < Microgame
 		{
 			AcceptEntityInput(g_bomb, "Kill");
 			g_bomb = 0;
-		}		
+		}
 	}
 
 	public void OnClientDeath(int client)
