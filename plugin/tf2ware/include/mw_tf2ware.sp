@@ -2132,6 +2132,8 @@ public Action:Victory_timer(Handle:hTimer)
 
 public Action Classic_EndMap(Handle hTimer)
 {
+	SetConVarFloat(ww_speed, 1.0);
+
 	status = 0;
 	currentSpeed = GetConVarFloat(ww_speed);
 	ResetScores();
@@ -2146,7 +2148,7 @@ public Action Classic_EndMap(Handle hTimer)
 	int entity = FindEntityByClassname(-1, "game_end");
 	if (entity == -1 && (entity = CreateEntityByName("game_end")) == -1)
 	{
-		new String:map[PLATFORM_MAX_PATH];
+		char map[PLATFORM_MAX_PATH];
 		if (!GetNextMap(map, PLATFORM_MAX_PATH))
 		{
 			PrintToServer("[EndMap] GetNextMap returned false, cannot switch map!");

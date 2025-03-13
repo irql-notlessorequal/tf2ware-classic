@@ -61,6 +61,17 @@
 #define PARTICLE_BOMB "cinefx_goldrush_embers"
 #define PARTICLE_EXPLODE "cinefx_goldrush_initial_smoke"
 
+enum TF2WareStatus
+{
+	INACTIVE = 0,
+	MICROGAME_IN_PROGRESS = 1,
+	/* */
+	SPEEDUP_IN_PROGRESS = 3,
+	END_OF_ROUND = 4,
+	_UNKNOWN = 5,
+	SPECIAL_ROUND_ROLL = 6,
+}
+
 enum SpecialRounds
 {
 	NONE = 0,
@@ -73,11 +84,7 @@ enum SpecialRounds
 	SINGLEPLAYER,
 	LEAST_IS_BEST,
 	BONK,
-	THIRDPERSON,
-
-	/* */
-
-	_MAX = THIRDPERSON
+	THIRDPERSON
 };
 
 enum Microgames
@@ -112,9 +119,4 @@ enum Microgames
 	MG_PINATA = 24,
 	MG_GHOSTBUSTERS = 25,
 	MG_MANDRILL = 26
-}
-
-enum TF2WareStatus
-{
-	PRE_MICROGAME = 0
 }
