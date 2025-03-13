@@ -31,7 +31,6 @@
 #include "tf2ware/tf2ware_core.inc"
 
 char g_name[MAX_MINIGAMES][24];
-new Function:g_initFuncs[MAX_MINIGAMES];
 
 // Language strings
 char var_lang[][] = { "", "it/" };
@@ -221,7 +220,7 @@ public void OnMapStart()
 {
 	// Check if the map has tf2ware at the beginning, otherwise tf2ware should be disabled
 	// (A bit hacky I suppose)
-	decl String:map[128];
+	char map[128];
 	GetCurrentMap(map, 8);
 	if (StrEqual(map, "tf2ware"))
 	{
@@ -231,7 +230,7 @@ public void OnMapStart()
 		AddServerTag("TF2Ware");
 
 		// Load minigames
-		decl String:imFile[PLATFORM_MAX_PATH];
+		char imFile[PLATFORM_MAX_PATH];
 		BuildPath(Path_SM, imFile, sizeof(imFile), "configs/minigames.cfg");
 
 		MinigameConf = CreateKeyValues("Minigames");
@@ -1025,7 +1024,7 @@ public Action:Timer_DisplayVersion(Handle:timer, any:client)
 	return Plugin_Handled;
 }
 
-public Action:Event_Roundstart(Handle:event, const String:name[], bool:dontBroadcast)
+public Action Event_Roundstart(Handle event, const char[] name, bool dontBroadcast)
 {
 	if (g_enabled && GetConVarBool(ww_enable))
 	{
@@ -1043,7 +1042,7 @@ public Action:Event_Roundstart(Handle:event, const String:name[], bool:dontBroad
 			SetGameMode();
 			ResetScores();
 			StartMinigame();
-			for (new i = 1; i <= MaxClients; i++)
+			for (int i = 1; i <= MaxClients; i++)
 			{
 				if (IsValidClient(i) && g_Spawned[i])
 				{
@@ -1062,37 +1061,12 @@ public Action:Event_Roundstart(Handle:event, const String:name[], bool:dontBroad
 	Roundstarts++;
 }
 
-public Action:Event_Roundend(Handle: event, const String: name[], bool: dontBroadcast)
+public Action Event_Roundend(Handle event, const char[] name, bool dontBroadcast)
 {
 	if (g_enabled && GetConVarBool(ww_enable))
 	{
 		g_enabled = false;
 		if (GetConVarBool(ww_log)) LogMessage("== ROUND ENDED SUCCESSFULLY == ");
-	}
-}
-
-void EndMap()
-{
-	g_waiting = true;
-	Roundstarts = 0;
-
-	RestorePlayerFreeze();
-
-	int entity = FindEntityByClassname(-1, "game_end");
-	if (entity == -1 && (entity = CreateEntityByName("game_end")) == -1)
-	{
-		new String:map[PLATFORM_MAX_PATH];
-		if (!GetNextMap(map, PLATFORM_MAX_PATH))
-		{
-			PrintToServer("[EndMap] GetNextMap returned false, cannot switch map!");
-			return;
-		}
-
-		ForceChangeLevel(map, "tf2ware has ended due to map timer.");
-	}
-	else
-	{
-		AcceptEntityInput(entity, "EndGame");
 	}
 }
 
@@ -1147,9 +1121,9 @@ public Action:OnTakeDamageClient(victim, &attacker, &inflictor, &Float: damage, 
 	return Plugin_Continue;
 }
 
-public OnPreThink(client)
+public void OnPreThink(int client)
 {
-	new iButtons = GetClientButtons(client);
+	int iButtons = GetClientButtons(client);
 	if ((status != 2) && GetConVarBool(ww_enable) && g_enabled && (g_Winner[client] == 0) && !(SpecialRound == BONK && status != 5))
 	{
 		if ((iButtons & IN_ATTACK2) || (iButtons & IN_ATTACK))
@@ -1253,7 +1227,7 @@ void precacheSound(char[] var0)
 	AddFileToDownloadsTable(buffer);
 }
 
-public StartMinigame_cvar(Handle:cvar, const String:oldVal[], const String:newVal[])
+public StartMinigame_cvar(Handle cvar, const char[] oldVal, const char[] newVal)
 {
 	if (GetConVarBool(ww_enable) && g_enabled)
 	{
@@ -1261,7 +1235,8 @@ public StartMinigame_cvar(Handle:cvar, const String:oldVal[], const String:newVa
 		SetConVarInt(FindConVar("mp_respawnwavetime"), 199);
 		SetConVarInt(FindConVar("mp_forcecamera"), 0);
 	}
-	else {
+	else
+	{
 		ServerCommand("host_timescale %f", 1.0);
 		ServerCommand("phys_timescale %f", 1.0);
 		ResetConVar(FindConVar("mp_respawnwavetime"));
@@ -2048,9 +2023,15 @@ public Action:Victory_timer(Handle:hTimer)
 			Format(MUSIC_INFO, sizeof(MUSIC_INFO), MUSIC_GAMEOVER);
 		}
 
-		CreateTimer(GetSpeedMultiplier(MUSIC_INFO_LEN), Restartall_timer);
 		status = 5;
-
+		if (HasMapEnded())
+		{
+			CreateTimer(GetSpeedMultiplier(MUSIC_INFO_LEN), Classic_EndMap);
+		}
+		else
+		{
+			CreateTimer(GetSpeedMultiplier(MUSIC_INFO_LEN), Restartall_timer);
+		}
 
 		if (GetConVarBool(ww_music))
 		{
@@ -2144,24 +2125,59 @@ public Action:Victory_timer(Handle:hTimer)
 		}
 
 		UpdateHud(GetSpeedMultiplier(MUSIC_INFO_LEN));
-
-		if (status == 5 && HasMapEnded())
-		{
-			/* TODO(irql) */
-		}
 	}
+
 	return Plugin_Stop;
 }
 
-public Action:Restartall_timer(Handle:hTimer)
+public Action Classic_EndMap(Handle hTimer)
+{
+	status = 0;
+	currentSpeed = GetConVarFloat(ww_speed);
+	ResetScores();
+	SetStateAll(false);
+	ResetWinners();
+	g_waiting = true;
+	RoundStarts = 0;
+	g_minigamestotal = 0;
+
+	RestorePlayerFreeze();
+
+	int entity = FindEntityByClassname(-1, "game_end");
+	if (entity == -1 && (entity = CreateEntityByName("game_end")) == -1)
+	{
+		new String:map[PLATFORM_MAX_PATH];
+		if (!GetNextMap(map, PLATFORM_MAX_PATH))
+		{
+			PrintToServer("[EndMap] GetNextMap returned false, cannot switch map!");
+			return;
+		}
+
+		ForceChangeLevel(map, "tf2ware has ended due to map timer.");
+	}
+	else
+	{
+		AcceptEntityInput(entity, "EndGame");
+	}
+
+	return Plugin_Stop;
+}
+
+public Action Restartall_timer(Handle hTimer)
 {
 	if (status == 5)
 	{
 		bossBattle = 0;
 
 		// Set the game speed
-		if (SpecialRound == SUPER_SPEED) SetConVarFloat(ww_speed, 3.0);
-		else SetConVarFloat(ww_speed, 1.0);
+		if (SpecialRound == SUPER_SPEED)
+		{
+			SetConVarFloat(ww_speed, 3.0);
+		}
+		else
+		{
+			SetConVarFloat(ww_speed, 1.0);
+		}
 
 		if (SpecialRound != NONE)
 		{
