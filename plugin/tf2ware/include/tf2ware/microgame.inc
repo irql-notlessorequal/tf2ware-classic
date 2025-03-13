@@ -105,7 +105,7 @@ public Microgame GetRandomMicrogame(int &idx)
 
 public bool IsBossMicrogame(Microgame mg)
 {
-	switch (mg)
+	switch (view_as<Microgames>(mg))
 	{
 		case MG_BBALL, MG_HUGGING, MG_RED_FLOOR, MG_JUMP_ROPE, MG_FROGGER,
 			 MG_GHOSTBUSTERS, MG_MANDRILL:

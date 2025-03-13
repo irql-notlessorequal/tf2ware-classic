@@ -9,7 +9,7 @@ The original TF2Ware from 2011, fixed up and working!
 - [x] Drop the `gamedata.txt` requirement, making the gamemode 64-bit ready and immune to breakages.
 - [x] Bring back overhead scores
 - [x] Bring back the "cute little spycrab"
-- [ ] Fix assorted issues with "!activator" (i.e. Kamikaze microgame)
+- [x] Fix assorted issues with "!activator" (i.e. Kamikaze microgame)
 - [ ] Rewrite the codebase, dropping the spaghetti code of the past.
 - [ ] Fix the gamemode misbehaving when loading in the map.
 - [ ] Fix the flood microgame killing you twice at higher speeds.
@@ -22,7 +22,7 @@ Extract the .smx into your server's SourceMod plugins folder.
 
 Extract the assets into your server's `tf` folder.
 
-## Notice.
+## Heads up!
 
 Users of the pre-release version 0.0.11, **MUST** reinstall the map with a newer copy
 from the repository.

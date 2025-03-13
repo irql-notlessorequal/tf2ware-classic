@@ -1,18 +1,28 @@
 #define MAX_MINIGAMES		 40
 
-#define PLUGIN_VERSION		 "0.0.20"
+#define PLUGIN_VERSION		 "0.0.30"
 
-#define MUSIC2_START		 "imgay/tf2ware/tf2ware_intro.mp3"
-#define MUSIC2_START_LEN	 2.18
-#define MUSIC2_WIN			 "imgay/tf2ware/tf2ware_win.mp3"
-#define MUSIC2_FAIL			 "imgay/tf2ware/tf2ware_fail.mp3"
-#define MUSIC2_END_LEN		 2.2
-#define MUSIC2_SPEEDUP		 "imgay/tf2ware/tf2ware_speedup.mp3"
-#define MUSIC2_SPEEDUP_LEN	 3.29
-#define MUSIC2_BOSS			 "imgay/tf2ware/boss.mp3"
-#define MUSIC2_BOSS_LEN		 3.9
-#define MUSIC2_GAMEOVER		 "imgay/tf2ware/warioman_gameover.mp3"
-#define MUSIC2_GAMEOVER_LEN	 8.17
+#define MUSIC_SPECIAL_START		"imgay/tf2ware/special_intro.mp3"
+#define MUSIC_SPECIAL_START_LEN  4.167
+#define MUSIC_SPECIAL_WIN		"imgay/tf2ware/special_win.mp3"
+#define MUSIC_SPECIAL_FAIL		"imgay/tf2ware/special_fail.mp3"
+#define MUSIC_SPECIAL_END_LEN	2.039
+#define MUSIC_SPECIAL_SPEEDUP	"imgay/tf2ware/special_speedup.mp3"
+#define MUSIC_SPECIAL_SPEEDUP_LEN	4.2
+#define MUSIC_SPECIAL_GAMEOVER	"imgay/tf2ware/special_gameover.mp3"
+#define MUSIC_SPECIAL_GAMEOVER_LEN	2.04
+
+#define MUSIC_WIPEOUT_START		"imgay/tf2ware/tf2ware_intro.mp3"
+#define MUSIC_WIPEOUT_START_LEN	 2.18
+#define MUSIC_WIPEOUT_WIN		"imgay/tf2ware/tf2ware_win.mp3"
+#define MUSIC_WIPEOUT_FAIL		"imgay/tf2ware/tf2ware_fail.mp3"
+#define MUSIC_WIPEOUT_END_LEN	2.2
+#define MUSIC_WIPEOUT_SPEEDUP	"imgay/tf2ware/tf2ware_speedup.mp3"
+#define MUSIC_WIPEOUT_SPEEDUP_LEN	 3.29
+#define MUSIC_WIPEOUT_BOSS		"imgay/tf2ware/boss.mp3"
+#define MUSIC_WIPEOUT_BOSS_LEN	3.9
+#define MUSIC_WIPEOUT_GAMEOVER	"imgay/tf2ware/warioman_gameover.mp3"
+#define MUSIC_WIPEOUT_GAMEOVER_LEN	8.17
 
 #define MUSIC_START			 "imgay/tf2ware/warioman_intro.mp3"
 #define MUSIC_START_LEN		 2.17
@@ -102,4 +112,9 @@ enum Microgames
 	MG_PINATA = 24,
 	MG_GHOSTBUSTERS = 25,
 	MG_MANDRILL = 26
+}
+
+enum TF2WareStatus
+{
+	PRE_MICROGAME = 0
 }

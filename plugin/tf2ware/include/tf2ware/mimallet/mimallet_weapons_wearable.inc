@@ -1,6 +1,9 @@
 #include <tf2>
 #include <tf2_stocks>
 
+#include "mimallet_defines.inc"
+
+static Handle hSDKEquipWearable = INVALID_HANDLE;
 static Handle hSDKRemoveWearable = INVALID_HANDLE;
 
 public bool MimalletInitWearables()
@@ -10,6 +13,17 @@ public bool MimalletInitWearables()
 	if (gamedata == INVALID_HANDLE)
 	{
 		PrintToServer("[mimallet] Failed to find the game data handle!")
+		return false;
+	}
+
+	StartPrepSDKCall(SDKCall_Player);
+	PrepSDKCall_SetVirtual(gamedata.GetOffset("RemoveWearable") - 1);
+	PrepSDKCall_AddParameter(SDKType_CBaseEntity, SDKPass_Pointer);
+	hSDKEquipWearable = EndPrepSDKCall();
+
+	if (hSDKEquipWearable == INVALID_HANDLE)
+	{
+		PrintToServer("[Mallet] Failed to hook into CTFPlayer::EquipWearable!")
 		return false;
 	}
 
@@ -37,5 +51,16 @@ bool TypeIsWearable(const char[] name)
 public int MalletRemoveWearable(int client, int wearable)
 {
 	SDKCall(hSDKRemoveWearable, client, wearable);
+	return 1;
+}
+
+public int MalletEquipWearable(int client, int entity)
+{
+	if (!IsValidEntity(entity))
+	{
+		return MALLET_ERROR_INVALID_ENTITY;
+	}
+
+	SDKCall(hSDKEquipWearable, client, entity);
 	return 1;
 }

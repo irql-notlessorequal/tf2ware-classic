@@ -338,6 +338,8 @@ public void OnMapStart()
 
 		DispatchOnMicrogameSetup();
 
+		/* Regular */
+
 		precacheSound(MUSIC_START);
 		precacheSound(MUSIC_WIN);
 		precacheSound(MUSIC_FAIL);
@@ -345,12 +347,24 @@ public void OnMapStart()
 		precacheSound(MUSIC_BOSS);
 		precacheSound(MUSIC_GAMEOVER);
 
-		precacheSound(MUSIC2_START);
-		precacheSound(MUSIC2_WIN);
-		precacheSound(MUSIC2_FAIL);
-		precacheSound(MUSIC2_SPEEDUP);
-		precacheSound(MUSIC2_BOSS);
-		precacheSound(MUSIC2_GAMEOVER);
+		/* Special Rounds */
+
+		precacheSound(MUSIC_SPECIAL_START);
+		precacheSound(MUSIC_SPECIAL_WIN);
+		precacheSound(MUSIC_SPECIAL_FAIL);
+		precacheSound(MUSIC_SPECIAL_SPEEDUP);
+		precacheSound(MUSIC_SPECIAL_GAMEOVER);
+
+		/* Wipeout */
+
+		precacheSound(MUSIC_WIPEOUT_START);
+		precacheSound(MUSIC_WIPEOUT_WIN);
+		precacheSound(MUSIC_WIPEOUT_FAIL);
+		precacheSound(MUSIC_WIPEOUT_SPEEDUP);
+		precacheSound(MUSIC_WIPEOUT_BOSS);
+		precacheSound(MUSIC_WIPEOUT_GAMEOVER);
+
+		/* Misc. */
 
 		precacheSound(MUSIC_WAITING);
 		precacheSound(MUSIC_SPECIAL);
@@ -1274,33 +1288,30 @@ public void OnGameFrame()
 		return;
 
 
-	if (currentMicrogame)
+	if (status == 2)
 	{
 		DispatchOnMicrogameFrame();
-	}
-
-#if 0
-	if (GetConVarBool(ww_enable) && g_enabled && (status == 2) && (g_OnGameFrame_Minigames != INVALID_HANDLE))
-	{
-		Call_StartForward(g_OnGameFrame_Minigames);
-		Call_Finish();
 
 		if (g_Gamemode == GAMEMODE_WIPEOUT && status == 1)
 		{
-			for (new i = 1; i <= MaxClients; i++)
+			for (int i = 1; i <= MaxClients; i++)
 			{
 				if (IsValidClient(i) && IsPlayerAlive(i) && IsClientParticipating(i))
 				{
-					new Float:pos[3];
+					float pos[3];
 					GetClientAbsOrigin(i, pos);
 					pos[2] -= 25.0;
-					if (pos[2] < GAMEMODE_WIPEOUT_HEIGHT) pos[2] = GAMEMODE_WIPEOUT_HEIGHT;
+
+					if (pos[2] < GAMEMODE_WIPEOUT_HEIGHT)
+					{
+						pos[2] = GAMEMODE_WIPEOUT_HEIGHT;
+					}
+
 					TeleportEntity(i, pos, NULL_VECTOR, NULL_VECTOR);
 				}
 			}
 		}
 	}
-#endif
 
 	if (GetConVarBool(ww_overhead_scores))
 	{
@@ -1442,13 +1453,23 @@ StartMinigame()
 		SetConVarInt(FindConVar("mp_respawnwavetime"), 199);
 		SetConVarInt(FindConVar("mp_friendlyfire"), 1);
 
-		float MUSIC_INFO_LEN = MUSIC_START_LEN;
+		float MUSIC_INFO_LEN;
 		char MUSIC_INFO[PLATFORM_MAX_PATH];
-		Format(MUSIC_INFO, sizeof(MUSIC_INFO), MUSIC_START);
+		
 		if (g_Gamemode == GAMEMODE_WIPEOUT)
 		{
-			MUSIC_INFO_LEN = MUSIC2_START_LEN;
-			Format(MUSIC_INFO, sizeof(MUSIC_INFO), MUSIC2_START);
+			MUSIC_INFO_LEN = MUSIC_WIPEOUT_START_LEN;
+			Format(MUSIC_INFO, sizeof(MUSIC_INFO), MUSIC_WIPEOUT_START);
+		}
+		else if (SpecialRound != NONE)
+		{
+			MUSIC_INFO_LEN = MUSIC_SPECIAL_START_LEN;
+			Format(MUSIC_INFO, sizeof(MUSIC_INFO), MUSIC_SPECIAL_START);			
+		}
+		else
+		{
+			MUSIC_INFO_LEN = MUSIC_START_LEN;
+			Format(MUSIC_INFO, sizeof(MUSIC_INFO), MUSIC_START);
 		}
 
 		RespawnAll();
@@ -1496,8 +1517,14 @@ StartMinigame()
 			}
 		}
 
-		if (GetConVarBool(ww_music)) EmitSoundToClient(1, MUSIC_INFO, SOUND_FROM_PLAYER, SNDCHAN_AUTO, SNDLEVEL_NORMAL, SND_NOFLAGS, SNDVOL_NORMAL, GetSoundMultiplier());
-		else EmitSoundToAll(MUSIC_INFO, SOUND_FROM_PLAYER, SNDCHAN_AUTO, SNDLEVEL_NORMAL, SND_NOFLAGS, SNDVOL_NORMAL, GetSoundMultiplier());
+		if (GetConVarBool(ww_music))
+		{
+			EmitSoundToClient(1, MUSIC_INFO, SOUND_FROM_PLAYER, SNDCHAN_AUTO, SNDLEVEL_NORMAL, SND_NOFLAGS, SNDVOL_NORMAL, GetSoundMultiplier());
+		}
+		else
+		{
+			EmitSoundToAll(MUSIC_INFO, SOUND_FROM_PLAYER, SNDCHAN_AUTO, SNDLEVEL_NORMAL, SND_NOFLAGS, SNDVOL_NORMAL, GetSoundMultiplier());
+		}
 
 		for (new i = 1; i <= MaxClients; i++)
 		{
@@ -1674,16 +1701,27 @@ public Action EndGame(Handle hTimer)
 		g_AlwaysShowPoints = false;
 		status = 0;
 
-		new Float:MUSIC_INFO_LEN = MUSIC_END_LEN;
-		decl String:MUSIC_INFO_WIN[PLATFORM_MAX_PATH];
-		decl String:MUSIC_INFO_FAIL[PLATFORM_MAX_PATH];
-		Format(MUSIC_INFO_WIN, sizeof(MUSIC_INFO_WIN), MUSIC_WIN);
-		Format(MUSIC_INFO_FAIL, sizeof(MUSIC_INFO_FAIL), MUSIC_FAIL);
+		float MUSIC_INFO_LEN;
+		char MUSIC_INFO_WIN[PLATFORM_MAX_PATH];
+		char MUSIC_INFO_FAIL[PLATFORM_MAX_PATH];
+
 		if (g_Gamemode == GAMEMODE_WIPEOUT)
 		{
-			MUSIC_INFO_LEN = MUSIC2_END_LEN;
-			Format(MUSIC_INFO_WIN, sizeof(MUSIC_INFO_WIN), MUSIC2_WIN);
-			Format(MUSIC_INFO_FAIL, sizeof(MUSIC_INFO_FAIL), MUSIC2_FAIL);
+			MUSIC_INFO_LEN = MUSIC_WIPEOUT_END_LEN;
+			Format(MUSIC_INFO_WIN, sizeof(MUSIC_INFO_WIN), MUSIC_WIPEOUT_WIN);
+			Format(MUSIC_INFO_FAIL, sizeof(MUSIC_INFO_FAIL), MUSIC_WIPEOUT_FAIL);
+		}
+		else if (SpecialRound != NONE)
+		{
+			MUSIC_INFO_LEN = MUSIC_SPECIAL_END_LEN;
+			Format(MUSIC_INFO_WIN, sizeof(MUSIC_INFO_WIN), MUSIC_SPECIAL_WIN);
+			Format(MUSIC_INFO_FAIL, sizeof(MUSIC_INFO_FAIL), MUSIC_SPECIAL_FAIL);
+		}
+		else
+		{
+			MUSIC_INFO_LEN = MUSIC_END_LEN;
+			Format(MUSIC_INFO_WIN, sizeof(MUSIC_INFO_WIN), MUSIC_WIN);
+			Format(MUSIC_INFO_FAIL, sizeof(MUSIC_INFO_FAIL), MUSIC_FAIL);
 		}
 
 		g_attack = (SpecialRound == BONK);
@@ -1869,13 +1907,27 @@ public Action:Speedup_timer(Handle:hTimer)
 		if (bossBattle == 1)
 		{
 			if (GetConVarBool(ww_log)) LogMessage("GETTING READY TO START SOME BOSS");
-			new Float:MUSIC_INFO_LEN = MUSIC_BOSS_LEN;
-			decl String:MUSIC_INFO[PLATFORM_MAX_PATH];
-			Format(MUSIC_INFO, sizeof(MUSIC_INFO), MUSIC_BOSS);
+			
+			float MUSIC_INFO_LEN;
+			char MUSIC_INFO[PLATFORM_MAX_PATH];
+			
 			if (g_Gamemode == GAMEMODE_WIPEOUT)
 			{
-				MUSIC_INFO_LEN = MUSIC2_BOSS_LEN;
-				Format(MUSIC_INFO, sizeof(MUSIC_INFO), MUSIC2_BOSS);
+				MUSIC_INFO_LEN = MUSIC_WIPEOUT_BOSS_LEN;
+				Format(MUSIC_INFO, sizeof(MUSIC_INFO), MUSIC_WIPEOUT_BOSS);
+			}
+			else if (SpecialRound != NONE)
+			{
+				/**
+				 * We can reuse the wipeout boss sound, since it's what we need.
+				 */
+				MUSIC_INFO_LEN = MUSIC_WIPEOUT_BOSS_LEN;
+				Format(MUSIC_INFO, sizeof(MUSIC_INFO), MUSIC_WIPEOUT_BOSS);
+			}
+			else
+			{
+				MUSIC_INFO_LEN = MUSIC_BOSS_LEN;
+				Format(MUSIC_INFO, sizeof(MUSIC_INFO), MUSIC_BOSS);
 			}
 
 			if (GetConVarBool(ww_log)) LogMessage("Boss part 2");
@@ -1921,17 +1973,34 @@ public Action:Speedup_timer(Handle:hTimer)
 
 		if (bossBattle != 1)
 		{
-			new Float:MUSIC_INFO_LEN = MUSIC_SPEEDUP_LEN;
-			decl String:MUSIC_INFO[PLATFORM_MAX_PATH];
-			Format(MUSIC_INFO, sizeof(MUSIC_INFO), MUSIC_SPEEDUP);
+			float MUSIC_INFO_LEN;
+			char MUSIC_INFO[PLATFORM_MAX_PATH];
+
 			if (g_Gamemode == GAMEMODE_WIPEOUT)
 			{
-				MUSIC_INFO_LEN = MUSIC2_SPEEDUP_LEN;
-				Format(MUSIC_INFO, sizeof(MUSIC_INFO), MUSIC2_SPEEDUP);
+				MUSIC_INFO_LEN = MUSIC_WIPEOUT_SPEEDUP_LEN;
+				Format(MUSIC_INFO, sizeof(MUSIC_INFO), MUSIC_WIPEOUT_SPEEDUP);
+			}
+			else if (SpecialRound != NONE)
+			{
+				MUSIC_INFO_LEN = MUSIC_SPECIAL_SPEEDUP_LEN;
+				Format(MUSIC_INFO, sizeof(MUSIC_INFO), MUSIC_SPECIAL_SPEEDUP);
+			}
+			else
+			{
+				MUSIC_INFO_LEN = MUSIC_SPEEDUP_LEN;
+				Format(MUSIC_INFO, sizeof(MUSIC_INFO), MUSIC_SPEEDUP);
 			}
 
-			if (GetConVarBool(ww_music)) EmitSoundToClient(1, MUSIC_INFO, SOUND_FROM_PLAYER, SNDCHAN_AUTO, SNDLEVEL_NORMAL, SND_NOFLAGS, SNDVOL_NORMAL, GetSoundMultiplier());
-			else EmitSoundToAll(MUSIC_INFO, SOUND_FROM_PLAYER, SNDCHAN_AUTO, SNDLEVEL_NORMAL, SND_NOFLAGS, SNDVOL_NORMAL, GetSoundMultiplier());
+			if (GetConVarBool(ww_music))
+			{
+				EmitSoundToClient(1, MUSIC_INFO, SOUND_FROM_PLAYER, SNDCHAN_AUTO, SNDLEVEL_NORMAL, SND_NOFLAGS, SNDVOL_NORMAL, GetSoundMultiplier());
+			}
+			else
+			{
+				EmitSoundToAll(MUSIC_INFO, SOUND_FROM_PLAYER, SNDCHAN_AUTO, SNDLEVEL_NORMAL, SND_NOFLAGS, SNDVOL_NORMAL, GetSoundMultiplier());
+			}
+
 			for (new i = 1; i <= MaxClients; i++)
 			{
 				if (IsValidClient(i) && (!(IsFakeClient(i))))
@@ -1960,20 +2029,37 @@ public Action:Victory_timer(Handle:hTimer)
 		SetConVarFloat(ww_speed, 1.0);
 		currentSpeed = GetConVarFloat(ww_speed);
 
-		CreateTimer(GetSpeedMultiplier(8.17), Restartall_timer);
-		status					   = 5;
+		float MUSIC_INFO_LEN;
+		char MUSIC_INFO[PLATFORM_MAX_PATH];
 
-		new Float:MUSIC_INFO_LEN = MUSIC_GAMEOVER_LEN;
-		decl String:MUSIC_INFO[PLATFORM_MAX_PATH];
-		Format(MUSIC_INFO, sizeof(MUSIC_INFO), MUSIC_GAMEOVER);
 		if (g_Gamemode == GAMEMODE_WIPEOUT)
 		{
-			MUSIC_INFO_LEN = MUSIC2_GAMEOVER_LEN;
-			Format(MUSIC_INFO, sizeof(MUSIC_INFO), MUSIC2_GAMEOVER);
+			MUSIC_INFO_LEN = MUSIC_WIPEOUT_GAMEOVER_LEN;
+			Format(MUSIC_INFO, sizeof(MUSIC_INFO), MUSIC_WIPEOUT_GAMEOVER);
+		}
+		else if (SpecialRound != NONE)
+		{
+			MUSIC_INFO_LEN = MUSIC_SPECIAL_GAMEOVER_LEN;
+			Format(MUSIC_INFO, sizeof(MUSIC_INFO), MUSIC_SPECIAL_GAMEOVER);			
+		}
+		else
+		{
+			MUSIC_INFO_LEN = MUSIC_GAMEOVER_LEN;
+			Format(MUSIC_INFO, sizeof(MUSIC_INFO), MUSIC_GAMEOVER);
 		}
 
-		if (GetConVarBool(ww_music)) EmitSoundToClient(1, MUSIC_INFO, SOUND_FROM_PLAYER, SNDCHAN_AUTO, SNDLEVEL_NORMAL, SND_NOFLAGS, SNDVOL_NORMAL, GetSoundMultiplier());
-		else EmitSoundToAll(MUSIC_INFO, SOUND_FROM_PLAYER, SNDCHAN_AUTO, SNDLEVEL_NORMAL, SND_NOFLAGS, SNDVOL_NORMAL, GetSoundMultiplier());
+		CreateTimer(GetSpeedMultiplier(MUSIC_INFO_LEN), Restartall_timer);
+		status = 5;
+
+
+		if (GetConVarBool(ww_music))
+		{
+			EmitSoundToClient(1, MUSIC_INFO, SOUND_FROM_PLAYER, SNDCHAN_AUTO, SNDLEVEL_NORMAL, SND_NOFLAGS, SNDVOL_NORMAL, GetSoundMultiplier());
+		}
+		else
+		{
+			EmitSoundToAll(MUSIC_INFO, SOUND_FROM_PLAYER, SNDCHAN_AUTO, SNDLEVEL_NORMAL, SND_NOFLAGS, SNDVOL_NORMAL, GetSoundMultiplier());
+		}
 
 		DestroyAllSprites();
 		ResetWinners();
@@ -2229,10 +2315,10 @@ SetClientSlot(client, slot)
 	if (GetConVarBool(ww_log)) LogMessage("Set client slot");
 }
 
-RespawnAll(bool:force	 = false, bool:savepos = true)
+void RespawnAll(bool:force = false, bool:savepos = true)
 {
 	if (GetConVarBool(ww_log)) LogMessage("Respawning everyone");
-	for (new i = 1; i <= MaxClients; i++)
+	for (int i = 1; i <= MaxClients; i++)
 	{
 		RespawnClient(i, force, savepos);
 	}

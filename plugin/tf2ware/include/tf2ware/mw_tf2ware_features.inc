@@ -242,7 +242,7 @@ public Action:SetWeaponState(client, bool:input) {
 	}
 }
 
-public Action:GiveClientWeapon(client, String:weapon[128], slot, bool:input) {
+public void GiveClientWeapon(int client, char weapon[128], int slot, bool input) {
 	if (IsValidClient(client) && IsPlayerAlive(client))
 	{
 		int weaponIdx = -1;
@@ -312,7 +312,6 @@ public Action:GiveClientWeapon(client, String:weapon[128], slot, bool:input) {
 		}
 #endif
 		
-		
 		SetWeaponState(client, input);
 	}
 }
@@ -347,27 +346,62 @@ public Action:RemoveAllWeapons() {
 	}
 }
 
-DisableClientWeapons(client) {
-	if (IsValidClient(client) && (IsPlayerAlive(client))) {
+stock void DisableClientWeapons(int client)
+{
+	if (IsValidClient(client) && (IsPlayerAlive(client)))
+	{
 		RemoveClientWeapons(client);
 		
-		if (SpecialRound == 6 && (!(StrEqual(minigame, "SimonSays") && simon_action == 0))) {
+		if (SpecialRound == 6 && (!(StrEqual(minigame, "SimonSays") && simon_action == 0)))
+		{
 			GiveClientWeapon(client, "tf_weapon_bat", 2, true);
 			SetClientSlot(client, 2);
 		}
 		else
 		{
-			new TFClassType:class = TF2_GetPlayerClass(client);
-			/* rakefix: For some reason the Spy and Heavy got their primary weapons...wut. */
-			if (class == TFClass_Scout) GiveClientWeapon(client, "tf_weapon_bat", 2, false);
-			if (class == TFClass_Soldier) GiveClientWeapon(client, "tf_weapon_shovel", 2, false);
-			if (class == TFClass_Pyro) GiveClientWeapon(client, "tf_weapon_fireaxe", 2, false);
-			if (class == TFClass_DemoMan) GiveClientWeapon(client, "tf_weapon_bottle", 2, false);
-			if (class == TFClass_Heavy) GiveClientWeapon(client, "tf_weapon_fists", 2, false);
-			if (class == TFClass_Engineer) GiveClientWeapon(client, "tf_weapon_wrench", 2, false);
-			if (class == TFClass_Medic) GiveClientWeapon(client, "tf_weapon_bonesaw", 2, false);
-			if (class == TFClass_Sniper) GiveClientWeapon(client, "tf_weapon_club", 2, false);
-			if (class == TFClass_Spy) GiveClientWeapon(client, "tf_weapon_knife", 2, false);
+			TFClassType class = TF2_GetPlayerClass(client);
+			/**
+			 * For some reason the Spy and Heavy got their primary weapons...wut.
+			 */
+			switch (class)
+			{
+				case TFClass_Scout:
+				{
+					GiveClientWeapon(client, "tf_weapon_bat", 2, false);
+				}
+				case TFClass_Soldier:
+				{
+					GiveClientWeapon(client, "tf_weapon_shovel", 2, false);
+				}
+				case TFClass_Pyro:
+				{
+					GiveClientWeapon(client, "tf_weapon_fireaxe", 2, false);
+				}
+				case TFClass_DemoMan:
+				{
+					GiveClientWeapon(client, "tf_weapon_bottle", 2, false);
+				}
+				case TFClass_Heavy:
+				{
+					GiveClientWeapon(client, "tf_weapon_fists", 2, false);
+				}
+				case TFClass_Engineer:
+				{
+					GiveClientWeapon(client, "tf_weapon_wrench", 2, false);
+				}
+				case TFClass_Medic:
+				{
+					GiveClientWeapon(client, "tf_weapon_bonesaw", 2, false);
+				}
+				case TFClass_Sniper:
+				{
+					GiveClientWeapon(client, "tf_weapon_club", 2, false);
+				}
+				case TFClass_Spy:
+				{
+					GiveClientWeapon(client, "tf_weapon_knife", 2, false);
+				}
+			}
 
 			SetWeaponState(client, false);
 		}
@@ -444,17 +478,21 @@ ShowGameText(const String:strMessage[], const String:strIcon[] = "leaderboard_do
 	GameTextHandle = CreateTimer(life, KillGameText, iEntity);
 }
 
-public Action:KillGameText(Handle:hTimer, any:iEntityRef)
+public Action KillGameText(Handle hTimer, any iEntityRef)
 {
 	int iEntity = _:EntRefToEntIndex(iEntityRef);
-	if ((iEntity > 0) && IsValidEntity(iEntity)) AcceptEntityInput(iEntity, "kill");
+	if ((iEntity > 0) && IsValidEntity(iEntity))
+	{
+		AcceptEntityInput(iEntity, "kill");
+	}
 	
 	GameTextHandle = INVALID_HANDLE;
 	
 	return Plugin_Stop;
 }
 
-stock ChangeClientTeamAlive(client, team){
+stock ChangeClientTeamAlive(int client, int team)
+{
 	SetEntProp(client, Prop_Send, "m_lifeState", 2);
 	ChangeClientTeam(client, team);
 	SetEntProp(client, Prop_Send, "m_lifeState", 0);
@@ -482,7 +520,8 @@ void ClearAllTaunts(iClient)
 	TF2_RemoveCondition(iClient, TFCond_Taunting);
 }
 
-public GetHealtarget(client) {
+public int GetHealtarget(int client)
+{
 	if(!IsValidClient(client) || TF2_GetPlayerClass(client) != TFClass_Medic)
 		return 0;
 	
@@ -498,12 +537,37 @@ public GetHealtarget(client) {
 	return GetEntDataEnt2(weapon, FindSendPropInfo("CWeaponMedigun", "m_hHealingTarget"));
 }
 
-int GetClientMaxHealth(int iClient) {
+int GetClientMaxHealth(int iClient)
+{
 	return TF2_GetPlayerResourceData(iClient, TFResource_MaxHealth);
 }
 
-stock FindEntityByClassname2(startEnt, const String:classname[]) {
+stock FindEntityByClassname2(int startEnt, const char[] classname)
+{
 	/* If startEnt isn't valid shifting it back to the nearest valid one */
 	while (startEnt > -1 && !IsValidEntity(startEnt)) startEnt--;
 	return FindEntityByClassname(startEnt, classname);
+}
+
+stock bool ParentEntity(int parent, int attachment, const char[] attachPoint = "", bool maintainOffset = false)
+{
+	SetVariantString("!activator");
+	if (!AcceptEntityInput(attachment, "SetParent", parent, attachment, 0))
+	{
+		return false;
+	}
+	
+	if (strlen(attachPoint) > 0)
+	{
+		SetVariantString(attachPoint);
+		
+		if (!AcceptEntityInput(attachment,
+			maintainOffset ? "SetParentAttachmentMaintainOffset" : "SetParentAttachment",
+			parent, parent))
+		{
+			return false;
+		}
+	}
+
+	return true;
 }

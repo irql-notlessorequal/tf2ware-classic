@@ -54,6 +54,7 @@ methodmap Kamikaze < Microgame
 		if ((g_bomb > 0) && IsValidEntity(g_bomb))
 		{
 			AcceptEntityInput(g_bomb, "Kill");
+			RemoveEntity(g_bomb);
 			g_bomb = 0;
 		}
 	}
@@ -87,9 +88,11 @@ methodmap Kamikaze < Microgame
 						
 					PyroExplode(pos);
 					ExplosionDamage(pos);
+					
 					if ((g_bomb > 0) && IsValidEntity(g_bomb))
 					{
-						AcceptEntityInput(g_bomb, "Kill" );
+						AcceptEntityInput(g_bomb, "Kill");
+						RemoveEntity(g_bomb);
 						g_bomb = 0;
 					}
 				}
@@ -113,36 +116,35 @@ methodmap Kamikaze < Microgame
 			
 				if ((g_bomb > 0) && IsValidEntity(g_bomb))
 				{
-					AcceptEntityInput(g_bomb, "Kill" );
+					AcceptEntityInput(g_bomb, "Kill");
 					g_bomb = 0;
 				}
 			
-				g_bomb = CreateEntityByName("prop_dynamic");
+				g_bomb = CreateEntityByName("tf_wearable");
 				if (IsValidEdict(g_bomb))
 				{ 
-					char strName[32];
-					Format(strName, sizeof(strName), "target%i", client);
+					/**
+					 * Thank you TF2Ware Ultimate for reminding me that tf_wearable is very flexible.
+					 * 
+					 * Fuck you Valve and your restrictions.
+					 */
+					SetEntProp(g_bomb, Prop_Send, "m_nModelIndex", PrecacheModel(WW_BOMB_MODEL));
+					SetEntProp(g_bomb, Prop_Send, "m_bValidatedAttachedEntity", true);
+					SetEntProp(g_bomb, Prop_Send, "m_hOwnerEntity", client);
 
-					DispatchKeyValue(client, "targetname", strName);
-					DispatchKeyValue(g_bomb, "model", WW_BOMB_MODEL);
-
-					DispatchKeyValue(g_bomb, "spawnflags", "1");
-					DispatchKeyValue(g_bomb, "rendermode", "1");
-					DispatchKeyValue(g_bomb, "rendercolor", "255 255 255");
-					
-					if (!DispatchSpawn(g_bomb))
+					if (DispatchSpawn(g_bomb))
 					{
-						return;
+						MalletEquipWearable(client, g_bomb);
+						if (!ParentEntity(client, g_bomb, "flag"))
+						{
+							PrintToServer("[TF2Ware Classic] [Kamikaze] Failed to parent bomb onto player!");
+						}
 					}
-
-					ActivateEntity(g_bomb);
-				
-					DispatchKeyValue(g_bomb, "parentname", strName);
-					SetVariantString("!activator");
-					AcceptEntityInput(g_bomb, "SetParent", client, g_bomb, 0);
-					SetVariantString("flag");
-					AcceptEntityInput(g_bomb, "SetParentAttachment", client, g_bomb, 0);
-				}    
+					else
+					{
+						g_bomb = 0;
+					}
+				}
 			}
 		}		
 	}
