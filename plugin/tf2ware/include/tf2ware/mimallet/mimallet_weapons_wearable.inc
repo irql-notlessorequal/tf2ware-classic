@@ -54,6 +54,58 @@ public int MalletRemoveWearable(int client, int wearable)
 	return 1;
 }
 
+public int MalletRemoveAllWearables(int client)
+{
+	/**
+	 * Apparently AcceptEntityInput(KILL) on tf_wearable shouldn't work
+	 * but it does?
+	 * 
+	 * /shrug
+	 */
+
+	int wearable = -1;
+	while ((wearable = FindEntityByClassname(wearable, "tf_wearable*")) != -1)
+	{
+		if (IsValidEntity(wearable))
+		{
+			int player = GetEntPropEnt(wearable, Prop_Send, "m_hOwnerEntity");
+			if (client == player)
+			{
+				MalletRemoveWearable(client, wearable);
+				AcceptEntityInput(wearable, "Kill");
+			}
+		}
+	}
+
+	while ((wearable = FindEntityByClassname(wearable, "tf_powerup_bottle")) != -1)
+	{
+		if (IsValidEntity(wearable))
+		{
+			int player = GetEntPropEnt(wearable, Prop_Send, "m_hOwnerEntity");
+			if (client == player)
+			{
+				MalletRemoveWearable(client, wearable);
+				AcceptEntityInput(wearable, "Kill");
+			}
+		}
+	}
+
+	while ((wearable = FindEntityByClassname(wearable, "tf_weapon_spellbook")) != -1)
+	{
+		if (IsValidEntity(wearable))
+		{
+			int player = GetEntPropEnt(wearable, Prop_Send, "m_hOwnerEntity");
+			if (client == player)
+			{
+				MalletRemoveWearable(client, wearable);
+				AcceptEntityInput(wearable, "Kill");
+			}
+		}
+	}
+
+	return true;
+}
+
 public int MalletEquipWearable(int client, int entity)
 {
 	if (!IsValidEntity(entity))

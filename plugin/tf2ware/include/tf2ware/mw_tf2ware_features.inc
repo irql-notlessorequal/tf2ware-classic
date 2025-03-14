@@ -411,55 +411,14 @@ stock void DisableClientWeapons(int client)
 // This function is meant to handle player wearables.
 // Ideally it would call some kind of way to re-add a player's wearables, but until we find a way to do that, removing them will do.
 
-public Action:HandlePlayerItems(iClient) {
-	RemoveHeadgear(iClient);
-	RemoveDemoShield(iClient);
+public Action HandlePlayerItems(int iClient)
+{
+	if (!IsValidClient(iClient)) return;
+	if (!IsPlayerAlive(iClient)) return;
+
+	MalletRemoveAllWearables(iClient);
+
 	SetEntProp(iClient, Prop_Send, "m_nBody", 0);
-}
-
-RemoveHeadgear(iClient) {
-	if (!IsValidClient(iClient)) return;
-	if (!IsPlayerAlive(iClient)) return;
-
-	new iEntity = -1;
-	while ((iEntity = FindEntityByClassname2(iEntity, "tf_wearable")) != -1) {
-		if (IsItemEntity(iEntity)) {
-			RemoveItemEntity(iClient, iEntity);
-		}
-	}
-}
-
-RemoveDemoShield(iClient) {
-	if (!IsValidClient(iClient)) return;
-	if (!IsPlayerAlive(iClient)) return;
-
-	new iEntity = -1;
-	while ((iEntity = FindEntityByClassname2(iEntity, "tf_wearable_demoshield")) != -1) {
-		if (IsItemEntity(iEntity)) {
-			RemoveItemEntity(iClient, iEntity);
-		}
-	}
-}
-
-stock RemoveItemEntity(iClient, iEntity) {
-	if (IsValidClient(iClient) && IsItemEntity(iEntity)) {
-		if (GetEntPropEnt(iEntity, Prop_Send, "m_hOwnerEntity") == iClient) {
-			MalletRemoveWearable(iClient, iEntity);
-		}
-		RemoveEdict(iEntity);
-	}
-}
-
-stock bool:IsItemEntity(iEntity) {
-	if (iEntity > 0) {
-		if (IsValidEdict(iEntity)) {
-			decl String:strClassname[32];
-			GetEdictClassname(iEntity, strClassname, sizeof(strClassname));
-			if (StrEqual(strClassname, "tf_wearable", false)) return true;
-			if (StrEqual(strClassname, "tf_wearable_demoshield", false)) return true;
-		}
-	}
-	return false;
 }
 
 new Handle:GameTextHandle = INVALID_HANDLE;

@@ -2140,7 +2140,7 @@ public Action Classic_EndMap(Handle hTimer)
 	SetStateAll(false);
 	ResetWinners();
 	g_waiting = true;
-	RoundStarts = 0;
+	Roundstarts = 0;
 	g_minigamestotal = 0;
 
 	RestorePlayerFreeze();
@@ -2151,11 +2151,11 @@ public Action Classic_EndMap(Handle hTimer)
 		char map[PLATFORM_MAX_PATH];
 		if (!GetNextMap(map, PLATFORM_MAX_PATH))
 		{
-			PrintToServer("[EndMap] GetNextMap returned false, cannot switch map!");
-			return;
+			PrintToServer("[EndClassClassic_EndMapic_EndMapMap] GetNextMap returned false, cannot switch map!");
+			return Plugin_Stop;
 		}
 
-		ForceChangeLevel(map, "tf2ware has ended due to map timer.");
+		ForceChangeLevel(map, "TF2Ware Classic has ended due to map timer.");
 	}
 	else
 	{
