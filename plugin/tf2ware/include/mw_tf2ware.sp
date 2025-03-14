@@ -2151,7 +2151,7 @@ public Action Classic_EndMap(Handle hTimer)
 		char map[PLATFORM_MAX_PATH];
 		if (!GetNextMap(map, PLATFORM_MAX_PATH))
 		{
-			PrintToServer("[EndClassClassic_EndMapic_EndMapMap] GetNextMap returned false, cannot switch map!");
+			PrintToServer("[Classic_EndMap] GetNextMap returned false, cannot switch map!");
 			return Plugin_Stop;
 		}
 

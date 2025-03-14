@@ -42,7 +42,7 @@ public bool MimalletInitWearables()
 	return true;
 }
 
-bool TypeIsWearable(const char[] name)
+public bool TypeIsWearable(const char[] name)
 {
 	return StrEqual(name, "tf_wearable") || StrEqual(name, "tf_wearable_demoshield")
 		|| StrEqual(name, "tf_wearable_razorback") || StrEqual(name, "tf_powerup_bottle");
