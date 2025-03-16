@@ -1,8 +1,5 @@
 #include "../microgame.inc"
 
-#define PROJECTILE_ROCKET 1
-#define PROJECTILE_ROCKET_SENTRY 2
-
 #define TEAM_SPEC 1
 #define TEAM_RED 2
 #define TEAM_BLUE 3
@@ -37,8 +34,12 @@ methodmap AirRaid < Microgame
 			RemoveClientWeapons(client);
 			SetClientClass(client, "pyro");
 			GiveClientWeapon(client, "tf_weapon_flamethrower", 0, true);
-			SetClientClass(client, "pyro");
 		}
+	}
+
+	public void OnClientDeath(int client)
+	{
+		SetStateClient(client, false, true);
 	}
 
 	public void OnMicrogamePostEnd()
@@ -66,7 +67,7 @@ Action FireZeeMissiles(Handle hndl, any data)
 			pos[2] = rand;
 			pos[0] = i * 244.0;
 			pos[1] = j * 244.0;
-			fireProjectile(pos, ang, 350.0, 300.0, TEAM_SPEC, PROJECTILE_ROCKET, true);
+			fireProjectile(pos, ang, 350.0, 1000.0, true);
 		}
 	}
 	
@@ -74,55 +75,50 @@ Action FireZeeMissiles(Handle hndl, any data)
 }
 
 int fireProjectile(float vPosition[3], float vAngles[3] = NULL_VECTOR, float flSpeed = 1100.0, float flDamage = 90.0,
-	int iTeam = TEAM_SPEC, int iType = PROJECTILE_ROCKET, bool bCritical = false)
+	bool bCritical = false)
 {
-	char strClassname[32];
-	char strEntname[32];
-	
-	switch (iType)
+	int ent = CreateEntityByName("tf_point_weapon_mimic");
+	if (!IsValidEntity(ent))
 	{
-		case PROJECTILE_ROCKET:
-		{
-			strClassname = "CTFProjectile_Rocket";
-			strEntname = "tf_projectile_rocket";
-		}
-		case PROJECTILE_ROCKET_SENTRY:
-		{
-			strClassname = "CTFProjectile_SentryRocket";
-			strEntname = "tf_projectile_sentryrocket";
-		}
-		default:
-		{
-			return -1;
-		}
+		return -1;
 	}
 
-	int iRocket = CreateEntityByName(strEntname);
-	if (!IsValidEntity(iRocket))
-		return -1;
+	GetAngleVectors(vAngles, NULL_VECTOR, NULL_VECTOR, NULL_VECTOR);
 	
-	float vVelocity[3];
-	float vBuffer[3];
-	
-	GetAngleVectors(vAngles, vBuffer, NULL_VECTOR, NULL_VECTOR);
-	
-	vVelocity[0] = vBuffer[0] * flSpeed;
-	vVelocity[1] = vBuffer[1] * flSpeed;
-	vVelocity[2] = vBuffer[2] * flSpeed;
-	
-	TeleportEntity(iRocket, vPosition, vAngles, vVelocity);
-	
-	SetEntData(iRocket, FindSendPropOffs(strClassname, "m_nSkin"), (iTeam - 2), 1, true);
-	SetEntData(iRocket, FindSendPropOffs(strClassname, "m_bCritical"), bCritical, true);
-	SetEntDataFloat(iRocket, FindSendPropOffs(strClassname, "m_iDeflected") + 4, flDamage, true); // Credit to voogru
-	
-	SetVariantInt(iTeam);
-	AcceptEntityInput(iRocket, "TeamNum", -1, -1, 0);
+	DispatchKeyValueVector(ent, "origin", vPosition);
+	DispatchKeyValueVector(ent, "angles", vAngles);
 
-	SetVariantInt(iTeam);
-	AcceptEntityInput(iRocket, "SetTeam", -1, -1, 0); 
+	char damage[8];
+	FloatToString(flDamage, damage, sizeof (damage));
+
+	char speed[8];
+	FloatToString(flSpeed, speed, sizeof (speed));
 	
-	DispatchSpawn(iRocket);
+	DispatchKeyValueInt(ent, "Crits", bCritical);
+
+	DispatchKeyValue(ent, "WeaponType", "0");
+	DispatchKeyValue(ent, "Damage", damage);
+	DispatchKeyValue(ent, "SplashRadius", "256");
+	DispatchKeyValue(ent, "SpreadAngle", "5");
+
+	DispatchKeyValue(ent, "SpeedMin", speed);
+	DispatchKeyValue(ent, "SpeedMax", speed);
 	
-	return iRocket;
+	if (!DispatchSpawn(ent))
+	{
+		return -1;
+	}
+	else
+	{
+		SetVariantString("OnUser1 !self:ClearParent::2.95:1");
+		AcceptEntityInput(ent, "AddOutput");
+		AcceptEntityInput(ent, "FireUser1");
+	
+		SetVariantString("OnUser2 !self:Kill::10.0:1");
+		AcceptEntityInput(ent, "AddOutput");
+		AcceptEntityInput(ent, "FireUser2");
+
+		AcceptEntityInput(ent, "FireOnce");
+		return ent;
+	}
 }
