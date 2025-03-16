@@ -40,6 +40,14 @@ methodmap AirRaid < Microgame
 			SetClientClass(client, "pyro");
 		}
 	}
+
+	public void OnMicrogamePostEnd()
+	{
+		for (int i = 1; i <= MaxClients; i++)
+		{
+			SDKUnhook(i, SDKHook_PreThink, Airblast_RemoveLeftClick);
+		}
+	}
 }
 
 Action FireZeeMissiles(Handle hndl, any data)
