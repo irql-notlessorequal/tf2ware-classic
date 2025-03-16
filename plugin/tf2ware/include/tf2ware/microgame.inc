@@ -177,6 +177,11 @@ public void DispatchOnMicrogameSetup()
 				view_as<Kamikaze>(key).OnMicrogameSetup();
 			}
 
+			case MG_MATH:
+			{
+				view_as<Math>(key).OnMicrogameSetup();
+			}
+
 			case MG_MOVEMENT:
 			{
 				view_as<Movement>(key).OnMicrogameSetup();

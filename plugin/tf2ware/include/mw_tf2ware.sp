@@ -83,7 +83,6 @@ int white;
 int g_HaloSprite;
 int g_ExplosionSprite;
 int g_result = 0;
-char g_mathquestion[24];
 int g_bomb								   = 0;
 int Roundstarts							   = 0;
 int g_lastminigame						   = 0;
@@ -117,9 +116,9 @@ Microgame currentMicrogame;
 #include "tf2ware/microgames/kamikaze.inc"
 #include "tf2ware/microgames/flood.inc"
 #include "tf2ware/microgames/needlejump.inc"
+#include "tf2ware/microgames/math.inc"
 
 #if 0
-#include "tf2ware/microgames/math.inc"
 #include "tf2ware/microgames/hopscotch.inc"
 #endif
 
@@ -211,6 +210,7 @@ public void OnPluginStart()
 	AddMiniGame(MG_GOOMBA, new Goomba());
 	AddMiniGame(MG_HIT_ENEMY, new HitEnemy());
 	AddMiniGame(MG_KAMIKAZE, new Kamikaze());
+	AddMiniGame(MG_MATH, new Math());
 	AddMiniGame(MG_MOVEMENT, new Movement());
 	AddMiniGame(MG_NEEDLE_JUMP, new NeedleJump());
 	AddMiniGame(MG_SAW_RUN, new Sawrun());
@@ -496,6 +496,11 @@ void DispatchOnClientJustEntered(int client)
 			view_as<Kamikaze>(currentMicrogame).OnClientJustEntered(client);
 		}
 
+		case MG_MATH:
+		{
+			view_as<Math>(currentMicrogame).OnClientJustEntered(client);
+		}
+
 		case MG_MOVEMENT:
 		{
 			view_as<Movement>(currentMicrogame).OnClientJustEntered(client);
@@ -580,6 +585,11 @@ void DispatchOnMicrogameStart()
 		case MG_KAMIKAZE:
 		{
 			view_as<Kamikaze>(currentMicrogame).OnMicrogameStart();
+		}
+
+		case MG_MATH:
+		{
+			view_as<Math>(currentMicrogame).OnMicrogameStart();
 		}
 
 		case MG_MOVEMENT:
@@ -668,6 +678,11 @@ void DispatchOnMicrogameTimer(int timeLeft)
 			view_as<Kamikaze>(currentMicrogame).OnMicrogameTimer(timeLeft);
 		}
 
+		case MG_MATH:
+		{
+			view_as<Math>(currentMicrogame).OnMicrogameTimer(timeLeft);
+		}
+
 		case MG_MOVEMENT:
 		{
 			view_as<Movement>(currentMicrogame).OnMicrogameTimer(timeLeft);
@@ -752,6 +767,11 @@ void DispatchOnMicrogameEnd()
 		case MG_KAMIKAZE:
 		{
 			view_as<Kamikaze>(currentMicrogame).OnMicrogameEnd();
+		}
+
+		case MG_MATH:
+		{
+			view_as<Math>(currentMicrogame).OnMicrogameEnd();
 		}
 
 		case MG_MOVEMENT:
@@ -840,6 +860,11 @@ void DispatchOnMicrogamePostEnd()
 			view_as<Kamikaze>(currentMicrogame).OnMicrogamePostEnd();
 		}
 
+		case MG_MATH:
+		{
+			view_as<Math>(currentMicrogame).OnMicrogamePostEnd();
+		}
+
 		case MG_MOVEMENT:
 		{
 			view_as<Movement>(currentMicrogame).OnMicrogamePostEnd();
@@ -924,6 +949,11 @@ void DispatchOnMicrogameFrame()
 		case MG_KAMIKAZE:
 		{
 			view_as<Kamikaze>(currentMicrogame).OnMicrogameFrame();
+		}
+
+		case MG_MATH:
+		{
+			view_as<Math>(currentMicrogame).OnMicrogameFrame();
 		}
 
 		case MG_MOVEMENT:
@@ -1012,6 +1042,11 @@ void DispatchOnClientDeath(int client)
 			view_as<Kamikaze>(currentMicrogame).OnClientDeath(client);
 		}
 
+		case MG_MATH:
+		{
+			view_as<Math>(currentMicrogame).OnClientDeath(client);
+		}
+
 		case MG_MOVEMENT:
 		{
 			view_as<Movement>(currentMicrogame).OnClientDeath(client);
@@ -1096,6 +1131,11 @@ bool DispatchIsMicrogamePlayable(Microgame mg, int players)
 		case MG_KAMIKAZE:
 		{
 			return view_as<Kamikaze>(mg).IsMicrogamePlayable(players);
+		}
+
+		case MG_MATH:
+		{
+			return view_as<Math>(mg).IsMicrogamePlayable(players);
 		}
 
 		case MG_MOVEMENT:
