@@ -287,27 +287,6 @@ public void OnMapStart()
 		ResetWinners();
 		SetMissionAll(0);
 
-#if 0
-		RegMinigame("HitEnemy", HitEnemy_OnMinigame);
-		RegMinigame("Kamikaze", Kamikaze_OnMinigame);
-		RegMinigame("Math", Math_OnMinigame);
-		RegMinigame("Barrel", Barrel_OnMinigame);
-		RegMinigame("Needlejump", Needlejump_OnMinigame);
-		RegMinigame("Hopscotch", Hopscotch_OnMinigame);
-		RegMinigame("Airblast", Airblast_OnMinigame);
-		RegMinigame("Movement", Movement_OnMinigame);
-		RegMinigame("Flood", Flood_OnMinigame);
-		RegMinigame("BBall", BBall_OnMinigame);
-		RegMinigame("Hugging", Hugging_OnMinigame, Hugging_Init);
-		RegMinigame("RedFloor", RedFloor_OnMinigame);
-		RegMinigame("SniperTarget", SniperTarget_OnMinigame, SniperTarget_Init);
-		RegMinigame("Airraid", Airraid_OnMinigame);
-		RegMinigame("JumpRope", JumpRope_OnMinigame);
-		RegMinigame("Frogger", Frogger_OnMinigame, Frogger_Init);
-		RegMinigame("Goomba", Goomba_OnMinigame);
-		RegMinigame("Ghostbusters", Ghostbusters_OnMinigame, Ghostbusters_Init);
-#endif
-
 		// CHEATS
 		HookConVarChange(FindConVar("sv_cheats"), OnConVarChanged_SvCheats);
 		ww_allowedCommands = CreateArray(64);
