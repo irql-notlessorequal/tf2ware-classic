@@ -117,11 +117,7 @@ Microgame currentMicrogame;
 #include "tf2ware/microgames/flood.inc"
 #include "tf2ware/microgames/needlejump.inc"
 #include "tf2ware/microgames/math.inc"
-
-#if 0
 #include "tf2ware/microgames/hopscotch.inc"
-#endif
-
 #include "tf2ware/microgames/sawrun.inc"
 #include "tf2ware/microgames/simonsays.inc"
 #include "tf2ware/microgames/movement.inc"
@@ -209,6 +205,7 @@ public void OnPluginStart()
 	AddMiniGame(MG_FLOOD, new Flood());
 	AddMiniGame(MG_GOOMBA, new Goomba());
 	AddMiniGame(MG_HIT_ENEMY, new HitEnemy());
+	AddMiniGame(MG_HOPSCOTCH, new Hopscotch());
 	AddMiniGame(MG_KAMIKAZE, new Kamikaze());
 	AddMiniGame(MG_MATH, new Math());
 	AddMiniGame(MG_MOVEMENT, new Movement());
@@ -491,6 +488,11 @@ void DispatchOnClientJustEntered(int client)
 			view_as<HitEnemy>(currentMicrogame).OnClientJustEntered(client);
 		}
 
+		case MG_HOPSCOTCH:
+		{
+			view_as<Hopscotch>(currentMicrogame).OnClientJustEntered(client);
+		}
+
 		case MG_KAMIKAZE:
 		{
 			view_as<Kamikaze>(currentMicrogame).OnClientJustEntered(client);
@@ -580,6 +582,11 @@ void DispatchOnMicrogameStart()
 		case MG_HIT_ENEMY:
 		{
 			view_as<HitEnemy>(currentMicrogame).OnMicrogameStart();
+		}
+
+		case MG_HOPSCOTCH:
+		{
+			view_as<Hopscotch>(currentMicrogame).OnMicrogameStart();
 		}
 
 		case MG_KAMIKAZE:
@@ -673,6 +680,11 @@ void DispatchOnMicrogameTimer(int timeLeft)
 			view_as<HitEnemy>(currentMicrogame).OnMicrogameTimer(timeLeft);
 		}
 
+		case MG_HOPSCOTCH:
+		{
+			view_as<Hopscotch>(currentMicrogame).OnMicrogameTimer(timeLeft);
+		}
+
 		case MG_KAMIKAZE:
 		{
 			view_as<Kamikaze>(currentMicrogame).OnMicrogameTimer(timeLeft);
@@ -762,6 +774,11 @@ void DispatchOnMicrogameEnd()
 		case MG_HIT_ENEMY:
 		{
 			view_as<HitEnemy>(currentMicrogame).OnMicrogameEnd();
+		}
+
+		case MG_HOPSCOTCH:
+		{
+			view_as<Hopscotch>(currentMicrogame).OnMicrogameEnd();
 		}
 
 		case MG_KAMIKAZE:
@@ -855,6 +872,11 @@ void DispatchOnMicrogamePostEnd()
 			view_as<HitEnemy>(currentMicrogame).OnMicrogamePostEnd();
 		}
 
+		case MG_HOPSCOTCH:
+		{
+			view_as<Hopscotch>(currentMicrogame).OnMicrogamePostEnd();
+		}
+
 		case MG_KAMIKAZE:
 		{
 			view_as<Kamikaze>(currentMicrogame).OnMicrogamePostEnd();
@@ -944,6 +966,11 @@ void DispatchOnMicrogameFrame()
 		case MG_HIT_ENEMY:
 		{
 			view_as<HitEnemy>(currentMicrogame).OnMicrogameFrame();
+		}
+
+		case MG_HOPSCOTCH:
+		{
+			view_as<Hopscotch>(currentMicrogame).OnMicrogameFrame();
 		}
 
 		case MG_KAMIKAZE:
@@ -1037,6 +1064,11 @@ void DispatchOnClientDeath(int client)
 			view_as<HitEnemy>(currentMicrogame).OnClientDeath(client);
 		}
 
+		case MG_HOPSCOTCH:
+		{
+			view_as<Hopscotch>(currentMicrogame).OnClientDeath(client);
+		}
+
 		case MG_KAMIKAZE:
 		{
 			view_as<Kamikaze>(currentMicrogame).OnClientDeath(client);
@@ -1126,6 +1158,11 @@ bool DispatchIsMicrogamePlayable(Microgame mg, int players)
 		case MG_HIT_ENEMY:
 		{
 			return view_as<HitEnemy>(mg).IsMicrogamePlayable(players);
+		}
+
+		case MG_HOPSCOTCH:
+		{
+			return view_as<Hopscotch>(mg).IsMicrogamePlayable(players);
 		}
 
 		case MG_KAMIKAZE:

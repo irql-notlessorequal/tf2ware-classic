@@ -183,6 +183,11 @@ public void DispatchOnMicrogameSetup()
 				view_as<HitEnemy>(key).OnMicrogameSetup();
 			}
 
+			case MG_HOPSCOTCH:
+			{
+				view_as<Hopscotch>(key).OnMicrogameSetup();
+			}
+
 			case MG_KAMIKAZE:
 			{
 				view_as<Kamikaze>(key).OnMicrogameSetup();
