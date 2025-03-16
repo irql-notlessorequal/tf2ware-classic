@@ -137,6 +137,11 @@ public void DispatchOnMicrogameSetup()
 				view_as<Airblast>(key).OnMicrogameSetup();
 			}
 
+			case MG_AIR_RAID:
+			{
+				view_as<AirRaid>(key).OnMicrogameSetup();
+			}
+
 			case MG_BARREL:
 			{
 				view_as<Barrel>(key).OnMicrogameSetup();
@@ -144,7 +149,7 @@ public void DispatchOnMicrogameSetup()
 
 			case MG_BBALL:
 			{
-				view_as<BBall>(currentMicrogame).OnMicrogameSetup();
+				view_as<BBall>(key).OnMicrogameSetup();
 			}
 
 			case MG_COLOR_TEXT:
@@ -154,7 +159,7 @@ public void DispatchOnMicrogameSetup()
 
 			case MG_FLOOD:
 			{
-				view_as<Flood>(currentMicrogame).OnMicrogameSetup();
+				view_as<Flood>(key).OnMicrogameSetup();
 			}
 
 			case MG_KAMIKAZE:

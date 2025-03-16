@@ -130,11 +130,11 @@ Microgame currentMicrogame;
 #include "tf2ware/microgames/movement.inc"
 #include "tf2ware/microgames/snipertarget.inc"
 #include "tf2ware/microgames/bball.inc"
+#include "tf2ware/microgames/airraid.inc"
 
 #if 0
 #include "tf2ware/microgames/hugging.inc"
 #include "tf2ware/microgames/redfloor.inc"
-#include "tf2ware/microgames/airraid.inc"
 #include "tf2ware/microgames/jumprope.inc"
 #include "tf2ware/microgames/frogger.inc"
 #include "tf2ware/microgames/goomba.inc"
@@ -204,6 +204,7 @@ public void OnPluginStart()
 
 	// MINIGAME REGISTRATION
 	AddMiniGame(MG_AIRBLAST, new Airblast());
+	AddMiniGame(MG_AIR_RAID, new AirRaid());
 	AddMiniGame(MG_BBALL, new BBall());
 	AddMiniGame(MG_BARREL, new Barrel());
 	AddMiniGame(MG_COLOR_TEXT, new ColorText());
@@ -474,6 +475,11 @@ void DispatchOnClientJustEntered(int client)
 			view_as<Airblast>(currentMicrogame).OnClientJustEntered(client);
 		}
 
+		case MG_AIR_RAID:
+		{
+			view_as<AirRaid>(currentMicrogame).OnClientJustEntered(client);
+		}
+
 		case MG_BARREL:
 		{
 			view_as<Barrel>(currentMicrogame).OnClientJustEntered(client);
@@ -538,6 +544,11 @@ void DispatchOnMicrogameStart()
 		case MG_AIRBLAST:
 		{
 			view_as<Airblast>(currentMicrogame).OnMicrogameStart();
+		}
+
+		case MG_AIR_RAID:
+		{
+			view_as<AirRaid>(currentMicrogame).OnMicrogameStart();
 		}
 
 		case MG_BARREL:
@@ -606,6 +617,11 @@ void DispatchOnMicrogameTimer(int timeLeft)
 			view_as<Airblast>(currentMicrogame).OnMicrogameTimer(timeLeft);
 		}
 
+		case MG_AIR_RAID:
+		{
+			view_as<AirRaid>(currentMicrogame).OnMicrogameTimer(timeLeft);
+		}
+
 		case MG_BARREL:
 		{
 			view_as<Barrel>(currentMicrogame).OnMicrogameTimer(timeLeft);
@@ -670,6 +686,11 @@ void DispatchOnMicrogameEnd()
 		case MG_AIRBLAST:
 		{
 			view_as<Airblast>(currentMicrogame).OnMicrogameEnd();
+		}
+
+		case MG_AIR_RAID:
+		{
+			view_as<AirRaid>(currentMicrogame).OnMicrogameEnd();
 		}
 
 		case MG_BARREL:
@@ -738,6 +759,11 @@ void DispatchOnMicrogamePostEnd()
 			view_as<Airblast>(currentMicrogame).OnMicrogamePostEnd();
 		}
 
+		case MG_AIR_RAID:
+		{
+			view_as<AirRaid>(currentMicrogame).OnMicrogamePostEnd();
+		}
+
 		case MG_BARREL:
 		{
 			view_as<Barrel>(currentMicrogame).OnMicrogamePostEnd();
@@ -802,6 +828,11 @@ void DispatchOnMicrogameFrame()
 		case MG_AIRBLAST:
 		{
 			view_as<Airblast>(currentMicrogame).OnMicrogameFrame();
+		}
+
+		case MG_AIR_RAID:
+		{
+			view_as<AirRaid>(currentMicrogame).OnMicrogameFrame();
 		}
 
 		case MG_BARREL:
@@ -870,6 +901,11 @@ void DispatchOnClientDeath(int client)
 			view_as<Airblast>(currentMicrogame).OnClientDeath(client);
 		}
 
+		case MG_AIR_RAID:
+		{
+			view_as<AirRaid>(currentMicrogame).OnClientDeath(client);
+		}
+
 		case MG_BARREL:
 		{
 			view_as<Barrel>(currentMicrogame).OnClientDeath(client);
@@ -934,6 +970,11 @@ bool DispatchIsMicrogamePlayable(Microgame mg, int players)
 		case MG_AIRBLAST:
 		{
 			return view_as<Airblast>(mg).IsMicrogamePlayable(players);
+		}
+
+		case MG_AIR_RAID:
+		{
+			return view_as<AirRaid>(mg).IsMicrogamePlayable(players);
 		}
 
 		case MG_BARREL:
