@@ -58,6 +58,7 @@
 
 #define WW_BOMB "pl_hoodoo/alarm_clock_ticking_3.wav"
 #define WW_BOMB_MODEL "models/custom/dirty_bomb_cart.mdl"
+#define WW_BOMB_OLD_MODEL "models/tf2ware/bobomb.mdl"
 #define PARTICLE_BOMB "cinefx_goldrush_embers"
 #define PARTICLE_EXPLODE "cinefx_goldrush_initial_smoke"
 

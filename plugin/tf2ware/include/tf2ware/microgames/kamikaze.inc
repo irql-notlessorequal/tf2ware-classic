@@ -15,6 +15,7 @@ methodmap Kamikaze < Microgame
 	public void OnMicrogameSetup()
 	{
 		PrecacheModel(WW_BOMB_MODEL, true);
+		PrecacheModel(WW_BOMB_OLD_MODEL, true);
 		precacheSound(WW_BOMB);		
 	}
 
@@ -113,37 +114,46 @@ methodmap Kamikaze < Microgame
 			{
 				SetClientClass(client, "scout");
 				DisableClientWeapons(client);
-			
-				if ((g_bomb > 0) && IsValidEntity(g_bomb))
-				{
-					AcceptEntityInput(g_bomb, "Kill");
-					g_bomb = 0;
-				}
-			
-				g_bomb = CreateEntityByName("tf_wearable");
-				if (IsValidEdict(g_bomb))
-				{ 
-					/**
-					 * Thank you TF2Ware Ultimate for reminding me that tf_wearable is very flexible.
-					 * 
-					 * Fuck you Valve and your restrictions.
-					 */
-					SetEntProp(g_bomb, Prop_Send, "m_nModelIndex", PrecacheModel(WW_BOMB_MODEL));
-					SetEntProp(g_bomb, Prop_Send, "m_bValidatedAttachedEntity", true);
-					SetEntProp(g_bomb, Prop_Send, "m_hOwnerEntity", client);
 
-					if (DispatchSpawn(g_bomb))
+				if (GetConVarBool(ww_kamikaze_style))
+				{
+					/* Use the "bobomb" model that is otherwise unused. */
+					SetVariantString(WW_BOMB_OLD_MODEL);
+					AcceptEntityInput(client, "SetCustomModel");
+				}
+				else
+				{
+					if ((g_bomb > 0) && IsValidEntity(g_bomb))
 					{
-						MalletEquipWearable(client, g_bomb);
-						if (!ParentEntity(client, g_bomb, "flag"))
-						{
-							PrintToServer("[TF2Ware Classic] [Kamikaze] Failed to parent bomb onto player!");
-						}
-					}
-					else
-					{
+						AcceptEntityInput(g_bomb, "Kill");
 						g_bomb = 0;
 					}
+			
+					g_bomb = CreateEntityByName("tf_wearable");
+					if (IsValidEdict(g_bomb))
+					{ 
+						/**
+						 * Thank you TF2Ware Ultimate for reminding me that tf_wearable is very flexible.
+						 * 
+						 * Fuck you Valve and your restrictions.
+						 */
+						SetEntProp(g_bomb, Prop_Send, "m_nModelIndex", PrecacheModel(WW_BOMB_MODEL));
+						SetEntProp(g_bomb, Prop_Send, "m_bValidatedAttachedEntity", true);
+						SetEntProp(g_bomb, Prop_Send, "m_hOwnerEntity", client);
+
+						if (DispatchSpawn(g_bomb))
+						{
+							MalletEquipWearable(client, g_bomb);
+							if (!ParentEntity(client, g_bomb, "flag"))
+							{
+								PrintToServer("[TF2Ware Classic] [Kamikaze] Failed to parent bomb onto player!");
+							}
+						}
+						else
+						{
+							g_bomb = 0;
+						}
+					}					
 				}
 			}
 		}		

@@ -45,6 +45,7 @@ Handle ww_special = INVALID_HANDLE;
 Handle ww_gamemode = INVALID_HANDLE;
 Handle ww_force_special = INVALID_HANDLE;
 Handle ww_overhead_scores = INVALID_HANDLE;
+Handle ww_kamikaze_style = INVALID_HANDLE;
 Handle ww_allowedCommands = INVALID_HANDLE;
 Handle hudScore = INVALID_HANDLE;
 // REPLACE WEAPON
@@ -200,7 +201,8 @@ public void OnPluginStart()
 	ww_special		 = CreateConVar("ww_special", "0", "Next round is Special Round?", FCVAR_PLUGIN);
 	ww_gamemode		 = CreateConVar("ww_gamemode", "-1", "Gamemode", FCVAR_PLUGIN);
 	ww_force_special = CreateConVar("ww_force_special", "0", "Forces a specific Special Round on Special Round", FCVAR_PLUGIN);
-	ww_overhead_scores = CreateConVar("ww_overhead_scores", "0", "Re-enables overhead scores, a feature that was long removed.", FCVAR_PLUGIN);
+	ww_overhead_scores = CreateConVar("ww_overhead_scores", "0", "Re-enables overhead scores, a feature that was long removed.", FCVAR_PLUGIN, true, 0.0, true, 1.0);
+	ww_kamikaze_style = CreateConVar("ww_kamikaze_style", "0", "Picks the bomb model logic for Kamikaze. (0 = Use the Payload cart [default], 1 = Use the old Bo-Bomb model)", FCVAR_PLUGIN, true, 0.0, true, 1.0);
 
 	// MINIGAME REGISTRATION
 	AddMiniGame(MG_AIRBLAST, new Airblast());
