@@ -2325,6 +2325,12 @@ public Action Classic_EndMap(Handle hTimer)
 	Roundstarts = 0;
 	g_minigamestotal = 0;
 
+	ServerCommand("host_timescale %f", 1.0);
+	ServerCommand("phys_timescale %f", 1.0);
+	ResetConVar(FindConVar("mp_respawnwavetime"));
+	ResetConVar(FindConVar("mp_forcecamera"));
+	ResetConVar(FindConVar("mp_friendlyfire"));
+
 	RestorePlayerFreeze();
 
 	int entity = FindEntityByClassname(-1, "game_end");
