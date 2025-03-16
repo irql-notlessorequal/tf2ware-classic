@@ -116,10 +116,10 @@ Microgame currentMicrogame;
 #include "tf2ware/microgames/barrel.inc"
 #include "tf2ware/microgames/kamikaze.inc"
 #include "tf2ware/microgames/flood.inc"
+#include "tf2ware/microgames/needlejump.inc"
 
 #if 0
 #include "tf2ware/microgames/math.inc"
-#include "tf2ware/microgames/needlejump.inc"
 #include "tf2ware/microgames/hopscotch.inc"
 #endif
 
@@ -211,6 +211,7 @@ public void OnPluginStart()
 	AddMiniGame(MG_HIT_ENEMY, new HitEnemy());
 	AddMiniGame(MG_KAMIKAZE, new Kamikaze());
 	AddMiniGame(MG_MOVEMENT, new Movement());
+	AddMiniGame(MG_NEEDLE_JUMP, new NeedleJump());
 	AddMiniGame(MG_SAW_RUN, new Sawrun());
 	AddMiniGame(MG_SIMON_SAYS, new SimonSays());
 	AddMiniGame(MG_SNIPER_TARGET, new SniperTarget());
@@ -515,6 +516,11 @@ void DispatchOnClientJustEntered(int client)
 			view_as<Movement>(currentMicrogame).OnClientJustEntered(client);
 		}
 
+		case MG_NEEDLE_JUMP:
+		{
+			view_as<NeedleJump>(currentMicrogame).OnClientJustEntered(client);
+		}
+
 		case MG_SAW_RUN:
 		{
 			view_as<Sawrun>(currentMicrogame).OnClientJustEntered(client);
@@ -589,6 +595,11 @@ void DispatchOnMicrogameStart()
 		case MG_MOVEMENT:
 		{
 			view_as<Movement>(currentMicrogame).OnMicrogameStart();
+		}
+
+		case MG_NEEDLE_JUMP:
+		{
+			view_as<NeedleJump>(currentMicrogame).OnMicrogameStart();
 		}
 		
 		case MG_SAW_RUN:
@@ -667,6 +678,11 @@ void DispatchOnMicrogameTimer(int timeLeft)
 			view_as<Movement>(currentMicrogame).OnMicrogameTimer(timeLeft);
 		}
 
+		case MG_NEEDLE_JUMP:
+		{
+			view_as<NeedleJump>(currentMicrogame).OnMicrogameTimer(timeLeft);
+		}
+
 		case MG_SAW_RUN:
 		{
 			view_as<Sawrun>(currentMicrogame).OnMicrogameTimer(timeLeft);
@@ -741,6 +757,11 @@ void DispatchOnMicrogameEnd()
 		case MG_MOVEMENT:
 		{
 			view_as<Movement>(currentMicrogame).OnMicrogameEnd();
+		}
+
+		case MG_NEEDLE_JUMP:
+		{
+			view_as<NeedleJump>(currentMicrogame).OnMicrogameEnd();
 		}
 
 		case MG_SAW_RUN:
@@ -819,6 +840,11 @@ void DispatchOnMicrogamePostEnd()
 			view_as<Movement>(currentMicrogame).OnMicrogamePostEnd();
 		}
 
+		case MG_NEEDLE_JUMP:
+		{
+			view_as<NeedleJump>(currentMicrogame).OnMicrogamePostEnd();
+		}
+
 		case MG_SAW_RUN:
 		{
 			view_as<Sawrun>(currentMicrogame).OnMicrogamePostEnd();
@@ -893,6 +919,11 @@ void DispatchOnMicrogameFrame()
 		case MG_MOVEMENT:
 		{
 			view_as<Movement>(currentMicrogame).OnMicrogameFrame();
+		}
+		
+		case MG_NEEDLE_JUMP:
+		{
+			view_as<NeedleJump>(currentMicrogame).OnMicrogameFrame();
 		}
 
 		case MG_SAW_RUN:
@@ -971,6 +1002,11 @@ void DispatchOnClientDeath(int client)
 			view_as<Movement>(currentMicrogame).OnClientDeath(client);
 		}
 
+		case MG_NEEDLE_JUMP:
+		{
+			view_as<NeedleJump>(currentMicrogame).OnClientDeath(client);
+		}
+
 		case MG_SAW_RUN:
 		{
 			view_as<Sawrun>(currentMicrogame).OnClientDeath(client);
@@ -1045,6 +1081,11 @@ bool DispatchIsMicrogamePlayable(Microgame mg, int players)
 		case MG_MOVEMENT:
 		{
 			return view_as<Movement>(mg).IsMicrogamePlayable(players);
+		}
+
+		case MG_NEEDLE_JUMP:
+		{
+			return view_as<NeedleJump>(mg).IsMicrogamePlayable(players);
 		}
 
 		case MG_SAW_RUN:

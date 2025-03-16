@@ -177,6 +177,11 @@ public void DispatchOnMicrogameSetup()
 				view_as<Movement>(key).OnMicrogameSetup();
 			}
 
+			case MG_NEEDLE_JUMP:
+			{
+				view_as<NeedleJump>(key).OnMicrogameSetup();
+			}
+
 			case MG_SAW_RUN:
 			{
 				view_as<Sawrun>(key).OnMicrogameSetup();
