@@ -25,18 +25,19 @@ methodmap AirRaid < Microgame
 		}
 	
 		SetStateAll(true);
-		g_attack = true;
-		CreateTimer(0.5, FireZeeMissiles);  
+		CreateTimer(0.5, FireZeeMissiles);
 
-		RemoveAllWeapons();
+		g_attack = true;
 	}
 
 	public void OnClientJustEntered(int client)
 	{
 		if (IsValidClient(client))
 		{
+			RemoveClientWeapons(client);
 			SetClientClass(client, "pyro");
 			GiveClientWeapon(client, "tf_weapon_flamethrower", 0, true);
+			SetClientClass(client, "pyro");
 		}
 	}
 }
