@@ -11,6 +11,8 @@ The original TF2Ware from 2011, fixed up and working!
 - [x] Bring back the "cute little spycrab"
 - [x] Fix assorted issues with "!activator" (i.e. Kamikaze microgame)
 - [ ] Rewrite the codebase, dropping the spaghetti code of the past.
+- [ ] Move to a different map with additional fixes. (tf2ware_classic)
+- [ ] Mitigate player collisions with more than 24 players.
 - [ ] Fix the gamemode misbehaving when loading in the map.
 - [ ] Fix the flood microgame killing you twice at higher speeds.
 
@@ -21,11 +23,6 @@ Download a build of the gamemode.
 Extract the .smx into your server's SourceMod plugins folder.
 
 Extract the assets into your server's `tf` folder.
-
-## Heads up!
-
-Users of the pre-release version 0.0.11, **MUST** reinstall the map with a newer copy
-from the repository.
 
 # Usage.
 

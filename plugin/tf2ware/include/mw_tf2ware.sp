@@ -109,10 +109,7 @@ Microgame currentMicrogame;
 
 /////////////////////////////////////////
 
-#if 0
 #include "tf2ware/microgames/hitenemy.inc"
-#endif
-
 #include "tf2ware/microgames/airblast.inc"
 #include "tf2ware/microgames/colortext.inc"
 #include "tf2ware/microgames/spycrab.inc"
@@ -211,6 +208,7 @@ public void OnPluginStart()
 	AddMiniGame(MG_BARREL, new Barrel());
 	AddMiniGame(MG_COLOR_TEXT, new ColorText());
 	AddMiniGame(MG_FLOOD, new Flood());
+	AddMiniGame(MG_HIT_ENEMY, new HitEnemy());
 	AddMiniGame(MG_KAMIKAZE, new Kamikaze());
 	AddMiniGame(MG_MOVEMENT, new Movement());
 	AddMiniGame(MG_SAW_RUN, new Sawrun());
@@ -502,6 +500,11 @@ void DispatchOnClientJustEntered(int client)
 			view_as<Flood>(currentMicrogame).OnClientJustEntered(client);
 		}
 
+		case MG_HIT_ENEMY:
+		{
+			view_as<HitEnemy>(currentMicrogame).OnClientJustEntered(client);
+		}
+
 		case MG_KAMIKAZE:
 		{
 			view_as<Kamikaze>(currentMicrogame).OnClientJustEntered(client);
@@ -571,6 +574,11 @@ void DispatchOnMicrogameStart()
 		case MG_FLOOD:
 		{
 			view_as<Flood>(currentMicrogame).OnMicrogameStart();
+		}
+
+		case MG_HIT_ENEMY:
+		{
+			view_as<HitEnemy>(currentMicrogame).OnMicrogameStart();
 		}
 
 		case MG_KAMIKAZE:
@@ -644,6 +652,11 @@ void DispatchOnMicrogameTimer(int timeLeft)
 			view_as<Flood>(currentMicrogame).OnMicrogameTimer(timeLeft);
 		}
 
+		case MG_HIT_ENEMY:
+		{
+			view_as<HitEnemy>(currentMicrogame).OnMicrogameTimer(timeLeft);
+		}
+
 		case MG_KAMIKAZE:
 		{
 			view_as<Kamikaze>(currentMicrogame).OnMicrogameTimer(timeLeft);
@@ -713,6 +726,11 @@ void DispatchOnMicrogameEnd()
 		case MG_FLOOD:
 		{
 			view_as<Flood>(currentMicrogame).OnMicrogameEnd();
+		}
+
+		case MG_HIT_ENEMY:
+		{
+			view_as<HitEnemy>(currentMicrogame).OnMicrogameEnd();
 		}
 
 		case MG_KAMIKAZE:
@@ -786,6 +804,11 @@ void DispatchOnMicrogamePostEnd()
 			view_as<Flood>(currentMicrogame).OnMicrogamePostEnd();
 		}
 
+		case MG_HIT_ENEMY:
+		{
+			view_as<HitEnemy>(currentMicrogame).OnMicrogamePostEnd();
+		}
+
 		case MG_KAMIKAZE:
 		{
 			view_as<Kamikaze>(currentMicrogame).OnMicrogamePostEnd();
@@ -855,6 +878,11 @@ void DispatchOnMicrogameFrame()
 		case MG_FLOOD:
 		{
 			view_as<Flood>(currentMicrogame).OnMicrogameFrame();
+		}
+
+		case MG_HIT_ENEMY:
+		{
+			view_as<HitEnemy>(currentMicrogame).OnMicrogameFrame();
 		}
 
 		case MG_KAMIKAZE:
@@ -928,6 +956,11 @@ void DispatchOnClientDeath(int client)
 			view_as<Flood>(currentMicrogame).OnClientDeath(client);
 		}
 
+		case MG_HIT_ENEMY:
+		{
+			view_as<HitEnemy>(currentMicrogame).OnClientDeath(client);
+		}
+
 		case MG_KAMIKAZE:
 		{
 			view_as<Kamikaze>(currentMicrogame).OnClientDeath(client);
@@ -997,6 +1030,11 @@ bool DispatchIsMicrogamePlayable(Microgame mg, int players)
 		case MG_FLOOD:
 		{
 			return view_as<Flood>(mg).IsMicrogamePlayable(players);
+		}
+
+		case MG_HIT_ENEMY:
+		{
+			return view_as<HitEnemy>(mg).IsMicrogamePlayable(players);
 		}
 
 		case MG_KAMIKAZE:

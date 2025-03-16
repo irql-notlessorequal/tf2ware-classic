@@ -162,6 +162,11 @@ public void DispatchOnMicrogameSetup()
 				view_as<Flood>(key).OnMicrogameSetup();
 			}
 
+			case MG_HIT_ENEMY:
+			{
+				view_as<HitEnemy>(key).OnMicrogameSetup();
+			}
+
 			case MG_KAMIKAZE:
 			{
 				view_as<Kamikaze>(key).OnMicrogameSetup();
