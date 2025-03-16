@@ -1505,11 +1505,20 @@ int RollMinigame()
 	 * 
 	 * Remaining logic TODO:
 	 * - Handle disablement of microgames (probably won't be a feature anymore)
-	 * - Handle `ww_force`
 	 * - Do we still handle the "chance" value?
 	 */
 	Microgame candidate;
-	int candidateIndex;
+	int candidateIndex = GetConVarInt(ww_force);
+
+	/**
+	 * Allow overriding the microgame, but be warned:
+	 * Invalid values will crash the plugin!
+	 */
+	if (candidateIndex)
+	{
+		currentMicrogame = GetMicrogame(candidateIndex);
+		return candidateIndex;
+	}
 
 	int players = GetClientCount();
 	static int lastPlayedIndex = -1;
@@ -1607,6 +1616,7 @@ StartMinigame()
 	if (GetConVarBool(ww_enable) && g_enabled && (status == 0) && g_waiting == false)
 	{
 		if (GetConVarBool(ww_log)) LogMessage("Starting microgame %s! Status = 0", minigame);
+		
 		SetConVarInt(FindConVar("mp_respawnwavetime"), 199);
 		SetConVarInt(FindConVar("mp_friendlyfire"), 1);
 
@@ -2411,6 +2421,8 @@ public StartSpecialRound()
 	{
 		RespawnAll();
 		SetConVarBool(ww_special, false);
+		DestroyAllSprites();
+		
 		if (GetConVarInt(ww_force_special) <= 0)
 		{
 			SpecialRound = view_as<SpecialRounds>(GetRandomInt(1, SPECIAL_TOTAL));
@@ -2420,8 +2432,14 @@ public StartSpecialRound()
 			SpecialRound = view_as<SpecialRounds>(GetConVarInt(ww_force_special));
 		}
 
-		if (GetConVarBool(ww_music)) EmitSoundToClient(1, MUSIC_SPECIAL);
-		else EmitSoundToAll(MUSIC_SPECIAL);
+		if (GetConVarBool(ww_music))
+		{
+			EmitSoundToClient(1, MUSIC_SPECIAL);
+		}
+		else
+		{
+			EmitSoundToAll(MUSIC_SPECIAL);
+		}
 
 		status = 5;
 		CreateTimer(0.1, SpecialRound_timer);

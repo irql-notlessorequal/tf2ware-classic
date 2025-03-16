@@ -79,6 +79,17 @@ public void AddMiniGame(int identifier, Microgame mg)
 	}
 }
 
+public Microgame GetMicrogame(int idx)
+{
+	Microgame mg;
+	if (!MICROGAMES.GetValue(idx, mg))
+	{
+		ThrowError("Failed to fetch a random microgame!");
+	}
+
+	return mg;
+}
+
 public Microgame GetRandomMicrogame(int &idx)
 {
 	if (MICROGAME_SNAPSHOT == null)
