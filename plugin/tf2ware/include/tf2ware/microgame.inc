@@ -162,6 +162,11 @@ public void DispatchOnMicrogameSetup()
 				view_as<Flood>(key).OnMicrogameSetup();
 			}
 
+			case MG_GOOMBA:
+			{
+				view_as<Goomba>(key).OnMicrogameSetup();
+			}
+
 			case MG_HIT_ENEMY:
 			{
 				view_as<HitEnemy>(key).OnMicrogameSetup();

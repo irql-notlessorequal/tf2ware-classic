@@ -129,13 +129,13 @@ Microgame currentMicrogame;
 #include "tf2ware/microgames/snipertarget.inc"
 #include "tf2ware/microgames/bball.inc"
 #include "tf2ware/microgames/airraid.inc"
+#include "tf2ware/microgames/goomba.inc"
 
 #if 0
 #include "tf2ware/microgames/hugging.inc"
 #include "tf2ware/microgames/redfloor.inc"
 #include "tf2ware/microgames/jumprope.inc"
 #include "tf2ware/microgames/frogger.inc"
-#include "tf2ware/microgames/goomba.inc"
 #include "tf2ware/microgames/ghostbusters.inc"
 #endif
 
@@ -208,6 +208,7 @@ public void OnPluginStart()
 	AddMiniGame(MG_BARREL, new Barrel());
 	AddMiniGame(MG_COLOR_TEXT, new ColorText());
 	AddMiniGame(MG_FLOOD, new Flood());
+	AddMiniGame(MG_GOOMBA, new Goomba());
 	AddMiniGame(MG_HIT_ENEMY, new HitEnemy());
 	AddMiniGame(MG_KAMIKAZE, new Kamikaze());
 	AddMiniGame(MG_MOVEMENT, new Movement());
@@ -480,6 +481,11 @@ void DispatchOnClientJustEntered(int client)
 			view_as<Flood>(currentMicrogame).OnClientJustEntered(client);
 		}
 
+		case MG_GOOMBA:
+		{
+			view_as<Goomba>(currentMicrogame).OnClientJustEntered(client);
+		}
+
 		case MG_HIT_ENEMY:
 		{
 			view_as<HitEnemy>(currentMicrogame).OnClientJustEntered(client);
@@ -559,6 +565,11 @@ void DispatchOnMicrogameStart()
 		case MG_FLOOD:
 		{
 			view_as<Flood>(currentMicrogame).OnMicrogameStart();
+		}
+
+		case MG_GOOMBA:
+		{
+			view_as<Goomba>(currentMicrogame).OnMicrogameStart();
 		}
 
 		case MG_HIT_ENEMY:
@@ -642,6 +653,11 @@ void DispatchOnMicrogameTimer(int timeLeft)
 			view_as<Flood>(currentMicrogame).OnMicrogameTimer(timeLeft);
 		}
 
+		case MG_GOOMBA:
+		{
+			view_as<Goomba>(currentMicrogame).OnMicrogameTimer(timeLeft);
+		}
+
 		case MG_HIT_ENEMY:
 		{
 			view_as<HitEnemy>(currentMicrogame).OnMicrogameTimer(timeLeft);
@@ -721,6 +737,11 @@ void DispatchOnMicrogameEnd()
 		case MG_FLOOD:
 		{
 			view_as<Flood>(currentMicrogame).OnMicrogameEnd();
+		}
+
+		case MG_GOOMBA:
+		{
+			view_as<Goomba>(currentMicrogame).OnMicrogameEnd();
 		}
 
 		case MG_HIT_ENEMY:
@@ -804,6 +825,11 @@ void DispatchOnMicrogamePostEnd()
 			view_as<Flood>(currentMicrogame).OnMicrogamePostEnd();
 		}
 
+		case MG_GOOMBA:
+		{
+			view_as<Goomba>(currentMicrogame).OnMicrogamePostEnd();
+		}
+
 		case MG_HIT_ENEMY:
 		{
 			view_as<HitEnemy>(currentMicrogame).OnMicrogamePostEnd();
@@ -883,6 +909,11 @@ void DispatchOnMicrogameFrame()
 		case MG_FLOOD:
 		{
 			view_as<Flood>(currentMicrogame).OnMicrogameFrame();
+		}
+
+		case MG_GOOMBA:
+		{
+			view_as<Goomba>(currentMicrogame).OnMicrogameFrame();
 		}
 
 		case MG_HIT_ENEMY:
@@ -966,6 +997,11 @@ void DispatchOnClientDeath(int client)
 			view_as<Flood>(currentMicrogame).OnClientDeath(client);
 		}
 
+		case MG_GOOMBA:
+		{
+			view_as<Goomba>(currentMicrogame).OnClientDeath(client);
+		}
+
 		case MG_HIT_ENEMY:
 		{
 			view_as<HitEnemy>(currentMicrogame).OnClientDeath(client);
@@ -1045,6 +1081,11 @@ bool DispatchIsMicrogamePlayable(Microgame mg, int players)
 		case MG_FLOOD:
 		{
 			return view_as<Flood>(mg).IsMicrogamePlayable(players);
+		}
+
+		case MG_GOOMBA:
+		{
+			return view_as<Goomba>(mg).IsMicrogamePlayable(players);
 		}
 
 		case MG_HIT_ENEMY:
