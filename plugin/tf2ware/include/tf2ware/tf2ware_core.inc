@@ -10,7 +10,7 @@
 #define MUSIC_SPECIAL_SPEEDUP	"imgay/tf2ware/special_speedup.mp3"
 #define MUSIC_SPECIAL_SPEEDUP_LEN	4.2
 #define MUSIC_SPECIAL_GAMEOVER	"imgay/tf2ware/special_gameover.mp3"
-#define MUSIC_SPECIAL_GAMEOVER_LEN	2.04
+#define MUSIC_SPECIAL_GAMEOVER_LEN	28.03
 
 #define MUSIC_WIPEOUT_START		"imgay/tf2ware/tf2ware_intro.mp3"
 #define MUSIC_WIPEOUT_START_LEN	 2.18
