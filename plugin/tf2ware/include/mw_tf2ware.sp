@@ -125,9 +125,9 @@ Microgame currentMicrogame;
 #include "tf2ware/microgames/bball.inc"
 #include "tf2ware/microgames/airraid.inc"
 #include "tf2ware/microgames/goomba.inc"
+#include "tf2ware/microgames/hugging.inc"
 
 #if 0
-#include "tf2ware/microgames/hugging.inc"
 #include "tf2ware/microgames/redfloor.inc"
 #include "tf2ware/microgames/jumprope.inc"
 #include "tf2ware/microgames/frogger.inc"
@@ -206,6 +206,7 @@ public void OnPluginStart()
 	AddMiniGame(MG_GOOMBA, new Goomba());
 	AddMiniGame(MG_HIT_ENEMY, new HitEnemy());
 	AddMiniGame(MG_HOPSCOTCH, new Hopscotch());
+	AddMiniGame(MG_HUGGING, new Hugging());
 	AddMiniGame(MG_KAMIKAZE, new Kamikaze());
 	AddMiniGame(MG_MATH, new Math());
 	AddMiniGame(MG_MOVEMENT, new Movement());
@@ -309,8 +310,10 @@ public void OnMapStart()
 		RemoveNotifyFlag("mp_respawnwavetime");
 		RemoveNotifyFlag("mp_friendlyfire");
 		RemoveNotifyFlag("tf_tournament_hide_domination_icons");
+
 		SetConVarInt(FindConVar("tf_tournament_hide_domination_icons"), 0, true);
 		SetConVarInt(FindConVar("mp_friendlyfire"), 1);
+		SetConVarInt(FindConVar("tf_spawn_glows_duration"), 0);
 
 		if (GetConVarBool(ww_log)) LogMessage("Calling OnMapStart Forward");
 
@@ -493,6 +496,11 @@ void DispatchOnClientJustEntered(int client)
 			view_as<Hopscotch>(currentMicrogame).OnClientJustEntered(client);
 		}
 
+		case MG_HUGGING:
+		{
+			view_as<Hugging>(currentMicrogame).OnClientJustEntered(client);
+		}
+
 		case MG_KAMIKAZE:
 		{
 			view_as<Kamikaze>(currentMicrogame).OnClientJustEntered(client);
@@ -587,6 +595,11 @@ void DispatchOnMicrogameStart()
 		case MG_HOPSCOTCH:
 		{
 			view_as<Hopscotch>(currentMicrogame).OnMicrogameStart();
+		}
+
+		case MG_HUGGING:
+		{
+			view_as<Hugging>(currentMicrogame).OnMicrogameStart();
 		}
 
 		case MG_KAMIKAZE:
@@ -685,6 +698,11 @@ void DispatchOnMicrogameTimer(int timeLeft)
 			view_as<Hopscotch>(currentMicrogame).OnMicrogameTimer(timeLeft);
 		}
 
+		case MG_HUGGING:
+		{
+			view_as<Hugging>(currentMicrogame).OnMicrogameTimer(timeLeft);
+		}
+
 		case MG_KAMIKAZE:
 		{
 			view_as<Kamikaze>(currentMicrogame).OnMicrogameTimer(timeLeft);
@@ -779,6 +797,11 @@ void DispatchOnMicrogameEnd()
 		case MG_HOPSCOTCH:
 		{
 			view_as<Hopscotch>(currentMicrogame).OnMicrogameEnd();
+		}
+
+		case MG_HUGGING:
+		{
+			view_as<Hugging>(currentMicrogame).OnMicrogameEnd();
 		}
 
 		case MG_KAMIKAZE:
@@ -877,6 +900,11 @@ void DispatchOnMicrogamePostEnd()
 			view_as<Hopscotch>(currentMicrogame).OnMicrogamePostEnd();
 		}
 
+		case MG_HUGGING:
+		{
+			view_as<Hugging>(currentMicrogame).OnMicrogamePostEnd();
+		}
+
 		case MG_KAMIKAZE:
 		{
 			view_as<Kamikaze>(currentMicrogame).OnMicrogamePostEnd();
@@ -971,6 +999,11 @@ void DispatchOnMicrogameFrame()
 		case MG_HOPSCOTCH:
 		{
 			view_as<Hopscotch>(currentMicrogame).OnMicrogameFrame();
+		}
+
+		case MG_HUGGING:
+		{
+			view_as<Hugging>(currentMicrogame).OnMicrogameFrame();
 		}
 
 		case MG_KAMIKAZE:
@@ -1069,6 +1102,11 @@ void DispatchOnClientDeath(int client)
 			view_as<Hopscotch>(currentMicrogame).OnClientDeath(client);
 		}
 
+		case MG_HUGGING:
+		{
+			view_as<Hugging>(currentMicrogame).OnClientDeath(client);
+		}
+
 		case MG_KAMIKAZE:
 		{
 			view_as<Kamikaze>(currentMicrogame).OnClientDeath(client);
@@ -1163,6 +1201,11 @@ bool DispatchIsMicrogamePlayable(Microgame mg, int players)
 		case MG_HOPSCOTCH:
 		{
 			return view_as<Hopscotch>(mg).IsMicrogamePlayable(players);
+		}
+
+		case MG_HUGGING:
+		{
+			return view_as<Hugging>(mg).IsMicrogamePlayable(players);
 		}
 
 		case MG_KAMIKAZE:
@@ -1438,7 +1481,7 @@ public EventInventoryApplication(Handle:event, const String:name[], bool:dontBro
 	}
 }
 
-void precacheSound(char[] var0)
+void precacheSound(const char[] var0)
 {
 	char buffer[128];
 	PrecacheSound(var0, true);
@@ -1451,7 +1494,7 @@ public StartMinigame_cvar(Handle cvar, const char[] oldVal, const char[] newVal)
 	if (GetConVarBool(ww_enable) && g_enabled)
 	{
 		StartMinigame();
-		SetConVarInt(FindConVar("mp_respawnwavetime"), 199);
+		SetConVarInt(FindConVar("mp_respawnwavetime"), 9999);
 		SetConVarInt(FindConVar("mp_forcecamera"), 0);
 	}
 	else
@@ -1654,7 +1697,7 @@ StartMinigame()
 	{
 		if (GetConVarBool(ww_log)) LogMessage("Starting microgame %s! Status = 0", minigame);
 		
-		SetConVarInt(FindConVar("mp_respawnwavetime"), 199);
+		SetConVarInt(FindConVar("mp_respawnwavetime"), 9999);
 		SetConVarInt(FindConVar("mp_friendlyfire"), 1);
 
 		float MUSIC_INFO_LEN;
@@ -2377,6 +2420,7 @@ public Action Classic_EndMap(Handle hTimer)
 	ResetConVar(FindConVar("mp_respawnwavetime"));
 	ResetConVar(FindConVar("mp_forcecamera"));
 	ResetConVar(FindConVar("mp_friendlyfire"));
+	ResetConVar(FindConVar("tf_spawn_glows_duration"));
 
 	RestorePlayerFreeze();
 
@@ -2535,6 +2579,11 @@ GiveSpecialRoundInfo()
 		Format(Text, sizeof(Text), "SPECIAL ROUND: %s!\n%s",
 			var_special_name[SpecialRound - 1], var_special_desc[SpecialRound - 1]);
 		ShowGameText(Text, "leaderboard_dominated");
+
+		/**
+		 * Also print to the players chat in case they have a very special hud.
+		 */
+		PrintToChatAll("SPECIAL ROUND: %s!\n%s", var_special_name[SpecialRound - 1], var_special_desc[SpecialRound - 1]);
 	}
 }
 

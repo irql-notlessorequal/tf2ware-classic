@@ -1,3 +1,5 @@
+#include "tf2ware_core.inc"
+
 #include "mimallet/mimallet_int_map.sp"
 
 /**
@@ -118,7 +120,8 @@ public bool IsBossMicrogame(Microgame mg)
 {
 	switch (view_as<Microgames>(mg))
 	{
-		case MG_BBALL, MG_HUGGING, MG_RED_FLOOR, MG_JUMP_ROPE, MG_FROGGER,
+		case MG_BBALL, MG_HUGGING, MG_HOPSCOTCH,
+			 MG_RED_FLOOR, MG_JUMP_ROPE, MG_FROGGER,
 			 MG_GHOSTBUSTERS, MG_MANDRILL:
 		{
 			return true;
@@ -186,6 +189,11 @@ public void DispatchOnMicrogameSetup()
 			case MG_HOPSCOTCH:
 			{
 				view_as<Hopscotch>(key).OnMicrogameSetup();
+			}
+
+			case MG_HUGGING:
+			{
+				view_as<Hugging>(key).OnMicrogameSetup();
 			}
 
 			case MG_KAMIKAZE:

@@ -1,98 +1,131 @@
 // Support for game Vocalizations
 
-new Handle:vTimers[MAXPLAYERS+1] = INVALID_HANDLE;
-new g_ivTimers = 0;
+Handle vTimers[MAXPLAYERS + 1];
+int g_ivTimers = 0;
 
-public Action:Timer_Vocalize(Handle:hTimer, any:pack) {
+public Action Timer_Vocalize(Handle hTimer, DataPack data)
+{
     // If the Vocalization is succesful make a new timer, otherwise don't
-    ResetPack(pack);
-    new String:id[24];
-    new game = ReadPackCell(pack);
-    if (iMinigame == game && status == 2) {
-        ReadPackString(pack, id, sizeof(id));
-        new Float:mindelay = ReadPackFloat(pack);
-        new Float:maxdelay = ReadPackFloat(pack);
-        new level = ReadPackCell(pack);
-        
-        new clients[MAXPLAYERS+1];
-        new i=0;
-        while(IsPackReadable(pack, 1)) {
-            clients[i] = ReadPackCell(pack);
-            i++;
-        }
-        
-        new Handle:sounds = CreateArray(128);
-        KvJumpToKey(MinigameConf, minigame);
-        KvJumpToKey(MinigameConf, id);
-        KvGotoFirstSubKey(MinigameConf);
-        new String:buffer[128];
-        new String:number[4];
-        i=1;
-        IntToString(i, number, sizeof(number));
-        while (KvJumpToKey(MinigameConf, number)) {
-            KvGoBack(MinigameConf);
-            KvGetString(MinigameConf, number, buffer, sizeof(buffer));
-            PushArrayString(sounds, buffer);
-            i++;
-            IntToString(i, number, sizeof(number));
-        }
-        KvRewind(MinigameConf);
-        
-        if (GetArraySize(sounds) > 0) {
-            GetArrayString(sounds, GetRandomInt(0, GetArraySize(sounds)-1), buffer, sizeof(buffer));
-            CloseHandle(sounds);
-            
-            new client = RollFromValid(clients);
-            // RollFromValid returns -1 if there are no clients to choose from
-            if (client != -1) {
-                EmitSoundToAll(buffer, client, SNDCHAN_AUTO, level);
-            }        
-            AddRandVocalization(id, clients, mindelay, maxdelay, level);
-        }
-    }
-    return Plugin_Stop;
+    data.Reset();
+
+	DataPack pack = view_as<DataPack>(data);
+	int game = pack.ReadCell();
+
+	if (iMinigame == game && status == 2)
+	{
+		float minDelay = pack.ReadFloat();
+		float maxDelay = pack.ReadFloat();
+		int level = pack.ReadCell();
+		
+		int clients[MAXPLAYERS + 1];
+		pack.ReadCellArray(clients, sizeof (clients));
+		
+		char buffer[128];
+		ArrayList sounds = pack.ReadCell();
+		
+		if (sounds.Length != 0)
+		{
+			int idx = GetRandomInt(0, sounds.Length - 1);
+			if (!sounds.GetString(idx, buffer, sizeof (buffer)))
+			{
+				ThrowError("Failed to get a voiceline!");
+			}
+	
+			int client = RollFromValid(clients);
+			// RollFromValid returns -1 if there are no clients to choose from
+			if (client != -1)
+			{
+				EmitSoundToAll(buffer, client, SNDCHAN_AUTO, level);
+			}
+
+			AddRandVocalizationLoop(sounds, clients, sizeof (clients), minDelay, maxDelay, level);
+		}
+	}
+
+	return Plugin_Stop;
 }
 
-RollFromValid(clients[MAXPLAYERS+1]) {
-    new Handle:list = CreateArray();
-    for (new i=0; i<sizeof(clients); i++) {
-        if (IsValidClient(clients[i]) && IsPlayerAlive(clients[i])) {
-            PushArrayCell(list, clients[i]);
-        }
-    }
-    new result;
-    // Check to avoid "invalid index 0" if array size is <1
-    if (GetArraySize(list) > 0) {
-        result = GetArrayCell(list, GetRandomInt(0, GetArraySize(list)-1));
-    }
-    else result = -1;
-    CloseHandle(list);
-    return result;
+int RollFromValid(int clients[MAXPLAYERS+1])
+{
+	Handle list = CreateArray();
+	for (int i = 0; i < sizeof(clients); i++)
+	{
+		if (IsValidClient(clients[i]) && IsPlayerAlive(clients[i]))
+		{
+			PushArrayCell(list, clients[i]);
+		}
+	}
+
+	int result;
+	// Check to avoid "invalid index 0" if array size is <1
+	if (GetArraySize(list) > 0)
+	{
+		result = GetArrayCell(list, GetRandomInt(0, GetArraySize(list) - 1));
+	}
+	else
+	{
+		result = -1;
+	}
+
+	CloseHandle(list);
+	return result;
 }
 
-CleanupAllVocalizations() {
-    g_ivTimers = 0;
+void CleanupAllVocalizations()
+{
+	g_ivTimers = 0;
 }
 
 // Never being used. Disabled until.
 /*StopVocalization(id) {
-    CloseHandle(vTimers[id]);
+	CloseHandle(vTimers[id]);
 }*/
 
-AddRandVocalization(String:strid[], clients[MAXPLAYERS+1], Float:mindelay=4.0, Float:maxdelay=8.0, level = SNDLEVEL_NORMAL) {
-    new Float:rand = GetRandomFloat(mindelay, maxdelay);
-    new Handle:pack = CreateDataPack();
-    vTimers[g_ivTimers] = CreateDataTimer(rand, Timer_Vocalize, pack);
-    WritePackCell(pack, iMinigame);
-    WritePackString(pack, strid);
-    WritePackFloat(pack, mindelay);
-    WritePackFloat(pack, maxdelay);
-    WritePackCell(pack, level);
-    for (new i=0; i<sizeof(clients); i++) {
-        if (IsValidClient(clients[i])) {
-            WritePackCell(pack, clients[i]);
-        }
-    }    
-    g_ivTimers++;
-    return g_ivTimers-1;
+int AddRandVocalization(const char[][] lines, int lines_length,
+	int[] clients, int clients_length,
+	float minDelay=4.0, float maxDelay=8.0, int level = SNDLEVEL_NORMAL)
+{
+	float rand = GetRandomFloat(minDelay, maxDelay);
+
+	DataPack voiceline;
+	vTimers[g_ivTimers] = CreateDataTimer(rand, Timer_Vocalize, voiceline);
+
+	/**
+	 * I <3 SourcePawn and SourceMod
+	 */
+	voiceline.WriteCell(iMinigame);
+	voiceline.WriteFloat(minDelay);
+	voiceline.WriteFloat(maxDelay);
+	voiceline.WriteCell(level);
+	voiceline.WriteCellArray(clients, clients_length);
+
+	ArrayList workaroundArray = new ArrayList(.blocksize = ByteCountToCells(PLATFORM_MAX_PATH));
+	for (int i = 1; i <= lines_length; i++)
+	{
+		workaroundArray.PushString(lines[i - 1]);
+	}
+	voiceline.WriteCell(workaroundArray);
+
+	g_ivTimers++;
+	return (g_ivTimers - 1);
+}
+
+int AddRandVocalizationLoop(const ArrayList lines,
+	int[] clients, int clients_length,
+	float minDelay=4.0, float maxDelay=8.0, int level = SNDLEVEL_NORMAL)
+{
+	float rand = GetRandomFloat(minDelay, maxDelay);
+
+	DataPack voiceline;
+	vTimers[g_ivTimers] = CreateDataTimer(rand, Timer_Vocalize, voiceline);
+
+	voiceline.WriteCell(iMinigame);
+	voiceline.WriteFloat(minDelay);
+	voiceline.WriteFloat(maxDelay);
+	voiceline.WriteCell(level);
+	voiceline.WriteCellArray(clients, clients_length);
+	voiceline.WriteCell(lines);
+
+	g_ivTimers++;
+	return (g_ivTimers - 1);
 }
