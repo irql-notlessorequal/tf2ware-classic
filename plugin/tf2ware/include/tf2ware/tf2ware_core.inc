@@ -80,6 +80,17 @@
 #define PARTICLE_BOMB "cinefx_goldrush_embers"
 #define PARTICLE_EXPLODE "cinefx_goldrush_initial_smoke"
 
+static bool InternalIsAlpine = false;
+
+/**
+ * Returns "TRUE" if we are running
+ * the Alpine version of TF2Ware Classic.
+ */
+stock static bool IsAlpineVariant()
+{
+	return InternalIsAlpine;
+}
+
 enum TF2WareStatus
 {
 	INACTIVE = 0,
