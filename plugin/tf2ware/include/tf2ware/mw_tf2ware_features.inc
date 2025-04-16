@@ -525,7 +525,7 @@ void ClearAllTaunts(iClient)
 	TF2_RemoveCondition(iClient, TFCond_Taunting);
 }
 
-public int GetHealtarget(int client)
+public int GetHealTarget(int client)
 {
 	if(!IsValidClient(client) || TF2_GetPlayerClass(client) != TFClass_Medic)
 		return 0;
