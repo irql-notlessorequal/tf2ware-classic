@@ -239,8 +239,18 @@ public void OnMapStart()
 	// (A bit hacky I suppose)
 	char map[128];
 	GetCurrentMap(map, 8);
-	if (StrEqual(map, "tf2ware"))
+
+	bool isRegularMap = StrEqual(map, "tf2ware");
+	bool isAlternateMap = StrEqual(map, "tf2ware_alpine_v4", false);
+
+	if (isRegularMap || isAlternateMap)
 	{
+		/**
+		 * Required to be set otherwise things
+		 * _will_ break.
+		 */
+		InternalSetAlpineVariant(isAlternateMap);
+
 		g_enabled = true;
 
 		// Add server tag
@@ -448,6 +458,7 @@ public void OnMapStart()
 	}
 	else
 	{
+		InternalSetAlpineVariant(false);
 		g_enabled = false;
 	}
 }

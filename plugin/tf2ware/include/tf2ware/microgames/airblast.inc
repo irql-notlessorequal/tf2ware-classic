@@ -28,25 +28,35 @@ methodmap Airblast < Microgame
 			GiveClientWeapon(client, "tf_weapon_flamethrower", 0, true);
 			SetClientClass(client, "pyro");
 		
-			float vel[3];
-			vel[0] = 0.0;
-			vel[1] = 0.0;
-			vel[2] = 0.0;
-		
 			int total = GetActivePlayers();
-			float posa = 360.0 / float(total) * float(g_Id[client] - 1);
+			int posa = 360 / total * (g_Id[client] - 1);
 		
 			float pos[3];
-			pos[0] = 3544.661133 + (Cosine(DegToRad(posa)) * 220.0);
-			pos[1] = -160.203690 - (Sine(DegToRad(posa)) * 220.0);
-			pos[2] = -91.027405;
+			if (IsAlpineVariant())
+			{
+				pos[0] = 3546.0 + (Cosine(DegToRad(float(posa))) * 220.0);
+				pos[1] = 94.0 - (Sine(DegToRad(float(posa))) * 220.0);
+				pos[2] = -520.0;
+			}
+			else
+			{
+				pos[0] = 3544.661133 + (Cosine(DegToRad(float(posa))) * 220.0);
+				pos[1] = -160.203690 - (Sine(DegToRad(float(posa))) * 220.0);
+				pos[2] = -91.027405;
+			}
+
 
 			float ang[3];
 			ang[0] = 0.0;
-			ang[1] = 180.0 - posa;
+			ang[1] = float(180 - posa);
 			ang[2] = 0.0;
 
-			TeleportEntity(client, pos, ang, vel);
+			TeleportEntity(client, pos, ang, NULL_VECTOR);
+
+			/**
+			 * Thank me later.
+			 */
+			NoCollision(true);
 		}
 	}
 

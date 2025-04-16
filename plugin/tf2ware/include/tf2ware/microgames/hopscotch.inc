@@ -70,15 +70,25 @@ methodmap Hopscotch < Microgame
 			}
 		
 			float pos[3];
-			if (g_Hopscotch_arena == HOPSCOTCH_ARENA_ROCKET_JUMPING) {
-				pos[0] = 2460.0  + float(column*55);
-				pos[1] = 3395.0 - float(row*55);
-				pos[2] = -2688.0;
+			if (g_Hopscotch_arena == HOPSCOTCH_ARENA_ROCKET_JUMPING)
+			{
+				if (IsAlpineVariant())
+				{
+					pos[0] = 2800.0 + float(column * 55);
+					pos[1] = 2706.0 - float(row * 55);
+					pos[2] = -1000.0;
+				}
+				else
+				{
+					pos[0] = 2460.0 + float(column * 55);
+					pos[1] = 3395.0 - float(row * 55);
+					pos[2] = -2688.0;
+				}
 			}
 			else
 			{
-				pos[0] = -2453.0  - float(column*55);
-				pos[1] = -1833.0 - float(row*55);
+				pos[0] = -2453.0  - float(column * 55);
+				pos[1] = -1833.0 - float(row * 55);
 				pos[2] = 17.6;
 			}
 

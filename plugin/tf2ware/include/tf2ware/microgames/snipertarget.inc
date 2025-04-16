@@ -24,6 +24,14 @@ methodmap SniperTarget < Microgame
 		return view_as<SniperTarget>(MG_SNIPER_TARGET);
 	}
 
+	public bool IsMicrogamePlayable(int players)
+	{
+		/**
+		 * Not available on Alpine.
+		 */
+		return !IsAlpineVariant();
+	}
+
 	public void OnMicrogameSetup()
 	{
 		PrecacheModel(SNIPER_TARGET_SCOUT, true);

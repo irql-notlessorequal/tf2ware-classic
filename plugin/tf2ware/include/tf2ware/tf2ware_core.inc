@@ -18,7 +18,7 @@
  */
 #define MAX_MINIGAMES		 40
 
-#define PLUGIN_VERSION		 "0.0.30"
+#define PLUGIN_VERSION		 "0.0.39"
 
 #define MUSIC_SPECIAL_START		"imgay/tf2ware/special_intro.mp3"
 #define MUSIC_SPECIAL_START_LEN  4.167
@@ -80,15 +80,20 @@
 #define PARTICLE_BOMB "cinefx_goldrush_embers"
 #define PARTICLE_EXPLODE "cinefx_goldrush_initial_smoke"
 
-static bool InternalIsAlpine = false;
+/* GLOBAL */ bool InternalIsAlpine = false;
 
 /**
  * Returns "TRUE" if we are running
  * the Alpine version of TF2Ware Classic.
  */
-stock static bool IsAlpineVariant()
+stock bool IsAlpineVariant()
 {
 	return InternalIsAlpine;
+}
+
+stock void InternalSetAlpineVariant(bool value)
+{
+	InternalIsAlpine = value;
 }
 
 enum TF2WareStatus

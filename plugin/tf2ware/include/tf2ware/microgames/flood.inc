@@ -33,9 +33,20 @@ methodmap Flood < Microgame
 		{
 			DispatchKeyValue(prop, "model", "models/props_farm/wooden_barrel.mdl");
 			DispatchSpawn(prop);
-			pos[0] = -1237.405029;
-			pos[1] = 125.300606;
-			pos[2] = -58.932495;
+
+			if (IsAlpineVariant())
+			{
+				pos[0] = -1146.0;
+				pos[1] = -220.0;
+				pos[2] = -38.0;
+			}
+			else
+			{
+				pos[0] = -1237.405029;
+				pos[1] = 125.300606;
+				pos[2] = -58.932495;
+			}
+
 			TeleportEntity(prop, pos, NULL_VECTOR, NULL_VECTOR);
 			CreateTimer(0.1, KillProp_Timer, prop);
 		}
