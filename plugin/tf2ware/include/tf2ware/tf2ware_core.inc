@@ -137,5 +137,4 @@ enum Microgames
 	MG_GOOMBA = 23,
 	MG_PINATA = 24,
 	MG_GHOSTBUSTERS = 25,
-	MG_MANDRILL = 26
 }

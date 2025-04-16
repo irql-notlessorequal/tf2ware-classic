@@ -140,7 +140,7 @@ public bool IsBossMicrogame(Microgame mg)
 	{
 		case MG_BBALL, MG_HUGGING, MG_HOPSCOTCH,
 			 MG_RED_FLOOR, MG_JUMP_ROPE, MG_FROGGER,
-			 MG_GHOSTBUSTERS, MG_MANDRILL:
+			 MG_GHOSTBUSTERS:
 		{
 			return true;
 		}
