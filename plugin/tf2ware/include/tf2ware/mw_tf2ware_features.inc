@@ -16,6 +16,8 @@
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
+#include <sdkhooks>
+
 #if defined(ENABLE_MALLET)
 #include "mallet.inc"
 #else
@@ -48,11 +50,20 @@ GiveId(bool:mustbealive = false) {
 	}
 }
 
-NoCollision(bool:input) {
-	for (new i = 1; i <= MaxClients; i++) {
-		if (IsValidEntity(i) && IsValidClient(i)) {
-			if (input) SetEntData(i, g_offsCollisionGroup, 2, 4, true); // NO COLLISION
-			if (input == false) SetEntData(i, g_offsCollisionGroup, 5, 4, true); // BRING BACK COLLISION
+stock void NoCollision(bool input)
+{
+	for (new i = 1; i <= MaxClients; i++)
+	{
+		if (IsValidEntity(i) && IsValidClient(i))
+		{
+			if (input)
+			{
+				SetEntData(i, g_offsCollisionGroup, 2, 4, true); // NO COLLISION
+			}
+			else
+			{
+				SetEntData(i, g_offsCollisionGroup, 5, 4, true); // BRING BACK COLLISION
+			}
 		}
 	}
 }
@@ -124,16 +135,38 @@ SetClientClass(i, String:tfclass[128]) {
 	}
 }
 
-HealClient(i) {
-	new TFClassType:class = TF2_GetPlayerClass(i);
-	new health = 125;
-	if (class == TFClass_Soldier) health = 200;
-	if (class == TFClass_Pyro) health = 175;
-	if (class == TFClass_DemoMan) health = 175;
-	if (class == TFClass_Heavy) health = 300;
-	if (class == TFClass_Medic) health = 150;
+stock void HealClient(int entity)
+{
+	TFClassType class = TF2_GetPlayerClass(entity);
+	int health = 125;
+
+	/**
+	 * Set defaults for per-class health.
+	 */
+	switch (class)
+	{
+		case TFClass_Soldier:
+		{
+			health = 200;
+		}
+
+		case TFClass_Pyro, TFClass_DemoMan:
+		{
+			health = 175;
+		}
+
+		case TFClass_Heavy:
+		{
+			health = 300;
+		}
+
+		case TFClass_Medic:
+		{
+			health = 150;
+		}
+	}
 	
-	SetEntityHealth(i, health);
+	SetEntityHealth(entity, health);
 }
 
 stock ClientParticle(client, String:effect[128], Float:time) {
@@ -185,16 +218,11 @@ stock GetActivePlayers(team = 0, bool:mustbealive = false) {
 	return output;
 }
 
-stock bool:IsPlayerTaunting(client)
+stock bool IsPlayerTaunting(int client)
 {
-	new pcond = GetEntProp(client, Prop_Send, "m_nPlayerCond");
-	if (pcond & TF2_PLAYER_TAUNTING) 
-	{
-		return true;
-	}
-	return false;
+	int playerCond = GetEntProp(client, Prop_Send, "m_nPlayerCond");
+	return (playerCond & TF2_PLAYER_TAUNTING);
 }  
-
 
 public RemoveClientWeapons(i) {
 	if (GetConVarBool(ww_log)) LogMessage("Removing all client weapons");
@@ -546,5 +574,89 @@ stock bool ParentEntity(int parent, int attachment, const char[] attachPoint = "
 		}
 	}
 
+	return true;
+}
+
+stock Entity_GetTargetName(entity, char[] buffer, size)
+{
+	return GetEntPropString(entity, Prop_Data, "m_target", buffer, size);
+}
+
+stock Entity_SetClassName(entity, const char[] className)
+{
+	return DispatchKeyValue(entity, "classname", className);
+}
+
+stock Entity_SetName(entity, const char[] name, any ...)
+{
+	char format[128];
+	VFormat(format, sizeof(format), name, 3);
+	
+	return DispatchKeyValue(entity, "targetname", format);
+}
+
+static Entity_PointHurtAtTarget(entity, target, const char[] name="")
+{
+	char targetName[128];
+	Entity_GetTargetName(entity, targetName, sizeof(targetName));
+	
+	if (name[0] == '\0')
+	{
+		if (targetName[0] == '\0')
+		{
+			// Let's generate our own name
+			Format(
+				targetName,
+				sizeof(targetName),
+				"_smlib_Entity_PointHurtAtTarget:%d",
+				target
+			);
+		}
+	}
+	else
+	{
+		strcopy(targetName, sizeof(targetName), name);
+	}
+	
+	DispatchKeyValue(entity, "DamageTarget", targetName);
+
+	Entity_SetName(target, targetName);
+}
+
+stock bool HurtEntity(int entity, float damage, int attacker=0, int damageType=DMG_GENERIC, const char[] fakeClassName="")
+{
+	static int point_hurt = INVALID_ENT_REFERENCE;
+	
+	if (point_hurt == INVALID_ENT_REFERENCE || !IsValidEntity(point_hurt))
+	{
+		point_hurt = EntIndexToEntRef(CreateEntityByName("point_hurt"));
+		
+		if (point_hurt == INVALID_ENT_REFERENCE)
+		{
+			return false;
+		}
+		
+		DispatchSpawn(point_hurt);
+	}
+	
+	AcceptEntityInput(point_hurt, "TurnOn");
+	SetEntProp(point_hurt, Prop_Data, "m_nDamage", damage);
+	SetEntProp(point_hurt, Prop_Data, "m_bitsDamageType", damageType);
+
+	Entity_PointHurtAtTarget(point_hurt, entity);
+	
+	if (fakeClassName[0] != '\0')
+	{
+		Entity_SetClassName(point_hurt, fakeClassName);
+	}
+	
+	AcceptEntityInput(point_hurt, "Hurt", attacker);
+	AcceptEntityInput(point_hurt, "TurnOff");
+	
+	if (fakeClassName[0] != '\0')
+	{
+		Entity_SetClassName(point_hurt, "point_hurt");
+	}
+	
 	return true;
 }

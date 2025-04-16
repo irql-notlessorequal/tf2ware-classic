@@ -141,10 +141,10 @@ Microgame currentMicrogame;
 #include "tf2ware/microgames/airraid.inc"
 #include "tf2ware/microgames/goomba.inc"
 #include "tf2ware/microgames/hugging.inc"
+#include "tf2ware/microgames/jumprope.inc"
 
 #if 0
 #include "tf2ware/microgames/redfloor.inc"
-#include "tf2ware/microgames/jumprope.inc"
 #include "tf2ware/microgames/frogger.inc"
 #include "tf2ware/microgames/ghostbusters.inc"
 #endif
@@ -222,6 +222,7 @@ public void OnPluginStart()
 	AddMiniGame(MG_HIT_ENEMY, new HitEnemy());
 	AddMiniGame(MG_HOPSCOTCH, new Hopscotch());
 	AddMiniGame(MG_HUGGING, new Hugging());
+	AddMiniGame(MG_JUMP_ROPE, new JumpRope());
 	AddMiniGame(MG_KAMIKAZE, new Kamikaze());
 	AddMiniGame(MG_MATH, new Math());
 	AddMiniGame(MG_MOVEMENT, new Movement());
@@ -516,6 +517,11 @@ void DispatchOnClientJustEntered(int client)
 			view_as<Hugging>(currentMicrogame).OnClientJustEntered(client);
 		}
 
+		case MG_JUMP_ROPE:
+		{
+			view_as<JumpRope>(currentMicrogame).OnClientJustEntered(client);
+		}
+
 		case MG_KAMIKAZE:
 		{
 			view_as<Kamikaze>(currentMicrogame).OnClientJustEntered(client);
@@ -615,6 +621,11 @@ void DispatchOnMicrogameStart()
 		case MG_HUGGING:
 		{
 			view_as<Hugging>(currentMicrogame).OnMicrogameStart();
+		}
+
+		case MG_JUMP_ROPE:
+		{
+			view_as<JumpRope>(currentMicrogame).OnMicrogameStart();
 		}
 
 		case MG_KAMIKAZE:
@@ -718,6 +729,11 @@ void DispatchOnMicrogameTimer(int timeLeft)
 			view_as<Hugging>(currentMicrogame).OnMicrogameTimer(timeLeft);
 		}
 
+		case MG_JUMP_ROPE:
+		{
+			view_as<JumpRope>(currentMicrogame).OnMicrogameTimer(timeLeft);
+		}
+
 		case MG_KAMIKAZE:
 		{
 			view_as<Kamikaze>(currentMicrogame).OnMicrogameTimer(timeLeft);
@@ -817,6 +833,11 @@ void DispatchOnMicrogameEnd()
 		case MG_HUGGING:
 		{
 			view_as<Hugging>(currentMicrogame).OnMicrogameEnd();
+		}
+
+		case MG_JUMP_ROPE:
+		{
+			view_as<JumpRope>(currentMicrogame).OnMicrogameEnd();
 		}
 
 		case MG_KAMIKAZE:
@@ -920,6 +941,11 @@ void DispatchOnMicrogamePostEnd()
 			view_as<Hugging>(currentMicrogame).OnMicrogamePostEnd();
 		}
 
+		case MG_JUMP_ROPE:
+		{
+			view_as<JumpRope>(currentMicrogame).OnMicrogamePostEnd();
+		}
+
 		case MG_KAMIKAZE:
 		{
 			view_as<Kamikaze>(currentMicrogame).OnMicrogamePostEnd();
@@ -1019,6 +1045,11 @@ void DispatchOnMicrogameFrame()
 		case MG_HUGGING:
 		{
 			view_as<Hugging>(currentMicrogame).OnMicrogameFrame();
+		}
+
+		case MG_JUMP_ROPE:
+		{
+			view_as<JumpRope>(currentMicrogame).OnMicrogameFrame();
 		}
 
 		case MG_KAMIKAZE:
@@ -1122,6 +1153,11 @@ void DispatchOnClientDeath(int client)
 			view_as<Hugging>(currentMicrogame).OnClientDeath(client);
 		}
 
+		case MG_JUMP_ROPE:
+		{
+			view_as<JumpRope>(currentMicrogame).OnClientDeath(client);
+		}
+
 		case MG_KAMIKAZE:
 		{
 			view_as<Kamikaze>(currentMicrogame).OnClientDeath(client);
@@ -1221,6 +1257,11 @@ bool DispatchIsMicrogamePlayable(Microgame mg, int players)
 		case MG_HUGGING:
 		{
 			return view_as<Hugging>(mg).IsMicrogamePlayable(players);
+		}
+
+		case MG_JUMP_ROPE:
+		{
+			return view_as<JumpRope>(mg).IsMicrogamePlayable(players);
 		}
 
 		case MG_KAMIKAZE:

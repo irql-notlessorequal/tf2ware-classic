@@ -214,6 +214,11 @@ public void DispatchOnMicrogameSetup()
 				view_as<Hugging>(key).OnMicrogameSetup();
 			}
 
+			case MG_JUMP_ROPE:
+			{
+				view_as<JumpRope>(key).OnMicrogameSetup();
+			}
+
 			case MG_KAMIKAZE:
 			{
 				view_as<Kamikaze>(key).OnMicrogameSetup();
