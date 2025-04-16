@@ -31,48 +31,78 @@
 
 bool Special_TwoBosses = false;
 
-char var_special_name[][] = {
-	"SUPER SPEED", "NO TOUCHING", "x2 BOSS BATTLE", "SINGLEPLAYER", "LEAST IS BEST", "BONK", "THIRDPERSON"
+const char var_special_name[][] =
+{
+	"SUPER SPEED",
+	"NO TOUCHING",
+	"x2 BOSS BATTLE",
+	"SINGLEPLAYER",
+	"LEAST IS BEST",
+	"BONK",
+	"THIRDPERSON"
 };
 
-char var_special_desc[][] = {
-	"The Game is Faster Than Usual!!", "Don't Touch Any Enemy Players or You'll Lose!!", "Two Boss Battles!!",
-	"You're Playing Alone...?", "The Player With The Least Points Win!!",
-	"Push Players With Your Bat!!","Everything Is At A New Perspective!!"
+const char var_special_desc[][] =
+{
+	"The Game is Faster Than Usual!!",
+	"Don't Touch Any Enemy Players or You'll Lose!!",
+	"Two Boss Battles!!",
+	"You're Playing Alone...?",
+	"The Player With The Least Points Win!!",
+	"Push Players With Your Bat!!",
+	"Everything Is At A New Perspective!!"
 };
 
-public Special_NoTouch(entity, other) {
-	if (SpecialRound != NO_TOUCHING) return;
-	if (StrEqual(minigame, "Hugging")) return;
+public void Special_NoTouch(int entity, int other)
+{
+	if (SpecialRound != NO_TOUCHING)
+	{
+		return;
+	}
 
-	new String:classname[64];
-	new String:classname2[64];
+	if (view_as<Microgames>(currentMicrogame) == MG_HUGGING)
+	{
+		return;
+	}
+
+	char classname[64];
+	char classname2[64];
 	GetEdictClassname(entity, classname, sizeof(classname));
 	GetEdictClassname(other, classname2, sizeof(classname2));
-	if (StrEqual(classname, "player") && StrEqual(classname2, "player") && IsValidClient(entity) && IsValidClient(other) && status == 2 && IsPlayerAlive(entity) && IsPlayerAlive(other) && GetClientTeam(entity) != GetClientTeam(other)) {
+	
+	if (StrEqual(classname, "player") && StrEqual(classname2, "player")
+			&& IsValidClient(entity) && IsValidClient(other) && status == 2
+			&& IsPlayerAlive(entity) && IsPlayerAlive(other)
+			&& GetClientTeam(entity) != GetClientTeam(other))
+	{
 		SetStateClient(entity, false, true);
 		SetStateClient(other, false, true);
+
 		ForcePlayerSuicide(entity);
 		ForcePlayerSuicide(other);
+
 		CPrintToChatEx(entity, other, "You touched: {teamcolor}%N{default}", other);
 		CPrintToChat(entity, "In this SPECIAL ROUND, you are {red}not allowed to touch anyone{default}!");
+
 		CPrintToChatEx(other, entity, "You touched: {teamcolor}%N{default}", entity);
 		CPrintToChat(other, "In this SPECIAL ROUND, you are {red}not allowed to touch anyone{default}!");
 	}
 }
 
 
-public Action:Special_DamagePush(victim, &attacker, &inflictor, &Float:damage, &damagetype) {
+public Action Special_DamagePush(int victim, int &attacker, int &inflictor, float &damage, int &damagetype)
+{
 	if (IsValidClient(attacker) && IsValidClient(victim) && SpecialRound == BONK)
 	{
 		char Weapon[128];
 		GetClientWeapon(attacker, Weapon, sizeof(Weapon));
+
 		if (StrEqual(Weapon, "tf_weapon_bat"))
 		{
 			float ang[3];
 			float vel[3];
-			
 			GetClientEyeAngles(attacker, ang);
+
 			vel[0] -= 300.0 * Cosine(DegToRad(ang[1])) * -1.0;
 			vel[1] -= 300.0 * Sine(DegToRad(ang[1])) * -1.0;
 			vel[2] += 300.0;
@@ -81,6 +111,7 @@ public Action:Special_DamagePush(victim, &attacker, &inflictor, &Float:damage, &
 			damage = 0.0;
 		}
 	}
+
 	return Plugin_Changed;
 }
 
