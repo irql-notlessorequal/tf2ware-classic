@@ -354,8 +354,15 @@ public OnMapStart()
 		RemoveNotifyFlag("mp_respawnwavetime");
 		RemoveNotifyFlag("mp_friendlyfire");
 		RemoveNotifyFlag("tf_tournament_hide_domination_icons");
+		RemoveNotifyFlag("tf_airblast_cray");
+
 		SetConVarInt(FindConVar("tf_tournament_hide_domination_icons"), 0, true);
 		SetConVarInt(FindConVar("mp_friendlyfire"), 1);
+
+		/**
+		 * Revert to pre-JI airblast.
+		 */
+		SetConVarInt(FindConVar("tf_airblast_cray"), 0);
 
 		if (GetConVarBool(ww_log)) LogMessage("Calling OnMapStart Forward");
 
@@ -2003,8 +2010,8 @@ public Action:Command_list(client, args)
 
 RemoveNotifyFlag(String:name[128])
 {
-	new Handle:cv1 = FindConVar(name);
-	new flags		 = GetConVarFlags(cv1);
+	new Handle:cv1	= FindConVar(name);
+	new flags		= GetConVarFlags(cv1);
 	flags &= ~FCVAR_REPLICATED;
 	flags &= ~FCVAR_NOTIFY;
 	SetConVarFlags(cv1, flags);
