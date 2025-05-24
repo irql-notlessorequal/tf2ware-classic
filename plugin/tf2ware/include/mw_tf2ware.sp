@@ -121,6 +121,7 @@ new iMinigame;
 new status;
 new randommini;
 new g_offsCollisionGroup;
+new g_ClientCount;
 new timeleft = 8;
 new white;
 new g_HaloSprite;
@@ -587,6 +588,9 @@ public OnClientPutInServer(client)
 {
 	if (!g_enabled) return;
 	if (GetConVarBool(ww_log)) LogMessage("Client put in server and hooked");
+
+	g_ClientCount++;
+
 	SDKHook(client, SDKHook_PreThink, OnPreThink);
 	SDKHook(client, SDKHook_OnTakeDamage, OnTakeDamageClient);
 	SDKHook(client, SDKHook_Touch, Special_NoTouch);
@@ -598,6 +602,7 @@ public OnClientDisconnect(client)
 	if (GetConVarBool(ww_log)) LogMessage("Client disconnected");
 
 	g_Spawned[client] = false;
+	g_ClientCount--;
 }
 
 public Action:OnTakeDamageClient(victim, &attacker, &inflictor, &Float: damage, &damagetype)
@@ -2116,11 +2121,23 @@ SetGameMode()
 {
 	new iOld	  = g_Gamemode;
 	new iGamemode = GetConVarInt(ww_gamemode);
-	if (iGamemode >= 0) g_Gamemode = iGamemode;
-	else {
+	if (iGamemode >= 0)
+	{
+		g_Gamemode = iGamemode;
+	}
+	else
+	{
 		g_Gamemode = GAMEMODE_NORMAL;
 		new iRoll  = GetRandomInt(0, 100);
-		if (iRoll <= 5) g_Gamemode = GAMEMODE_WIPEOUT;
+
+		/**
+		 * Refuse to start wipeout if there are less
+		 * than five players.
+		 */
+		if (iRoll <= 5 && g_ClientCount > 5)
+		{
+			g_Gamemode = GAMEMODE_WIPEOUT;
+		}
 	}
 
 	if (iOld == GAMEMODE_WIPEOUT && g_Gamemode != iOld)
