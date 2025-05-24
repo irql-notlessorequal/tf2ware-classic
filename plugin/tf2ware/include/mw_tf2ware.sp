@@ -27,7 +27,7 @@
 
 #define MAX_MINIGAMES		 40
 
-#define PLUGIN_VERSION		 "0.0.11"
+#define PLUGIN_VERSION		 "0.0.12"
 
 #define MUSIC2_START		 "imgay/tf2ware/tf2ware_intro.mp3"
 #define MUSIC2_START_LEN	 2.18
