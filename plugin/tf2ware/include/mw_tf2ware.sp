@@ -2133,6 +2133,9 @@ SetGameMode()
 		/**
 		 * Refuse to start wipeout if there are less
 		 * than five players.
+		 * 
+		 * In theory we could have five spectators but
+		 * this is the legacy branch so I don't care!
 		 */
 		if (iRoll <= 5 && g_ClientCount > 5)
 		{
