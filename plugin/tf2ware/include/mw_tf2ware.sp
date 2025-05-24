@@ -27,7 +27,7 @@
 
 #define MAX_MINIGAMES		 40
 
-#define PLUGIN_VERSION		 "0.0.11"
+#define PLUGIN_VERSION		 "0.0.12"
 
 #define MUSIC2_START		 "imgay/tf2ware/tf2ware_intro.mp3"
 #define MUSIC2_START_LEN	 2.18
@@ -121,6 +121,7 @@ new iMinigame;
 new status;
 new randommini;
 new g_offsCollisionGroup;
+new g_ClientCount;
 new timeleft = 8;
 new white;
 new g_HaloSprite;
@@ -354,8 +355,15 @@ public OnMapStart()
 		RemoveNotifyFlag("mp_respawnwavetime");
 		RemoveNotifyFlag("mp_friendlyfire");
 		RemoveNotifyFlag("tf_tournament_hide_domination_icons");
+		RemoveNotifyFlag("tf_airblast_cray");
+
 		SetConVarInt(FindConVar("tf_tournament_hide_domination_icons"), 0, true);
 		SetConVarInt(FindConVar("mp_friendlyfire"), 1);
+
+		/**
+		 * Revert to pre-JI airblast.
+		 */
+		SetConVarInt(FindConVar("tf_airblast_cray"), 0);
 
 		if (GetConVarBool(ww_log)) LogMessage("Calling OnMapStart Forward");
 
@@ -580,6 +588,9 @@ public OnClientPutInServer(client)
 {
 	if (!g_enabled) return;
 	if (GetConVarBool(ww_log)) LogMessage("Client put in server and hooked");
+
+	g_ClientCount++;
+
 	SDKHook(client, SDKHook_PreThink, OnPreThink);
 	SDKHook(client, SDKHook_OnTakeDamage, OnTakeDamageClient);
 	SDKHook(client, SDKHook_Touch, Special_NoTouch);
@@ -591,6 +602,7 @@ public OnClientDisconnect(client)
 	if (GetConVarBool(ww_log)) LogMessage("Client disconnected");
 
 	g_Spawned[client] = false;
+	g_ClientCount--;
 }
 
 public Action:OnTakeDamageClient(victim, &attacker, &inflictor, &Float: damage, &damagetype)
@@ -2003,8 +2015,8 @@ public Action:Command_list(client, args)
 
 RemoveNotifyFlag(String:name[128])
 {
-	new Handle:cv1 = FindConVar(name);
-	new flags		 = GetConVarFlags(cv1);
+	new Handle:cv1	= FindConVar(name);
+	new flags		= GetConVarFlags(cv1);
 	flags &= ~FCVAR_REPLICATED;
 	flags &= ~FCVAR_NOTIFY;
 	SetConVarFlags(cv1, flags);
@@ -2109,11 +2121,26 @@ SetGameMode()
 {
 	new iOld	  = g_Gamemode;
 	new iGamemode = GetConVarInt(ww_gamemode);
-	if (iGamemode >= 0) g_Gamemode = iGamemode;
-	else {
+	if (iGamemode >= 0)
+	{
+		g_Gamemode = iGamemode;
+	}
+	else
+	{
 		g_Gamemode = GAMEMODE_NORMAL;
 		new iRoll  = GetRandomInt(0, 100);
-		if (iRoll <= 5) g_Gamemode = GAMEMODE_WIPEOUT;
+
+		/**
+		 * Refuse to start wipeout if there are less
+		 * than five players.
+		 * 
+		 * In theory we could have five spectators but
+		 * this is the legacy branch so I don't care!
+		 */
+		if (iRoll <= 5 && g_ClientCount > 5)
+		{
+			g_Gamemode = GAMEMODE_WIPEOUT;
+		}
 	}
 
 	if (iOld == GAMEMODE_WIPEOUT && g_Gamemode != iOld)
