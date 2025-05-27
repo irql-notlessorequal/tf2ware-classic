@@ -27,6 +27,8 @@
 	7:      Thirdperson     Forced into thirdperson!    
 
 */
+#pragma newdecls required
+
 #define SPECIAL_TOTAL 7
 
 bool Special_TwoBosses = false;
@@ -213,7 +215,7 @@ void AddSpecialRoundEffect(int specialRound)
 
 		case THIRDPERSON:
 		{
-			for (new i = 1; i <= MaxClients; i++)
+			for (int i = 1; i <= MaxClients; i++)
 			{
 				if (IsValidClient(i) && !IsFakeClient(i))
 				{

@@ -17,19 +17,21 @@
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
+#pragma newdecls required
+
 #define MAX_MINIGAMES		 40
 
-#define PLUGIN_VERSION		 "0.0.45"
+#define PLUGIN_VERSION		 "0.0.48"
 
 #define MUSIC_SPECIAL_START		"imgay/tf2ware/special_intro.mp3"
-#define MUSIC_SPECIAL_START_LEN  4.167
+#define MUSIC_SPECIAL_START_LEN  2.011429
 #define MUSIC_SPECIAL_WIN		"imgay/tf2ware/special_win.mp3"
 #define MUSIC_SPECIAL_FAIL		"imgay/tf2ware/special_fail.mp3"
-#define MUSIC_SPECIAL_END_LEN	2.039
+#define MUSIC_SPECIAL_END_LEN	2.011429
 #define MUSIC_SPECIAL_SPEEDUP	"imgay/tf2ware/special_speedup.mp3"
-#define MUSIC_SPECIAL_SPEEDUP_LEN	4.2
+#define MUSIC_SPECIAL_SPEEDUP_LEN	3.735510
 #define MUSIC_SPECIAL_GAMEOVER	"imgay/tf2ware/special_gameover.mp3"
-#define MUSIC_SPECIAL_GAMEOVER_LEN	28.03
+#define MUSIC_SPECIAL_GAMEOVER_LEN	3.944490
 
 #define MUSIC_WIPEOUT_START		"imgay/tf2ware/tf2ware_intro.mp3"
 #define MUSIC_WIPEOUT_START_LEN	 2.18
@@ -64,12 +66,13 @@
 #define MUSIC_SPECIAL_LEN	 13.5
 #define SOUND_SELECT		 "imgay/tf2ware/select.mp3"
 
-#define SND_CHANNEL_SPECIFIC 32
+#define SND_CHANNEL_SPECIFIC	32
 
 #define PARTICLE_WIN_BLUE	 "teleportedin_blue"
 #define PARTICLE_WIN_RED	 "teleportedin_red"
 
-#define TF2_PLAYER_TAUNTING	 (1 << 7)	 // 128        Taunting
+#define TF2_PLAYER_TAUNTING		(1 << 7)	 // 128 = Taunting
+#define TF_COND_TEAM_GLOWS		114
 
 #define GAMEMODE_NORMAL			0
 #define GAMEMODE_WIPEOUT		1

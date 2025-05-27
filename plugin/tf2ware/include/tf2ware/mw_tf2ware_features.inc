@@ -16,6 +16,8 @@
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
+#pragma newdecls required
+
 #include <sdkhooks>
 
 #if defined(ENABLE_MALLET)
@@ -31,7 +33,7 @@
 #include "attachments.inc"
 #endif
 
-new g_PlayerVisibleWeapon[MAXPLAYERS+1] = -1;
+int g_PlayerVisibleWeapon[MAXPLAYERS+1] = -1;
 
 stock bool IsValidClient(int iClient)
 {
@@ -220,14 +222,17 @@ stock void HealClient(int entity)
 	SetEntityHealth(entity, health);
 }
 
-stock ClientParticle(client, String:effect[128], Float:time) {
-	new Float:strflVec[3];
+stock void ClientParticle(int client, char effect[128], float time)
+{
+	float strflVec[3];
 	GetClientEyePosition(client, strflVec);
 	
-	new strIParticle = CreateEntityByName("info_particle_system");
-	new String:strName[128];
-	if (IsValidEdict(strIParticle)) {
-		new Float:strflPos[3];
+	int strIParticle = CreateEntityByName("info_particle_system");
+	char strName[128];
+
+	if (IsValidEdict(strIParticle))
+	{
+		float strflPos[3];
 		GetEntPropVector(client, Prop_Send, "m_vecOrigin", strflPos);
 		TeleportEntity(strIParticle, strflPos, NULL_VECTOR, NULL_VECTOR);
 		
@@ -259,13 +264,23 @@ public Action KillProp_Timer(Handle hTimer, any prop)
 	return Plugin_Stop;
 }
 
-stock GetActivePlayers(team = 0, bool:mustbealive = false) {
-	new output = 0;
-	for (new client = 1; client <= MaxClients; client++) {
-		if (IsValidClient(client) && g_Spawned[client]) {
-			if (((team == 0 && GetClientTeam(client) >= 2) || (team > 0 && GetClientTeam(client) == team)) && (mustbealive == false || IsPlayerAlive(client)) && g_Participating[client] == true) output += 1;
+stock int GetActivePlayers(int team = 0, bool mustBeAlive = false)
+{
+	int output = 0;
+	for (int client = 1; client <= MaxClients; client++)
+	{
+		if (IsValidClient(client) && g_Spawned[client])
+		{
+			if (((team == 0 && GetClientTeam(client) >= 2)
+				|| (team > 0 && GetClientTeam(client) == team))
+				&& (mustBeAlive == false || IsPlayerAlive(client))
+				&& g_Participating[client] == true)
+			{
+				output += 1;
+			}
 		}
 	}
+
 	return output;
 }
 
@@ -288,7 +303,8 @@ public void RemoveClientWeapons(int client)
 	if (IsValidClient(client) && (IsPlayerAlive(client)) && (g_Winner[client] == 0))
 	{
 		SetClientSlot(client, 0);
-		for (new j = 0; j <= 5; j++)
+
+		for (int j = 0; j <= 5; j++)
 		{
 			TF2_RemoveWeaponSlot(client, j);
 		}
@@ -522,7 +538,7 @@ public Action HandlePlayerItems(int iClient)
 	SetEntProp(iClient, Prop_Send, "m_nBody", 0);
 }
 
-new Handle:GameTextHandle = INVALID_HANDLE;
+Handle GameTextHandle = INVALID_HANDLE;
 
 void ShowGameText(const char[] strMessage, const char[] strIcon = "leaderboard_dominated", float life = 35.0)
 {
@@ -580,7 +596,7 @@ void RestorePlayerFreeze()
 	SetConVarInt(FindConVar("tf_player_movement_restart_freeze"), 1);
 }
 
-void ClearAllTaunts(iClient)
+void ClearAllTaunts(int iClient)
 {
 	TF2_RemoveCondition(iClient, TFCond_Taunting);
 }
@@ -614,7 +630,7 @@ int GetClientMaxHealth(int iClient)
 	return TF2_GetPlayerResourceData(iClient, TFResource_MaxHealth);
 }
 
-stock FindEntityByClassname2(int startEnt, const char[] classname)
+stock int FindEntityByClassname2(int startEnt, const char[] classname)
 {
 	/* If startEnt isn't valid shifting it back to the nearest valid one */
 	while (startEnt > -1 && !IsValidEntity(startEnt)) startEnt--;
@@ -662,7 +678,7 @@ stock bool Entity_SetName(int entity, const char[] name, any ...)
 	return DispatchKeyValue(entity, "targetname", format);
 }
 
-static void Entity_PointHurtAtTarget(int entity, target, const char[] name="")
+static void Entity_PointHurtAtTarget(int entity, int target, const char[] name = "")
 {
 	char targetName[128];
 	Entity_GetTargetName(entity, targetName, sizeof(targetName));

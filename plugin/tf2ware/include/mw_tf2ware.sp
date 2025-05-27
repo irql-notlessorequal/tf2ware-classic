@@ -35,10 +35,10 @@
 #endif
 
 // Fixes
-#include "colors.inc"
+#include <colors>
 
-#if defined ENABLE_ATTACHMENTS
-	#include <attachables>
+#if defined(ENABLE_ATTACHMENTS)
+#include <attachables>
 #endif
 
 /**
@@ -61,7 +61,6 @@ Handle ww_kamikaze_style = INVALID_HANDLE;
 Handle hudScore = INVALID_HANDLE;
 // REPLACE WEAPON
 Handle MicrogameTimer = INVALID_HANDLE;
-Handle ConVar_SpawnGlowsDuration = INVALID_HANDLE;
 Handle ConVar_TFTournamentHideDominationIcons = INVALID_HANDLE;
 Handle ConVar_TFAirblastCray = INVALID_HANDLE;
 
@@ -163,12 +162,10 @@ public void OnPluginStart()
 	// G A M E  C H E C K //
 	char game[32];
 	GetGameFolderName(game, sizeof(game));
-	if (!(StrEqual(game, "tf"))) SetFailState("This plugin is only for Team Fortress 2, not %s", game);
-
-#if defined FIXED_IP
-	new iIp = GetConVarInt(FindConVar("hostip"));
-	if (FIXED_IP != iIp) SetFailState("This server does not have credidentals to run this plugin. Please contact the TF2Ware staff.");
-#endif
+	if (!StrEqual(game, "tf"))
+	{
+		SetFailState("This plugin is only for Team Fortress 2, not %s", game);
+	}
 
 	// Check for SDKHooks
 	if (GetExtensionFileStatus("sdkhooks.ext") < 1)
@@ -196,7 +193,6 @@ public void OnPluginStart()
 		PrintToServer("* FATAL ERROR: Failed to get offset for CBaseEntity::m_vecVelocity[0]");
 	}
 
-	ConVar_SpawnGlowsDuration = FindConVar("tf_spawn_glows_duration");
 	ConVar_TFTournamentHideDominationIcons = FindConVar("tf_tournament_hide_domination_icons");
 	ConVar_TFAirblastCray = FindConVar("tf_airblast_cray");
 
@@ -1484,14 +1480,6 @@ public void OnClientPutInServer(int client)
 	SDKHook(client, SDKHook_OnTakeDamage, OnTakeDamageClient);
 	SDKHook(client, SDKHook_Touch, Special_NoTouch);
 	SDKHook(client, SDKHook_OnTakeDamage, Special_DamagePush);
-
-	/**
-	 * Disable player outlines for clients.
-	 */
-	if (!IsFakeClient(client))
-	{
-		SendConVarValue(client, ConVar_SpawnGlowsDuration, "0");
-	}
 }
 
 public void OnClientDisconnect(int client)
@@ -1501,15 +1489,6 @@ public void OnClientDisconnect(int client)
 #if defined(DEBUG)
 	LogMessage("[TF2Ware::OnClientDisconnect] Client (%d) disconnected", client);
 #endif
-
-	/**
-	 * Reset to the default value of 10, it's not worth the effort
-	 * to track who has what value set.
-	 */
-	if (!IsFakeClient(client))
-	{
-		SendConVarValue(client, ConVar_SpawnGlowsDuration, "10");
-	}
 
 	g_Spawned[client] = false;
 }
@@ -1562,6 +1541,11 @@ public Action EventInventoryApplication(Handle event, const char[] name, bool do
 #if defined(DEBUG)
 	LogMessage("[TF2Ware::EventInventoryApplication] Client (%d) post inventory", client);
 #endif
+
+	/**
+	 * Not needed in this gamemode.
+	 */
+	TF2_RemoveCondition(client, TF_COND_TEAM_GLOWS);
 
 	if (g_Spawned[client] == false && g_waiting && GetConVarBool(ww_enable) && g_enabled && !IsFakeClient(client))
 	{
@@ -2691,7 +2675,6 @@ public Action Classic_EndMap(Handle hTimer)
 	ResetConVar(FindConVar("tf_spawn_glows_duration"));
 	ResetConVar(ConVar_TFAirblastCray);
 	ResetConVar(ConVar_TFTournamentHideDominationIcons);
-	ResetConVar(ConVar_SpawnGlowsDuration);
 
 	RestorePlayerFreeze();
 
@@ -2869,7 +2852,7 @@ void GiveSpecialRoundInfo()
 		 * for now use the English text.
 		 */
 		char Desc[128];
-		Format(Desc, sizeof (Desc), "%T", "en", var_special_phrases[view_as<int>(SpecialRound) - 1]);
+		Format(Desc, sizeof (Desc), "%T", var_special_phrases[view_as<int>(SpecialRound) - 1], "en");
 
 		char Text[128];
 		Format(Text, sizeof(Text), "SPECIAL ROUND: %s!\n%s",
@@ -3002,17 +2985,41 @@ void RespawnClient(int i, bool force = false, bool savepos = true)
 	}
 }
 
-/* DrawScoresheet() {
-	new players[GetClientCount()+1];
-	for (new i=1; i<=GetClientCount(); i++) {
+#if 0
+int ScoreGreaterThan(int left, int right, const int[] playerids, Handle data)
+{
+	if (g_Points[left] < g_Points[right])
+	{
+		return -1;
+	}
+	else if (g_Points[left] == g_Points[right])
+	{
+		return 0;
+	}
+	else
+	{
+		return 1;
+	}
+}
+
+void DrawScoresheet()
+{
+	int players[MAXPLAYERS];
+
+	for (int i = 1; i <= GetClientCount(); i++)
+	{
 		players[i] = i;
 	}
+
 	SortCustom1D(players, GetClientCount(), ScoreGreaterThan);
-	new String:cName[128];
-	new String:Lines[10][128];
-	new String:Sheet[512];
-	new count = 0;
-	for (new i=GetClientCount(); i>0; i--) {
+	
+	char cName[128];
+	char Lines[10][128];
+	char Sheet[512];
+	int count = 0;
+
+	for (int i = GetClientCount(); i > 0; i--)
+	{
 		if (count >= 10) break;
 		if (IsValidClient(i) && !IsClientObserver(i)) {
 			GetClientName(players[i], cName, sizeof(cName));
@@ -3020,16 +3027,19 @@ void RespawnClient(int i, bool force = false, bool savepos = true)
 			count++;
 		}
 	}
+
 	ImplodeStrings(Lines, 10, "\n", Sheet, 512);
 	SetHudTextParams(0.30, 0.30, 5.0, 255, 255, 255, 0);
-	for (new i=1; i<=GetClientCount(); i++) {
-		if (IsValidClient(i)) {
+
+	for (int i = 1; i <= GetClientCount(); i++)
+	{
+		if (IsValidClient(i))
+		{
 			ShowHudText(i, 7, Sheet);
 		}
 	}
 }
-
- */
+#endif
 
 void SetStateClient(int client, bool value, bool complete = false)
 {
@@ -3040,11 +3050,13 @@ void SetStateClient(int client, bool value, bool complete = false)
 			if (value)
 			{
 				EmitSoundToClient(client, SOUND_COMPLETE);
+
 				for (int i = 1; i <= MaxClients; i++)
 				{
 					if (IsValidClient(i) && !IsFakeClient(i))
 					{
 						EmitSoundToClient(i, SOUND_COMPLETE_YOU, client);
+
 						if (IsClientParticipating(i) && IsPlayerAlive(i) && g_Gamemode == GAMEMODE_WIPEOUT && i != client)
 						{
 							SetStateClient(i, false, true);
@@ -3054,8 +3066,17 @@ void SetStateClient(int client, bool value, bool complete = false)
 					}
 				}
 
-				char effect[128] = PARTICLE_WIN_BLUE;
-				if (GetClientTeam(client) == 2) effect = PARTICLE_WIN_RED;
+				char effect[128];
+
+				if (GetClientTeam(client) == 2)
+				{
+					effect = PARTICLE_WIN_RED;
+				}
+				else
+				{
+					effect = PARTICLE_WIN_BLUE;
+				}
+
 				ClientParticle(client, effect, 8.0);
 			}
 		}

@@ -16,13 +16,16 @@
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
+#pragma newdecls required
+
 #include <sdktools_entinput>
 #include <sdktools_functions>
 
 #define OVERHEAD_SCORE_OFFSET 90.0
 
-stock CreateAllSprites() {
-	for (new client = 1; client <= MaxClients; client++)
+stock void CreateAllSprites()
+{
+	for (int client = 1; client <= MaxClients; client++)
 	{
 		if (IsValidClient(client))
 		{
@@ -31,7 +34,7 @@ stock CreateAllSprites() {
 	}
 }
 
-stock CreateSprite(client)
+stock void CreateSprite(int client)
 {
 	if (IsValidClient(client) && (SpecialRound != SINGLEPLAYER))
 	{
@@ -84,7 +87,7 @@ stock CreateSprite(client)
 			/* Put above player. */
 			vOrigin[2] += OVERHEAD_SCORE_OFFSET;
 			
-			new ent = CreateEntityByName("env_sprite");
+			int ent = CreateEntityByName("env_sprite");
 			if (IsValidEntity(ent))
 			{
 				DispatchKeyValueVector(ent, "origin", vOrigin);
@@ -123,9 +126,9 @@ stock CreateSprite(client)
 	}
 }
 
-stock DestroyAllSprites()
+stock void DestroyAllSprites()
 {
-	for (new client = 1; client <= MaxClients; client++)
+	for (int client = 1; client <= MaxClients; client++)
 	{
 		if (IsValidClient(client))
 		{
@@ -134,15 +137,16 @@ stock DestroyAllSprites()
 	}
 }
 
-stock DestroySprite(client)
+stock void DestroySprite(int client)
 {
 	if (IsValidClient(client))
 	{
-		new ent = g_Sprites[client];
-		if (ent > 0 && IsValidEdict(ent))
+		int ent = g_Sprites[client];
+		if (ent && IsValidEdict(ent))
 		{
-			new String:classname[64];
+			char classname[64];
 			GetEdictClassname(ent, classname, sizeof(classname));
+
 			if(StrEqual(classname, "env_sprite", false))
 			{
 				AcceptEntityInput(ent, "kill");
@@ -152,7 +156,7 @@ stock DestroySprite(client)
 	g_Sprites[client] = 0;
 }
 
-stock OverheadScoresUpdate()
+stock void OverheadScoresUpdate()
 {
 	for (int i = 1; i <= MaxClients; i++)
 	{
