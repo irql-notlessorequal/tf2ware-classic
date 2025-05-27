@@ -1,0 +1,78 @@
+"Phrases"
+{
+	"Kicked_CheatCommand"
+	{
+		"en"	"TF2Ware Classic: Attempted to use a cheat command."
+	}
+
+	"LateJoin_Wipeout"
+	{
+		"en"	"You have been given an average of the current player points to even out the playing field."
+	}
+
+	"WinnerStringPrefix_Single"
+	{
+		"en"	"{green}The winner is"
+	}
+
+	"WinnerStringPrefix_Multiple"
+	{
+		"en"	"{green}The winners are"
+	}
+
+	"WinnerPoints"
+	{
+		"en"	"points"
+	}
+
+	"WinnerLives"
+	{
+		"en"	"lives"
+	}
+
+	"SpecialRound"
+	{
+		"#format" "{1:s}{2:s}"
+		"en"	"SPECIAL ROUND: {1} ({2})"
+	}
+
+	"SpecialRoundEnded"
+	{
+		"en"	"The {lightgreen}Special Round{default} is over!"
+	}
+
+	"Special_SuperSpeed"
+	{
+		"en"	"The Game is Faster Than Usual!!"
+	}
+
+	"Special_NoTouching"
+	{
+		"en"	"Don't Touch Any Enemy Players or You'll Lose!!"
+	}
+
+	"Special_DoubleBoss"
+	{
+		"en"	"Two Boss Battles!!"
+	}
+
+	"Special_Singleplayer"
+	{
+		"en"	"You're Playing Alone...?"
+	}
+
+	"Special_LeastIsBest"
+	{
+		"en"	"The Player With The Least Points Win!!"
+	}
+
+	"Special_Bonk"
+	{
+		"en"	"Push Players With Your Bat!!"
+	}
+
+	"Special_ThirdPerson"
+	{
+		"en"	"Everything Is At A New Perspective!!"
+	}
+}
