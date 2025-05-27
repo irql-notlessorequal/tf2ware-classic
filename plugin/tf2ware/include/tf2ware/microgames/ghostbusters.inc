@@ -122,7 +122,7 @@ methodmap Ghostbusters < Microgame
 		/**
 		 * Get the heavies!
 		 */
-		for (new i = 1; i <= heavies; i++)
+		for (int i = 1; i <= heavies; i++)
 		{
 			attempts = 0;
 			target = GetRandomInt(1, AllPlayers);
@@ -385,7 +385,7 @@ methodmap Ghostbusters < Microgame
 	}
 }
 
-void Ghostbusters_GetGroupId(int client, int id)
+int Ghostbusters_GetGroupId(int client, int id)
 {
 	int out = 0;
 
@@ -525,7 +525,9 @@ Action Ghostbusters_TEnd(Handle timer)
 		return Plugin_Continue;
 	}
 	
-	TriggerTimer(microgametimer);
+	TriggerTimer(MicrogameTimer);
+	
+	return Plugin_Stop;
 }
 
 void Ghostbusters_Slap(int client)

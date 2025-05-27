@@ -87,7 +87,17 @@ Action Hook_StartTouch_Pipe(int entity, int other)
 		int owner = GetEntPropEnt(entity, Prop_Send, "m_hThrower");
 		if (g_Complete[owner] == false)
 		{
-			EmitSoundToClient(owner, SOUND_MINISCORE, SOUND_FROM_PLAYER, SNDCHAN_AUTO, SNDLEVEL_NORMAL, SND_NOFLAGS, SNDVOL_NORMAL, GetSoundMultiplier());
+			EmitSoundToClient(
+				.client = owner,
+				.sample = SOUND_MINISCORE,
+				.entity = SOUND_FROM_PLAYER,
+				.channel = SNDCHAN_AUTO,
+				.level = SNDLEVEL_NORMAL,
+				.flags = SND_NOFLAGS,
+				.volume = SNDVOL_NORMAL,
+				.pitch = GetSoundMultiplier()
+			);
+			
 			g_Minipoints[owner] += 1;
 			if (g_Minipoints[owner] >= 7)
 			{

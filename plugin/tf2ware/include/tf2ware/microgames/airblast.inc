@@ -29,7 +29,7 @@ methodmap Airblast < Microgame
 			SetClientClass(client, "pyro");
 		
 			int total = GetActivePlayers();
-			int posa = 360 / total * (g_Id[client] - 1);
+			int posa = 360 / total * client;
 		
 			float pos[3];
 			if (IsAlpineVariant())

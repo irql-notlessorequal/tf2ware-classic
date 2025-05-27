@@ -89,8 +89,10 @@ public Action JumpRope_NewRound(Handle timer)
 	
 	if (ActivePlayers <= 1)
 	{
-		TriggerTimer(microgametimer);
+		TriggerTimer(MicrogameTimer);
 	}
+
+	return Plugin_Stop;
 }
 
 public Action JumpRope_Drain(Handle timer)
@@ -117,10 +119,12 @@ public Action JumpRope_Drain(Handle timer)
 			 * 
 			 * Leave it as is.
 			 */
-			HurtEntity(i, JumpRope_DrainHP);
+			HurtEntity(i, float(JumpRope_DrainHP));
 		}
 	}
 	
 	float timescale = (GetHostMultiplier(1.0) + float(JumpRope_Speed) * 0.05);
 	CreateTimer(1.0 / timescale, JumpRope_Drain);
+
+	return Plugin_Stop;
 }

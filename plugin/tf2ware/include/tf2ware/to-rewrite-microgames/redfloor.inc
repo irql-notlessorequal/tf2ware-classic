@@ -41,7 +41,7 @@ public RedFloor_justEntered(client) {
         vel[2] = 0.0;
         
         new total = GetClientCount(true);
-        new posa = 360 / total * (g_Id[client]-1);
+        new posa = 360 / total * client;
         
         decl Float:pos[3];
         pos[0] = -4639.0   + (Cosine(DegToRad(float(posa)))*220.0);

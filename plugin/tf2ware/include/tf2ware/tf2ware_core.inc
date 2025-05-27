@@ -1,5 +1,6 @@
 /**
  * TF2Ware Classic
+ * 
  * Copyright (C) 2025 IRQL_NOT_LESS_OR_EQUAL
  *
  * This program is free software; you can redistribute it and/or modify it
@@ -18,7 +19,7 @@
  */
 #define MAX_MINIGAMES		 40
 
-#define PLUGIN_VERSION		 "0.0.39"
+#define PLUGIN_VERSION		 "0.0.45"
 
 #define MUSIC_SPECIAL_START		"imgay/tf2ware/special_intro.mp3"
 #define MUSIC_SPECIAL_START_LEN  4.167
@@ -80,7 +81,7 @@
 #define PARTICLE_BOMB "cinefx_goldrush_embers"
 #define PARTICLE_EXPLODE "cinefx_goldrush_initial_smoke"
 
-/* GLOBAL */ bool InternalIsAlpine = false;
+bool InternalIsAlpine = false;
 
 /**
  * Returns "TRUE" if we are running
@@ -154,3 +155,12 @@ enum Microgames
 	MG_PINATA = 24,
 	MG_GHOSTBUSTERS = 25,
 }
+
+char ALLOWED_CHEAT_COMMANDS[][] =
+{
+	"host_timescale",
+	"r_screenoverlay",
+	"thirdperson",
+	"firstperson",
+	"sv_cheats"
+};

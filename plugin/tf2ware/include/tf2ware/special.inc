@@ -31,7 +31,7 @@
 
 bool Special_TwoBosses = false;
 
-const char var_special_name[][] =
+char var_special_name[][] =
 {
 	"SUPER SPEED",
 	"NO TOUCHING",
@@ -42,15 +42,15 @@ const char var_special_name[][] =
 	"THIRDPERSON"
 };
 
-const char var_special_desc[][] =
+char var_special_phrases[][] =
 {
-	"The Game is Faster Than Usual!!",
-	"Don't Touch Any Enemy Players or You'll Lose!!",
-	"Two Boss Battles!!",
-	"You're Playing Alone...?",
-	"The Player With The Least Points Win!!",
-	"Push Players With Your Bat!!",
-	"Everything Is At A New Perspective!!"
+	"Special_SuperSpeed",
+	"Special_NoTouching",
+	"Special_DoubleBoss",
+	"Special_Singleplayer",
+	"Special_LeastIsBest",
+	"Special_Bonk",
+	"Special_ThirdPerson"
 };
 
 public void Special_NoTouch(int entity, int other)

@@ -17,6 +17,7 @@
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 #pragma semicolon 1
+#pragma newdecls required
 
 // Includes:
 #include <sourcemod>
@@ -47,27 +48,25 @@
 
 char g_name[MAX_MINIGAMES][24];
 
-// Language strings
-char var_lang[][] = { "", "it/" };
-
 // Handles
 Handle ww_enable = INVALID_HANDLE;
 Handle ww_speed = INVALID_HANDLE;
 Handle ww_music = INVALID_HANDLE;
 Handle ww_force = INVALID_HANDLE;
-Handle ww_log = INVALID_HANDLE;
 Handle ww_special = INVALID_HANDLE;
 Handle ww_gamemode = INVALID_HANDLE;
 Handle ww_force_special = INVALID_HANDLE;
 Handle ww_overhead_scores = INVALID_HANDLE;
 Handle ww_kamikaze_style = INVALID_HANDLE;
-Handle ww_allowedCommands = INVALID_HANDLE;
 Handle hudScore = INVALID_HANDLE;
 // REPLACE WEAPON
-Handle microgametimer = INVALID_HANDLE;
+Handle MicrogameTimer = INVALID_HANDLE;
+Handle ConVar_SpawnGlowsDuration = INVALID_HANDLE;
+Handle ConVar_TFTournamentHideDominationIcons = INVALID_HANDLE;
+Handle ConVar_TFAirblastCray = INVALID_HANDLE;
 
 // Keyvalues configuration handle
-new Handle:MinigameConf		  = INVALID_HANDLE;
+Handle MinigameConf = INVALID_HANDLE;
 
 // Bools
 bool g_Complete[MAXPLAYERS + 1];
@@ -77,16 +76,13 @@ bool g_attack	 = false;
 bool g_enabled = false;
 bool g_first	 = false;
 bool g_waiting = true;
-bool g_AlwaysShowPoints = false;
 
 // Ints
 int g_Mission[MAXPLAYERS + 1];
 int g_NeedleDelay[MAXPLAYERS + 1];
 int g_Points[MAXPLAYERS + 1];
-int g_Id[MAXPLAYERS + 1];
 int g_Winner[MAXPLAYERS + 1];
 int g_Minipoints[MAXPLAYERS + 1];
-int g_Country[MAXPLAYERS + 1];
 int g_Sprites[MAXPLAYERS+1];
 float currentSpeed;
 int iMinigame;
@@ -99,8 +95,7 @@ int g_HaloSprite;
 int g_ExplosionSprite;
 int g_result = 0;
 int g_bomb								   = 0;
-int Roundstarts							   = 0;
-int g_lastminigame						   = 0;
+int RoundStarts							   = 0;
 int g_lastboss							   = 0;
 int g_minigamestotal					   = 0;
 int bossBattle							   = 0;
@@ -157,7 +152,7 @@ Microgame currentMicrogame;
 public Plugin myinfo =
 {
 	name		= "TF2Ware Classic",
-	author		= "Mecha the Slag, IRQL_NOT_LESS_OR_EQUAL",
+	author		= "Mecha the Slag, gavintlgold, IRQL_NOT_LESS_OR_EQUAL",
 	description = "Wario Ware in Team Fortress 2!",
 	version		= PLUGIN_VERSION,
 	url			= "https://github.com/irql-notlessorequal/tf2ware-classic"
@@ -166,7 +161,7 @@ public Plugin myinfo =
 public void OnPluginStart()
 {
 	// G A M E  C H E C K //
-	decl String:game[32];
+	char game[32];
 	GetGameFolderName(game, sizeof(game));
 	if (!(StrEqual(game, "tf"))) SetFailState("This plugin is only for Team Fortress 2, not %s", game);
 
@@ -186,8 +181,10 @@ public void OnPluginStart()
 	}
 #endif
 
+	LoadTranslations("tf2ware_classic.phrases");
+
 	// Find collision group offsets
-	g_offsCollisionGroup = FindSendPropOffs("CBaseEntity", "m_CollisionGroup");
+	g_offsCollisionGroup = FindSendPropInfo("CBaseEntity", "m_CollisionGroup");
 	if (g_offsCollisionGroup == -1)
 	{
 		PrintToServer("* FATAL ERROR: Failed to get offset for CBaseEntity::m_CollisionGroup");
@@ -199,12 +196,15 @@ public void OnPluginStart()
 		PrintToServer("* FATAL ERROR: Failed to get offset for CBaseEntity::m_vecVelocity[0]");
 	}
 
+	ConVar_SpawnGlowsDuration = FindConVar("tf_spawn_glows_duration");
+	ConVar_TFTournamentHideDominationIcons = FindConVar("tf_tournament_hide_domination_icons");
+	ConVar_TFAirblastCray = FindConVar("tf_airblast_cray");
+
 	// ConVars
 	ww_enable		 = CreateConVar("ww_enable", "0", "Enables/Disables TF2Ware.", FCVAR_PLUGIN);
 	ww_force		 = CreateConVar("ww_force", "0", "Force a certain minigame (0 to not force).", FCVAR_PLUGIN);
 	ww_speed		 = CreateConVar("ww_speed", "1.0", "Speed level.", FCVAR_PLUGIN);
 	ww_music		 = CreateConVar("ww_music_fix", "0", "Apply music fix? Should only be on for localhosts during testing", FCVAR_PLUGIN);
-	ww_log			 = CreateConVar("ww_log", "0", "Log server events?", FCVAR_PLUGIN);
 	ww_special		 = CreateConVar("ww_special", "0", "Next round is Special Round?", FCVAR_PLUGIN);
 	ww_gamemode		 = CreateConVar("ww_gamemode", "-1", "Gamemode", FCVAR_PLUGIN);
 	ww_force_special = CreateConVar("ww_force_special", "0", "Forces a specific Special Round on Special Round", FCVAR_PLUGIN);
@@ -267,7 +267,7 @@ public void OnMapStart()
 			PrintToServer("Loaded minigames from minigames.cfg");
 
 			KvGotoFirstSubKey(MinigameConf);
-			new i = 0;
+			int i = 0;
 			do
 			{
 				KvGetSectionName(MinigameConf, g_name[KvGetNum(MinigameConf, "id") - 1], 32);
@@ -281,46 +281,33 @@ public void OnMapStart()
 			PrintToServer("Failed to load minigames.cfg!");
 		}
 
-		// Add logging
-		if (GetConVarBool(ww_log))
-		{
-			LogMessage("//////////////////////////////////////////////////////");
-			LogMessage("//                     TF2WARE LOG                  //");
-			LogMessage("//////////////////////////////////////////////////////");
-		}
-
 		// Hooks
 		HookConVarChange(ww_enable, StartMinigame_cvar);
 		HookConVarChange(ww_overhead_scores, OverheadScoresChanged);
 		HookEvent("post_inventory_application", EventInventoryApplication, EventHookMode_Post);
 		HookEvent("player_death", Player_Death, EventHookMode_Post);
 		HookEvent("player_team", Player_Team, EventHookMode_Post);
-		HookEvent("teamplay_round_start", Event_Roundstart, EventHookMode_PostNoCopy);
-		HookEvent("teamplay_game_over", Event_Roundend, EventHookMode_PostNoCopy);
-		HookEvent("teamplay_round_stalemate", Event_Roundend, EventHookMode_PostNoCopy);
-		HookEvent("teamplay_round_win", Event_Roundend, EventHookMode_PostNoCopy);
-		RegAdminCmd("ww_list", Command_list, ADMFLAG_GENERIC, "Lists all the registered, enabled plugins and their ids");
-		RegAdminCmd("ww_give", Command_points, ADMFLAG_GENERIC, "Gives you 20 points - You're a winner! (testing feature)");
-		RegAdminCmd("ww_event", Command_event, ADMFLAG_GENERIC, "Starts a debugging event");
+		HookEvent("teamplay_round_start", Event_RoundStart, EventHookMode_PostNoCopy);
+		HookEvent("teamplay_game_over", Event_RoundEnd, EventHookMode_PostNoCopy);
+		HookEvent("teamplay_round_stalemate", Event_RoundEnd, EventHookMode_PostNoCopy);
+		HookEvent("teamplay_round_win", Event_RoundEnd, EventHookMode_PostNoCopy);
+		RegAdminCmd("ww_list", Command_List, ADMFLAG_GENERIC, "Lists all the registered, enabled plugins and their ids");
+		RegAdminCmd("ww_give", Command_Points, ADMFLAG_GENERIC, "Gives you 20 points - You're a winner! (testing feature)");
+		RegAdminCmd("ww_event", Command_Event, ADMFLAG_GENERIC, "Starts a debugging event");
 
 		// Vars
 		currentSpeed = GetConVarFloat(ww_speed);
 		iMinigame	 = 1;
 		status		 = 0;
 		randommini	 = 0;
-		Roundstarts	 = 0;
+		RoundStarts	 = 0;
 		SetStateAll(false);
 		ResetWinners();
 		SetMissionAll(0);
 
 		// CHEATS
 		HookConVarChange(FindConVar("sv_cheats"), OnConVarChanged_SvCheats);
-		ww_allowedCommands = CreateArray(64);
-		PushArrayString(ww_allowedCommands, "host_timescale");
-		PushArrayString(ww_allowedCommands, "r_screenoverlay");
-		PushArrayString(ww_allowedCommands, "thirdperson");
-		PushArrayString(ww_allowedCommands, "firstperson");
-		PushArrayString(ww_allowedCommands, "sv_cheats");
+
 		UpdateClientCheatValue();
 		HookAllCheatCommands();
 
@@ -339,16 +326,13 @@ public void OnMapStart()
 		RemoveNotifyFlag("tf_tournament_hide_domination_icons");
 		RemoveNotifyFlag("tf_airblast_cray");
 
-		SetConVarInt(FindConVar("tf_tournament_hide_domination_icons"), 0, true);
+		SetConVarInt(ConVar_TFTournamentHideDominationIcons, 0, true);
 		SetConVarInt(FindConVar("mp_friendlyfire"), 1);
-		SetConVarInt(FindConVar("tf_spawn_glows_duration"), 0);
 
 		/**
 		 * Revert to pre-JI airblast.
 		 */
-		SetConVarInt(FindConVar("tf_airblast_cray"), 0);
-
-		if (GetConVarBool(ww_log)) LogMessage("Calling OnMapStart Forward");
+		SetConVarInt(ConVar_TFAirblastCray, 0);
 
 		DispatchOnMicrogameSetup();
 
@@ -412,7 +396,7 @@ public void OnMapStart()
 		PrecacheModel("models/weapons/w_models/w_stickybomb_launcher.mdl", true);
 		PrecacheModel("models/weapons/w_models/w_medigun.mdl", true);
 
-		decl String:input[512];
+		char input[512];
 
 		for (int i = 0; i <= 20; i++)
 		{
@@ -430,23 +414,33 @@ public void OnMapStart()
 		}
 
 		KvGotoFirstSubKey(MinigameConf);
-		decl id;
-		decl enable;
-		new i = 1;
-		if (GetConVarBool(ww_log)) LogMessage("--Adding the following to downloads table from information in minigames.cfg:", input);
+		int id;
+		int enable;
+		int i = 1;
+
+#if defined(DEBUG)
+		LogMessage("--Adding the following to downloads table from information in minigames.cfg:", input);
+#endif
+
 		do
 		{
 			id	   = KvGetNum(MinigameConf, "id");
 			enable = KvGetNum(MinigameConf, "enable", 1);
+
 			if (enable >= 1)
 			{
 				Format(input, sizeof(input), "imgay/tf2ware/minigame_%d.mp3", id);
-				if (GetConVarBool(ww_log)) LogMessage("%s", input);
+
+#if defined(DEBUG)
+				LogMessage("%s", input);
+#endif
+
 				precacheSound(input);
 			}
+
 			i++;
-		}
-		while (KvGotoNextKey(MinigameConf));
+		} while (KvGotoNextKey(MinigameConf));
+
 		KvRewind(MinigameConf);
 
 		white			  = PrecacheModel("materials/sprites/white.vmt");
@@ -457,11 +451,13 @@ public void OnMapStart()
 		SetConVarFloat(ww_speed, 1.0);
 		ResetScores();
 		bossBattle	= 0;
-		Roundstarts = 0;
+		RoundStarts = 0;
 
 		SpecialPrecache();
 
-		if (GetConVarBool(ww_log)) LogMessage("Map started");
+#if defined(DEBUG)
+		LogMessage("Map started");
+#endif
 	}
 	else
 	{
@@ -479,7 +475,8 @@ public void OnMapStart()
  * My eyes weep at this.
  * Have fun trying to add custom microgames to this.
  * 
- * tl;dr I should really start working on "source.js"
+ * tl;dr I should really start working on "source.js" or wait till the
+ * C# based replacement for SourcePawn actually matures and becomes public.
  */
 void DispatchOnClientJustEntered(int client)
 {
@@ -1390,7 +1387,7 @@ public Action OnGetGameDescription(char gameDesc[64])
 	}
 }
 
-public Action:Timer_DisplayVersion(Handle:timer, any:client)
+public Action Timer_DisplayVersion(Handle timer, any client)
 {
 	if (IsValidClient(client))
 	{
@@ -1400,18 +1397,18 @@ public Action:Timer_DisplayVersion(Handle:timer, any:client)
 	return Plugin_Handled;
 }
 
-public Action Event_Roundstart(Handle event, const char[] name, bool dontBroadcast)
+public Action Event_RoundStart(Handle event, const char[] name, bool dontBroadcast)
 {
 	if (g_enabled && GetConVarBool(ww_enable))
 	{
-		if (Roundstarts == 0)
+		if (RoundStarts == 0)
 		{
 			g_waiting = true;
 			SetGameMode();
 			RemoveAllParticipants();
 		}
 
-		if (Roundstarts == 1)
+		if (RoundStarts == 1)
 		{
 			g_waiting = false;
 			ClearPlayerFreeze();
@@ -1430,57 +1427,94 @@ public Action Event_Roundstart(Handle event, const char[] name, bool dontBroadca
 					if (g_Gamemode == GAMEMODE_WIPEOUT) SetWipeoutPosition(i, true);
 				}
 			}
-			if (GetConVarBool(ww_log)) LogMessage("Waiting-for-players period has ended");
+
+#if defined(DEBUG)
+			LogMessage("[TF2Ware::Event_RoundStart] Waiting-for-players period has ended");
+#endif
 		}
 	}
 
-	Roundstarts++;
+	RoundStarts++;
+	return Plugin_Continue;
 }
 
-public Action Event_Roundend(Handle event, const char[] name, bool dontBroadcast)
+public Action Event_RoundEnd(Handle event, const char[] name, bool dontBroadcast)
 {
 	if (g_enabled && GetConVarBool(ww_enable))
 	{
 		g_enabled = false;
-		if (GetConVarBool(ww_log)) LogMessage("== ROUND ENDED SUCCESSFULLY == ");
+
+#if defined(DEBUG)
+		LogMessage("== ROUND ENDED SUCCESSFULLY == ");
+#endif
 	}
+
+	return Plugin_Stop;
 }
 
-public OnClientPostAdminCheck(client)
+public void OnClientPostAdminCheck(int client)
 {
 	if (!g_enabled) return;
+
 	UpdateClientCheatValue();
-	g_Points[client] = GetAverageScore();
-	if (g_Gamemode == GAMEMODE_WIPEOUT) g_Points[client] = -1;
 
-	// Country
-	decl String:ip[32];
-	GetClientIP(client, ip, sizeof(ip));
-	decl String:country[3];
-	GeoipCode2(ip, country);
-	g_Country[client] = 0;
+	if (g_Gamemode == GAMEMODE_WIPEOUT)
+	{
+		g_Points[client] = -1;
+	}
+	else
+	{
+		g_Points[client] = GetAverageScore();
+	}
 
-	if (GetConVarBool(ww_log)) LogMessage("Client post admin check. Country: %d", g_Country[client]);
+#if defined(DEBUG)
+	LogMessage("[TF2Ware::OnClientPostAdminCheck] Client (%d) post admin check", client);
+#endif
 }
 
-public OnClientPutInServer(client)
+public void OnClientPutInServer(int client)
 {
 	if (!g_enabled) return;
-	if (GetConVarBool(ww_log)) LogMessage("Client put in server and hooked");
+
+#if defined(DEBUG)
+	LogMessage("[TF2Ware::OnClientPutInServer] Client (%d) put in server and hooked", client);
+#endif
+
 	SDKHook(client, SDKHook_PreThink, OnPreThink);
 	SDKHook(client, SDKHook_OnTakeDamage, OnTakeDamageClient);
 	SDKHook(client, SDKHook_Touch, Special_NoTouch);
 	SDKHook(client, SDKHook_OnTakeDamage, Special_DamagePush);
+
+	/**
+	 * Disable player outlines for clients.
+	 */
+	if (!IsFakeClient(client))
+	{
+		SendConVarValue(client, ConVar_SpawnGlowsDuration, "0");
+	}
 }
 
-public OnClientDisconnect(client)
+public void OnClientDisconnect(int client)
 {
-	if (GetConVarBool(ww_log)) LogMessage("Client disconnected");
+	if (!g_enabled) return;
+
+#if defined(DEBUG)
+	LogMessage("[TF2Ware::OnClientDisconnect] Client (%d) disconnected", client);
+#endif
+
+	/**
+	 * Reset to the default value of 10, it's not worth the effort
+	 * to track who has what value set.
+	 */
+	if (!IsFakeClient(client))
+	{
+		SendConVarValue(client, ConVar_SpawnGlowsDuration, "10");
+	}
 
 	g_Spawned[client] = false;
 }
 
-public Action:OnTakeDamageClient(victim, &attacker, &inflictor, &Float: damage, &damagetype)
+public Action OnTakeDamageClient(int victim, int &attacker, int &inflictor, float &damage, int &damagetype)
 {
 	if ((g_Winner[victim] >= 1) && (status != 2))
 	{
@@ -1521,10 +1555,14 @@ public void OnPreThink(int client)
 	}
 }
 
-public EventInventoryApplication(Handle:event, const String:name[], bool:dontBroadcast)
+public Action EventInventoryApplication(Handle event, const char[] name, bool dontBroadcast)
 {
-	if (GetConVarBool(ww_log)) LogMessage("Client post inventory");
-	new client = GetClientOfUserId(GetEventInt(event, "userid"));
+	int client = GetClientOfUserId(GetEventInt(event, "userid"));
+
+#if defined(DEBUG)
+	LogMessage("[TF2Ware::EventInventoryApplication] Client (%d) post inventory", client);
+#endif
+
 	if (g_Spawned[client] == false && g_waiting && GetConVarBool(ww_enable) && g_enabled && !IsFakeClient(client))
 	{
 		EmitSoundToClient(client, MUSIC_WAITING, SOUND_FROM_PLAYER, SND_CHANNEL_SPECIFIC);
@@ -1593,6 +1631,8 @@ public EventInventoryApplication(Handle:event, const String:name[], bool:dontBro
 			HandleWipeoutLives(client);
 		}
 	}
+
+	return Plugin_Continue;
 }
 
 void precacheSound(const char[] var0)
@@ -1603,7 +1643,7 @@ void precacheSound(const char[] var0)
 	AddFileToDownloadsTable(buffer);
 }
 
-public StartMinigame_cvar(Handle cvar, const char[] oldVal, const char[] newVal)
+public void StartMinigame_cvar(Handle cvar, const char[] oldVal, const char[] newVal)
 {
 	if (GetConVarBool(ww_enable) && g_enabled)
 	{
@@ -1621,7 +1661,7 @@ public StartMinigame_cvar(Handle cvar, const char[] oldVal, const char[] newVal)
 	}
 }
 
-public OverheadScoresChanged(Handle:cvar, const String:oldVal[], const String:newVal[])
+public void OverheadScoresChanged(Handle cvar, const char[] oldVal, const char[] newVal)
 {
 	if (GetConVarBool(ww_overhead_scores) && g_enabled)
 	{
@@ -1636,8 +1676,9 @@ public OverheadScoresChanged(Handle:cvar, const String:oldVal[], const String:ne
 public void OnGameFrame()
 {
 	if (!GetConVarBool(ww_enable))
+	{
 		return;
-
+	}
 
 	if (status == 2)
 	{
@@ -1689,6 +1730,7 @@ public Action StartMinigame_timer2(Handle hTimer)
 		status = 0;
 		StartMinigame();
 	}
+
 	return Plugin_Stop;
 }
 
@@ -1700,6 +1742,7 @@ int RollMinigame()
 	 * Remaining logic TODO:
 	 * - Handle disablement of microgames (probably won't be a feature anymore)
 	 * - Do we still handle the "chance" value?
+	 * - Use "g_lastboss" to prevent repeating the boss during double boss battle.
 	 */
 	Microgame candidate;
 	int candidateIndex = GetConVarInt(ww_force);
@@ -1762,30 +1805,43 @@ int RollMinigame()
 	return candidateIndex;
 }
 
-public Player_Team(Handle: event, const String: name[], bool: dontBroadcast)
+public Action Player_Team(Handle event, const char[] name, bool dontBroadcast)
 {
-	new client	= GetClientOfUserId(GetEventInt(event, "userid"));
-	new oldteam = GetEventInt(event, "oldteam");
-	new newteam = GetEventInt(event, "team");
+	int oldTeam = GetEventInt(event, "oldteam");
+	int newTeam = GetEventInt(event, "team");
 
-	if (GetConVarBool(ww_log)) LogMessage("%N changed team", client);
+#if defined(DEBUG)
+	int client	= GetClientOfUserId(GetEventInt(event, "userid"));
+	LogMessage("[TF2Ware::Player_Team] Client (%N) changed team", client);
+#endif
+
 	if (GetConVarBool(ww_enable) && g_enabled)
 	{
 		CreateTimer(0.1, StartMinigame_timer);
-		if (oldteam < 2 && newteam >= 2)
+
+		if (oldTeam < 2 && newTeam >= 2)
 		{
 			GiveSpecialRoundInfo();
 		}
 	}
+
+	return Plugin_Continue;
 }
 
-HandOutPoints()
+void HandOutPoints()
 {
-	if (GetConVarBool(ww_log)) LogMessage("Handing out points");
-	for (new i = 1; i <= MaxClients; i++)
+#if defined(DEBUG)
+	LogMessage("[TF2Ware::HandOutPoints] Handing out points");
+#endif
+
+	for (int i = 1; i <= MaxClients; i++)
 	{
-		new points = 1;
-		if (bossBattle == 1) points = 5;
+		int points = 1;
+		if (bossBattle == 1)
+		{
+			points = 5;
+		}
+
 		if ((IsValidClient(i)) && IsClientParticipating(i))
 		{
 			if (g_Complete[i])
@@ -1801,15 +1857,18 @@ HandOutPoints()
 				}
 			}
 		}
+
 		g_Complete[i] = false;
 	}
 }
 
-StartMinigame()
+void StartMinigame()
 {
 	if (GetConVarBool(ww_enable) && g_enabled && (status == 0) && g_waiting == false)
 	{
-		if (GetConVarBool(ww_log)) LogMessage("Starting microgame %s! Status = 0", minigame);
+#if defined(DEBUG)
+		LogMessage("[TF2Ware::StartMinigame] Starting microgame %s! (status=0)", minigame);
+#endif
 		
 		SetConVarInt(FindConVar("mp_respawnwavetime"), 9999);
 		SetConVarInt(FindConVar("mp_friendlyfire"), 1);
@@ -1848,23 +1907,38 @@ StartMinigame()
 		if (g_Gamemode == GAMEMODE_WIPEOUT)
 		{
 			// Get two people to fight it off
-			new personA = GetRandomWipeoutPlayer();
-			if (IsValidClient(personA)) g_Participating[personA] = true;
-			new personB = GetRandomWipeoutPlayer();
-			if (IsValidClient(personB)) g_Participating[personB] = true;
+			int personA = GetRandomWipeoutPlayer();
+			if (IsValidClient(personA))
+			{
+				g_Participating[personA] = true;
+			}
 
-			new personC = -1;
-			if (GetLeftWipeoutPlayers() > 4) personC = GetRandomWipeoutPlayer();
-			if (IsValidClient(personC)) g_Participating[personC] = true;
+			int personB = GetRandomWipeoutPlayer();
+			if (IsValidClient(personB))
+			{
+				g_Participating[personB] = true;
+			}
+
+			int personC = -1;
+			if (GetLeftWipeoutPlayers() > 4)
+			{
+				personC = GetRandomWipeoutPlayer();
+			}
+
+			if (IsValidClient(personC))
+			{
+				g_Participating[personC] = true;
+			}
 
 			if (IsValidClient(personA) == false || IsValidClient(personB) == false)
 			{
 				status	   = 4;
 				bossBattle = 2;
-				CreateTimer(GetSpeedMultiplier(MUSIC_INFO_LEN), Victory_timer);
+				CreateTimer(GetSpeedMultiplier(MUSIC_INFO_LEN), Victory_Timer);
 				return;
 			}
-			decl String:strMessage[512];
+
+			char strMessage[512];
 			Format(strMessage, sizeof(strMessage), "%N\n%N", personA, personB);
 
 			if (IsValidClient(personC)) Format(strMessage, sizeof(strMessage), "%s\n%N", strMessage, personC);
@@ -1872,7 +1946,7 @@ StartMinigame()
 		}
 		else
 		{
-			for (new i = 1; i <= MaxClients; i++)
+			for (int i = 1; i <= MaxClients; i++)
 			{
 				if (IsValidClient(i) && GetClientTeam(i) >= 2 && g_Spawned[i] == true) g_Participating[i] = true;
 			}
@@ -1887,7 +1961,7 @@ StartMinigame()
 			EmitSoundToAll(MUSIC_INFO, SOUND_FROM_PLAYER, SNDCHAN_AUTO, SNDLEVEL_NORMAL, SND_NOFLAGS, SNDVOL_NORMAL, GetSoundMultiplier());
 		}
 
-		for (new i = 1; i <= MaxClients; i++)
+		for (int i = 1; i <= MaxClients; i++)
 		{
 			if (IsValidClient(i) && (!(IsFakeClient(i))))
 			{
@@ -1899,8 +1973,12 @@ StartMinigame()
 		status	  = 1;
 		iMinigame = RollMinigame();
 		minigame  = g_name[iMinigame - 1];
-		if (bossBattle == 1) g_lastboss = iMinigame;
-		else g_lastminigame = iMinigame;
+
+		if (bossBattle == 1)
+		{
+			g_lastboss = iMinigame;
+		}
+
 		CreateTimer(GetSpeedMultiplier(MUSIC_INFO_LEN), Game_Start);
 
 		g_attack = (SpecialRound == BONK);
@@ -1912,11 +1990,13 @@ StartMinigame()
 	}
 }
 
-public Action:Game_Start(Handle: hTimer)
+public Action Game_Start(Handle hTimer)
 {
 	if (status == 1)
 	{
-		if (GetConVarBool(ww_log)) LogMessage("Microgame %s started! Status = 1", minigame);
+#if defined(DEBUG)
+		LogMessage("[TF2Ware::Game_Start] Microgame %s started! (status=1)", minigame);
+#endif
 
 		// Spawn everyone so they can participate
 		RespawnAll();
@@ -1928,7 +2008,7 @@ public Action:Game_Start(Handle: hTimer)
 
 		if (SpecialRound == NO_TOUCHING)
 		{
-			for (new i = 1; i <= MaxClients; i++)
+			for (int i = 1; i <= MaxClients; i++)
 			{
 				if (IsValidClient(i) && !IsFakeClient(i)) 
 				{
@@ -1939,11 +2019,11 @@ public Action:Game_Start(Handle: hTimer)
 
 		if (g_Gamemode == GAMEMODE_WIPEOUT)
 		{
-			for (new i2 = 1; i2 <= MaxClients; i2++)
+			for (int i2 = 1; i2 <= MaxClients; i2++)
 			{
 				if (IsValidClient(i2) && IsPlayerAlive(i2) && IsClientParticipating(i2))
 				{
-					SetEntityMoveType(i2, MoveType:MOVETYPE_WALK);
+					SetEntityMoveType(i2, MOVETYPE_WALK);
 					SetWipeoutPosition(i2, false);
 				}
 			}
@@ -1975,9 +2055,6 @@ public Action:Game_Start(Handle: hTimer)
 		// Set everyone's state to fail
 		SetStateAll(false);
 
-		// Don't allow no points by default
-        g_AlwaysShowPoints = false;
-
 		// The 'x did y first' is untriggered
 		g_first = false;
 
@@ -2002,22 +2079,26 @@ public Action:Game_Start(Handle: hTimer)
 		else CreateTimer(GetSpeedMultiplier(1.0), CountDown_Timer);
 
 		// get the lasting time from the cfg
-		microgametimer = CreateTimer(GetSpeedMultiplier(GetMinigameConfFloat(minigame, "duration")), EndGame);
+		MicrogameTimer = CreateTimer(GetSpeedMultiplier(GetMinigameConfFloat(minigame, "duration")), EndGame);
 
-		// debug
-		if (GetConVarBool(ww_log)) LogMessage("Microgame started post");
+#if defined(DEBUG)
+		LogMessage("[TF2Ware::Game_Start] Microgame started post");
+#endif
 	}
 	return Plugin_Stop;
 }
 
-PrintMissionText()
+void PrintMissionText()
 {
-	if (GetConVarBool(ww_log)) LogMessage("Printing mission text");
-	for (new i = 1; i <= MaxClients; i++)
+#if defined(DEBUG)
+	LogMessage("[TF2Ware::PrintMissionText] Printing mission text");
+#endif
+
+	for (int i = 1; i <= MaxClients; i++)
 	{
 		if (IsValidClient(i))
 		{
-			new String:input[512];
+			char input[512];
 			Format(input, sizeof(input), "tf2ware_minigame_%d_%d", iMinigame, g_Mission[i] + 1);
 			SetOverlay(i, input);
 			g_ModifiedOverlay[i] = false;
@@ -2052,14 +2133,16 @@ public Action CountDown_Timer(Handle hTimer)
 
 public Action EndGame(Handle hTimer)
 {
-	microgametimer = INVALID_HANDLE;
+	MicrogameTimer = INVALID_HANDLE;
+
 	if (status == 2)
 	{
-		if (GetConVarBool(ww_log)) LogMessage("Microgame %s, (id:%d) ended!", minigame, iMinigame);
+#if defined(DEBUG)
+		LogMessage("[TF2Ware::EndGame] Microgame '%s' (id:%d) ended! (status=2)", minigame, iMinigame);
+#endif
 		
 		DispatchOnMicrogameEnd();
 
-		g_AlwaysShowPoints = false;
 		status = 0;
 
 		float MUSIC_INFO_LEN;
@@ -2098,8 +2181,8 @@ public Action EndGame(Handle hTimer)
 		ServerCommand("host_timescale %f", GetHostMultiplier(1.0));
 		ServerCommand("phys_timescale %f", GetHostMultiplier(1.0));
 
-		new String:sound[512];
-		for (new i = 1; i <= MaxClients; i++)
+		char sound[512];
+		for (int i = 1; i <= MaxClients; i++)
 		{
 			if (IsValidClient(i))
 			{
@@ -2131,14 +2214,20 @@ public Action EndGame(Handle hTimer)
 				{
 					Format(sound, sizeof(sound), MUSIC_INFO_WIN);
 				}
-				new String:oldsound[512];
-				Format(oldsound, sizeof(oldsound), "imgay/tf2ware/minigame_%d.mp3", iMinigame);
-				if (GetMinigameConfNum(minigame, "dynamic", 0)) StopSound(i, SND_CHANNEL_SPECIFIC, oldsound);
+
+				char oldSound[512];
+				Format(oldSound, sizeof(oldSound), "imgay/tf2ware/minigame_%d.mp3", iMinigame);
+
+				if (GetMinigameConfNum(minigame, "dynamic", 0))
+				{
+					StopSound(i, SND_CHANNEL_SPECIFIC, oldSound);
+				}
+				
 				EmitSoundToClient(i, sound, SOUND_FROM_PLAYER, SNDCHAN_AUTO, SNDLEVEL_NORMAL, SND_NOFLAGS, SNDVOL_NORMAL, GetSoundMultiplier());
 			}
 		}
 
-		for (new i = 1; i <= MaxClients; i++)
+		for (int i = 1; i <= MaxClients; i++)
 		{
 			if (IsValidClient(i) && !IsFakeClient(i) && IsClientParticipating(i))
 			{
@@ -2157,11 +2246,12 @@ public Action EndGame(Handle hTimer)
 		bool bHandlePoints = true;
 		if (g_Gamemode == GAMEMODE_WIPEOUT)
 		{
-			new bool:bSomeoneWon = false;
-			for (new i = 1; i <= MaxClients; i++)
+			bool bSomeoneWon = false;
+			for (int i = 1; i <= MaxClients; i++)
 			{
 				if (IsValidClient(i) && IsClientParticipating(i) && g_Complete[i] == true) bSomeoneWon = true;
 			}
+
 			if (bSomeoneWon == false && bossBattle == 1 && GetLeftWipeoutPlayers() == 2)
 			{
 				bHandlePoints = false;
@@ -2186,7 +2276,7 @@ public Action EndGame(Handle hTimer)
 		
 		if (g_Gamemode == GAMEMODE_WIPEOUT)
 		{
-			for (new i2 = 1; i2 <= MaxClients; i2++)
+			for (int i2 = 1; i2 <= MaxClients; i2++)
 			{
 				if (IsValidClient(i2) && IsClientParticipating(i2))
 				{
@@ -2226,7 +2316,8 @@ public Action EndGame(Handle hTimer)
 				bossBattle = 1;
 			}
 		}
-		else {
+		else
+		{
 			if ((g_minigamestotal == 4) && (bossBattle == 0)) speedup = true;
 			if ((g_minigamestotal == 8) && (bossBattle == 0)) speedup = true;
 			if ((g_minigamestotal == 12) && (bossBattle == 0)) speedup = true;
@@ -2236,6 +2327,7 @@ public Action EndGame(Handle hTimer)
 				speedup	   = true;
 				bossBattle = 1;
 			}
+
 			if ((g_minigamestotal >= 19) && bossBattle == 2 && SpecialRound == DOUBLE_BOSS_BATTLE && Special_TwoBosses == false)
 			{
 				speedup			  = true;
@@ -2243,10 +2335,11 @@ public Action EndGame(Handle hTimer)
 				Special_TwoBosses = true;
 			}
 		}
+
 		if (g_Gamemode == GAMEMODE_WIPEOUT && GetLeftWipeoutPlayers() <= 1)
 		{
 			status = 4;
-			CreateTimer(GetSpeedMultiplier(MUSIC_INFO_LEN), Victory_timer);
+			CreateTimer(GetSpeedMultiplier(MUSIC_INFO_LEN), Victory_Timer);
 		}
 		if (speedup == false)
 		{
@@ -2256,25 +2349,29 @@ public Action EndGame(Handle hTimer)
 		if (speedup == true)
 		{
 			status = 3;
-			CreateTimer(GetSpeedMultiplier(MUSIC_INFO_LEN), Speedup_timer);
+			CreateTimer(GetSpeedMultiplier(MUSIC_INFO_LEN), SpeedUp_Timer);
 		}
 		if (bossBattle == 2 && speedup == false)
 		{
 			status = 4;
-			CreateTimer(GetSpeedMultiplier(MUSIC_INFO_LEN), Victory_timer);
+			CreateTimer(GetSpeedMultiplier(MUSIC_INFO_LEN), Victory_Timer);
 		}
 	}
+
 	return Plugin_Stop;
 }
 
-public Action:Speedup_timer(Handle:hTimer)
+public Action SpeedUp_Timer(Handle hTimer)
 {
 	if (status == 3)
 	{
 		RemoveAllParticipants();
+
 		if (bossBattle == 1)
 		{
-			if (GetConVarBool(ww_log)) LogMessage("GETTING READY TO START SOME BOSS");
+#if defined(DEBUG)
+			LogMessage("[TF2Ware::SpeedUp_Timer] GETTING READY TO START SOME BOSS");
+#endif
 			
 			float MUSIC_INFO_LEN;
 			char MUSIC_INFO[PLATFORM_MAX_PATH];
@@ -2298,7 +2395,9 @@ public Action:Speedup_timer(Handle:hTimer)
 				Format(MUSIC_INFO, sizeof(MUSIC_INFO), MUSIC_BOSS);
 			}
 
-			if (GetConVarBool(ww_log)) LogMessage("Boss part 2");
+#if defined(DEBUG)
+			LogMessage("[TF2Ware::SpeedUp_Timer] Played music to clients, setting global speed");
+#endif
 
 			// Set the Speed. If special round, we want it to be a tad faster ;)
 			if (SpecialRound == SUPER_SPEED)
@@ -2310,21 +2409,34 @@ public Action:Speedup_timer(Handle:hTimer)
 				SetConVarFloat(ww_speed, 1.0);
 			}
 
-			if (GetConVarBool(ww_log)) LogMessage("Boss part 3");
+#if defined(DEBUG)
+			LogMessage("[TF2Ware::SpeedUp_Timer] Resetting timescales.");
+#endif
 
 			currentSpeed = GetConVarFloat(ww_speed);
 			ServerCommand("host_timescale %f", GetHostMultiplier(1.0));
 			ServerCommand("phys_timescale %f", GetHostMultiplier(1.0));
 
-			if (GetConVarBool(ww_log)) LogMessage("Boss part 4");
+#if defined(DEBUG)
+			LogMessage("[TF2Ware::SpeedUp_Timer] Creating timer to start minigame.");
+#endif
 
 			CreateTimer(GetSpeedMultiplier(MUSIC_INFO_LEN), StartMinigame_timer2);
 
-			if (GetConVarBool(ww_log)) LogMessage("Boss part 5");
+#if defined(DEBUG)
+			LogMessage("[TF2Ware::SpeedUp_Timer] Playing minigame start.");
+#endif
 
-			if (GetConVarBool(ww_music)) EmitSoundToClient(1, MUSIC_INFO, SOUND_FROM_PLAYER, SNDCHAN_AUTO, SNDLEVEL_NORMAL, SND_NOFLAGS, SNDVOL_NORMAL, GetSoundMultiplier());
-			else EmitSoundToAll(MUSIC_INFO, SOUND_FROM_PLAYER, SNDCHAN_AUTO, SNDLEVEL_NORMAL, SND_NOFLAGS, SNDVOL_NORMAL, GetSoundMultiplier());
-			for (new i = 1; i <= MaxClients; i++)
+			if (GetConVarBool(ww_music))
+			{
+				EmitSoundToClient(1, MUSIC_INFO, SOUND_FROM_PLAYER, SNDCHAN_AUTO, SNDLEVEL_NORMAL, SND_NOFLAGS, SNDVOL_NORMAL, GetSoundMultiplier());
+			}
+			else
+			{
+				EmitSoundToAll(MUSIC_INFO, SOUND_FROM_PLAYER, SNDCHAN_AUTO, SNDLEVEL_NORMAL, SND_NOFLAGS, SNDVOL_NORMAL, GetSoundMultiplier());
+			}
+
+			for (int i = 1; i <= MaxClients; i++)
 			{
 				if (IsValidClient(i) && (!(IsFakeClient(i))))
 				{
@@ -2332,12 +2444,16 @@ public Action:Speedup_timer(Handle:hTimer)
 				}
 			}
 
-			if (GetConVarBool(ww_log)) LogMessage("Boss part 6");
+#if defined(DEBUG)
+			LogMessage("[TF2Ware::SpeedUp_Timer] Calling UpdateHUD().");
+#endif
 
 			UpdateHud(GetSpeedMultiplier(MUSIC_INFO_LEN));
 		}
 
-		if (GetConVarBool(ww_log)) LogMessage("Boss part 7");
+#if defined(DEBUG)
+			LogMessage("[TF2Ware::SpeedUp_Timer] Boss battle check.");
+#endif
 
 		if (bossBattle != 1)
 		{
@@ -2369,27 +2485,30 @@ public Action:Speedup_timer(Handle:hTimer)
 				EmitSoundToAll(MUSIC_INFO, SOUND_FROM_PLAYER, SNDCHAN_AUTO, SNDLEVEL_NORMAL, SND_NOFLAGS, SNDVOL_NORMAL, GetSoundMultiplier());
 			}
 
-			for (new i = 1; i <= MaxClients; i++)
+			for (int i = 1; i <= MaxClients; i++)
 			{
 				if (IsValidClient(i) && (!(IsFakeClient(i))))
 				{
 					SetOverlay(i, "tf2ware_minigame_speed");
 				}
 			}
+
 			UpdateHud(GetSpeedMultiplier(MUSIC_INFO_LEN));
 			SetConVarFloat(ww_speed, GetConVarFloat(ww_speed) + 1.0);
 			CreateTimer(GetSpeedMultiplier(MUSIC_INFO_LEN), StartMinigame_timer2);
 		}
 
-		if (GetConVarBool(ww_log)) LogMessage("Boss part 8");
+#if defined(DEBUG)
+		LogMessage("[TF2Ware::SpeedUp_Timer] Setting (status=10)");
+#endif
 
 		status = 10;
-
-		if (GetConVarBool(ww_log)) LogMessage("Post boss");
 	}
+
+	return Plugin_Stop;
 }
 
-public Action:Victory_timer(Handle:hTimer)
+public Action Victory_Timer(Handle hTimer)
 {
 	if ((status == 4) && (bossBattle > 0))
 	{
@@ -2423,7 +2542,7 @@ public Action:Victory_timer(Handle:hTimer)
 		}
 		else
 		{
-			CreateTimer(GetSpeedMultiplier(MUSIC_INFO_LEN), Restartall_timer);
+			CreateTimer(GetSpeedMultiplier(MUSIC_INFO_LEN), RestartAll_Timer);
 		}
 
 		if (GetConVarBool(ww_music))
@@ -2448,16 +2567,21 @@ public Action:Victory_timer(Handle:hTimer)
 			targetscore = GetHighestScore();
 		}
 
-		new winnernumber		  = 0;
-		new Handle:ArrayWinners = CreateArray();
-		decl String:winnerstring_prefix[128];
-		decl String:winnerstring_names[512];
-		decl String:pointsname[512];
-		Format(pointsname, sizeof(pointsname), "points");
-		if (g_Gamemode == GAMEMODE_WIPEOUT) Format(pointsname, sizeof(pointsname), "lives");
+		int winnernumber = 0;
+		Handle ArrayWinners = CreateArray();
 
-		new bool:bAccepted = false;
-		for (new i = 1; i <= MaxClients; i++)
+		char winnerstring_prefix[128];
+		char winnerstring_names[512];
+		char pointsname[512];
+
+		Format(pointsname, sizeof(pointsname), "points");
+		if (g_Gamemode == GAMEMODE_WIPEOUT)
+		{
+			Format(pointsname, sizeof(pointsname), "lives");
+		}
+
+		bool bAccepted = false;
+		for (int i = 1; i <= MaxClients; i++)
 		{
 			SetOverlay(i, "");
 			if (IsValidClient(i) && (GetClientTeam(i) == 2 || GetClientTeam(i) == 3))
@@ -2482,7 +2606,8 @@ public Action:Victory_timer(Handle:hTimer)
 					SetWeaponState(i, true);
 					winnernumber += 1;
 					PushArrayCell(ArrayWinners, i);
-#if defined ENABLE_SHILLINGS
+
+#if defined(ENABLE_SHILLINGS)
 					if (SlagShillingsGive(i, 3))
 					{
 						CPrintToChat(i, "You were rewarded {green}3 Slag Shillings{default}!");
@@ -2491,20 +2616,41 @@ public Action:Victory_timer(Handle:hTimer)
 				}
 			}
 		}
-		for (new i = 0; i < GetArraySize(ArrayWinners); i++)
+		
+		for (int i = 0; i < GetArraySize(ArrayWinners); i++)
 		{
-			new client = GetArrayCell(ArrayWinners, i);
+			int client = GetArrayCell(ArrayWinners, i);
+
 			if (winnernumber > 1)
 			{
-				if (i >= (GetArraySize(ArrayWinners) - 1)) Format(winnerstring_names, sizeof(winnerstring_names), "%s and {olive}%N{green}", winnerstring_names, client);
-				else Format(winnerstring_names, sizeof(winnerstring_names), "%s, {olive}%N{green}", winnerstring_names, client);
+				if (i >= (GetArraySize(ArrayWinners) - 1))
+				{
+					Format(winnerstring_names, sizeof(winnerstring_names), "%s and {olive}%N{green}", winnerstring_names, client);
+				}
+				else
+				{
+					Format(winnerstring_names, sizeof(winnerstring_names), "%s, {olive}%N{green}", winnerstring_names, client);
+				}
 			}
-			else Format(winnerstring_names, sizeof(winnerstring_names), "{olive}%N{green}", client);
+			else
+			{
+				Format(winnerstring_names, sizeof(winnerstring_names), "{olive}%N{green}", client);
+			}
 		}
-		if (winnernumber > 1) ReplaceStringEx(winnerstring_names, sizeof(winnerstring_names), ", ", "");
 
-		if (winnernumber == 1) Format(winnerstring_prefix, sizeof(winnerstring_prefix), "{green}The winner is");
-		else Format(winnerstring_prefix, sizeof(winnerstring_prefix), "{green}The winners are");
+		if (winnernumber > 1)
+		{
+			ReplaceStringEx(winnerstring_names, sizeof(winnerstring_names), ", ", "");
+		}
+
+		if (winnernumber == 1)
+		{
+			Format(winnerstring_prefix, sizeof(winnerstring_prefix), "{green}The winner is");
+		}
+		else
+		{
+			Format(winnerstring_prefix, sizeof(winnerstring_prefix), "{green}The winners are");
+		}
 
 		CPrintToChatAll("%s %s (%i %s)!", winnerstring_prefix, winnerstring_names, targetscore, pointsname);
 		CloseHandle(ArrayWinners);
@@ -2533,7 +2679,7 @@ public Action Classic_EndMap(Handle hTimer)
 	SetStateAll(false);
 	ResetWinners();
 	g_waiting = true;
-	Roundstarts = 0;
+	RoundStarts = 0;
 	g_minigamestotal = 0;
 
 	ServerCommand("host_timescale %f", 1.0);
@@ -2543,7 +2689,9 @@ public Action Classic_EndMap(Handle hTimer)
 	ResetConVar(FindConVar("mp_forcecamera"));
 	ResetConVar(FindConVar("mp_friendlyfire"));
 	ResetConVar(FindConVar("tf_spawn_glows_duration"));
-	ResetConVar(FindConVar("tf_airblast_cray"));
+	ResetConVar(ConVar_TFAirblastCray);
+	ResetConVar(ConVar_TFTournamentHideDominationIcons);
+	ResetConVar(ConVar_SpawnGlowsDuration);
 
 	RestorePlayerFreeze();
 
@@ -2567,7 +2715,7 @@ public Action Classic_EndMap(Handle hTimer)
 	return Plugin_Stop;
 }
 
-public Action Restartall_timer(Handle hTimer)
+public Action RestartAll_Timer(Handle hTimer)
 {
 	if (status == 5)
 	{
@@ -2594,7 +2742,7 @@ public Action Restartall_timer(Handle hTimer)
 		ResetWinners();
 		g_minigamestotal = 0;
 
-		for (new i = 1; i <= MaxClients; i++)
+		for (int i = 1; i <= MaxClients; i++)
 		{
 			if (IsValidClient(i) && IsPlayerAlive(i)) DisableClientWeapons(i);
 		}
@@ -2616,10 +2764,10 @@ public Action Restartall_timer(Handle hTimer)
 	return Plugin_Stop;
 }
 
-new var_SpecialRoundRoll  = 0;
-new var_SpecialRoundCount = 0;
+int var_SpecialRoundRoll  = 0;
+int var_SpecialRoundCount = 0;
 
-public StartSpecialRound()
+public void StartSpecialRound()
 {
 	if (status == 6)
 	{
@@ -2646,13 +2794,13 @@ public StartSpecialRound()
 		}
 
 		status = 5;
-		CreateTimer(0.1, SpecialRound_timer);
+		CreateTimer(0.1, SpecialRound_Timer);
 
 		var_SpecialRoundCount = 130;
 
-		CreateTimer(GetSpeedMultiplier(MUSIC_SPECIAL_LEN), Restartall_timer);
+		CreateTimer(GetSpeedMultiplier(MUSIC_SPECIAL_LEN), RestartAll_Timer);
 
-		for (new i = 1; i <= MaxClients; i++)
+		for (int i = 1; i <= MaxClients; i++)
 		{
 			if (IsValidClient(i) && (!(IsFakeClient(i))))
 			{
@@ -2662,55 +2810,95 @@ public StartSpecialRound()
 	}
 }
 
-public Action:SpecialRound_timer(Handle: hTimer)
+public Action SpecialRound_Timer(Handle hTimer)
 {
 	if (status == 5 && var_SpecialRoundCount > 0)
 	{
-		CreateTimer(0.0, SpecialRound_timer);
+		CreateTimer(0.0, SpecialRound_Timer);
 
 		var_SpecialRoundCount -= 1;
 		var_SpecialRoundRoll += 1;
-		if (var_SpecialRoundRoll > sizeof(var_special_name) + 1) var_SpecialRoundRoll = 0;
-		decl String:Name[128];
-		if (var_SpecialRoundRoll < sizeof(var_special_name)) Format(Name, sizeof(Name), var_special_name[var_SpecialRoundRoll]);
-		else {
-			decl String:var_funny_names[][] = { "FAT LARD RUN", "MOUSTACHIO", "LOVE STORY", "SIZE MATTERS", "ENGINERD", "IDLE FOR HATS", "TF2 BROS: BRAWL", "HOT SPY ON ICE" };
+
+		if (var_SpecialRoundRoll > sizeof(var_special_name) + 1)
+		{
+			var_SpecialRoundRoll = 0;
+		}
+		
+		char Name[128];
+		if (var_SpecialRoundRoll < sizeof(var_special_name))
+		{
+			Format(Name, sizeof(Name), var_special_name[var_SpecialRoundRoll]);
+		}
+		else
+		{
+			static char var_funny_names[][] = { "FAT LARD RUN", "MOUSTACHIO", "LOVE STORY", "SIZE MATTERS", "ENGINERD", "IDLE FOR HATS", "TF2 BROS: BRAWL", "HOT SPY ON ICE" };
 			Format(Name, sizeof(Name), var_funny_names[GetRandomInt(0, sizeof(var_funny_names) - 1)]);
 		}
 
 		if (var_SpecialRoundCount > 0)
 		{
-			decl String:Text[128];
+			char Text[128];
 			Format(Text, sizeof(Text), "SPECIAL ROUND: %s?\nSpecial Round adds a new condition to the next round!", Name);
 			ShowGameText(Text, "leaderboard_dominated", 1.0);
 		}
 
 		if (var_SpecialRoundCount == 0)
 		{
-			if (GetConVarBool(ww_music)) EmitSoundToClient(1, SOUND_SELECT);
-			else EmitSoundToAll(SOUND_SELECT);
+			if (GetConVarBool(ww_music))
+			{
+				EmitSoundToClient(1, SOUND_SELECT);
+			}
+			else
+			{
+				EmitSoundToAll(SOUND_SELECT);
+			}
+
 			GiveSpecialRoundInfo();
 		}
 	}
+
+	return Plugin_Stop;
 }
 
-GiveSpecialRoundInfo()
+void GiveSpecialRoundInfo()
 {
 	if (SpecialRound != NONE)
 	{
-		decl String:Text[128];
+		/**
+		 * I don't think we can use localization on game_text_tf,
+		 * for now use the English text.
+		 */
+		char Desc[128];
+		Format(Desc, sizeof (Desc), "%T", "en", var_special_phrases[view_as<int>(SpecialRound) - 1]);
+
+		char Text[128];
 		Format(Text, sizeof(Text), "SPECIAL ROUND: %s!\n%s",
-			var_special_name[SpecialRound - 1], var_special_desc[SpecialRound - 1]);
+			var_special_name[view_as<int>(SpecialRound) - 1], Desc);
 		ShowGameText(Text, "leaderboard_dominated");
 
 		/**
 		 * Also print to the players chat in case they have a very special hud.
+		 * 
+		 * This variant now supports translations meaning that the description
+		 * and "SPECIAL ROUND: " text can be translated, while keeping the special
+		 * round name in English.
 		 */
-		PrintToChatAll("SPECIAL ROUND: %s!\n%s", var_special_name[SpecialRound - 1], var_special_desc[SpecialRound - 1]);
+		for (int i = 1; i <= MaxClients; i++)
+		{
+			if (IsClientInGame(i))
+			{
+				SetGlobalTransTarget(i);
+
+				char desc[64];
+				Format(desc, sizeof (desc), "%T", var_special_phrases[view_as<int>(SpecialRound) - 1], i);
+
+				PrintToChat(i, "%T", "SpecialRound", var_special_name[view_as<int>(SpecialRound) - 1], desc);
+			}
+		}
 	}
 }
 
-public Action:Command_event(client, args)
+public Action Command_Event(int client, int args)
 {
 	status = 6;
 	StartSpecialRound();
@@ -2719,56 +2907,82 @@ public Action:Command_event(client, args)
 	return Plugin_Handled;
 }
 
-SetStateAll(bool: value)
+void SetStateAll(bool value)
 {
-	for (new i = 1; i <= MaxClients; i++)
+	for (int i = 1; i <= MaxClients; i++)
 	{
 		g_Complete[i] = value;
 	}
 }
 
-SetMissionAll(value)
+void SetMissionAll(int value)
 {
-	for (new i = 1; i <= MaxClients; i++)
+	for (int i = 1; i <= MaxClients; i++)
 	{
 		g_Mission[i] = value;
 	}
 }
 
-SetClientSlot(client, slot)
+void SetClientSlot(int client, int slot)
 {
 	if (!IsValidClient(client) || !IsPlayerAlive(client))
 	{
-		if (GetConVarBool(ww_log)) LogMessage("Rejecting client slot for %i", client);
+#if defined(DEBUG)
+		LogMessage("Rejecting client slot for %i", client);
+#endif
+
 		return;
 	}
-	if (GetConVarBool(ww_log)) LogMessage("Setting client slot for %i", client);
-	new weapon = GetPlayerWeaponSlot(client, slot);
+
+#if defined(DEBUG)
+	LogMessage("[TF2Ware::SetClientSlot] Setting client slot for %i", client);
+#endif
+
+	int weapon = GetPlayerWeaponSlot(client, slot);
 	SetEntPropEnt(client, Prop_Send, "m_hActiveWeapon", weapon);
-	if (GetConVarBool(ww_log)) LogMessage("Set client slot");
+
+#if defined(DEBUG)
+	LogMessage("[TF2Ware::SetClientSlot] Set client slot");
+#endif
 }
 
-void RespawnAll(bool:force = false, bool:savepos = true)
+void RespawnAll(bool force = false, bool savepos = true)
 {
-	if (GetConVarBool(ww_log)) LogMessage("Respawning everyone");
+#if defined(DEBUG)
+	LogMessage("[TF2Ware::RespawnAll] Respawning everyone");
+#endif
+
 	for (int i = 1; i <= MaxClients; i++)
 	{
 		RespawnClient(i, force, savepos);
 	}
 }
 
-RespawnClient(any:i, bool:force	= false, bool:savepos = true)
+void RespawnClient(int i, bool force = false, bool savepos = true)
 {
-	decl Float:pos[3];
-	decl Float:vel[3];
-	decl Float:ang[3];
-	new alive = false;
+	float pos[3];
+	float vel[3];
+	float ang[3];
+
+	bool alive = false;
 	if (IsValidClient(i) && IsValidTeam(i) && (g_Spawned[i] == true))
 	{
-		new bool:force2 = false;
-		if (!IsPlayerAlive(i)) force2 = true;
-		if (force && IsClientParticipating(i)) force2 = true;
-		if (g_Gamemode == GAMEMODE_WIPEOUT && g_Points[i] <= 0) force2 = false;
+		bool force2 = false;
+		if (!IsPlayerAlive(i))
+		{
+			force2 = true;
+		}
+
+		if (force && IsClientParticipating(i))
+		{
+			force2 = true;
+		}
+
+		if (g_Gamemode == GAMEMODE_WIPEOUT && g_Points[i] <= 0)
+		{
+			force2 = false;
+		}
+
 		if (force2)
 		{
 			alive = false;
@@ -2817,7 +3031,7 @@ RespawnClient(any:i, bool:force	= false, bool:savepos = true)
 
  */
 
-SetStateClient(client, bool:value, bool:complete = false)
+void SetStateClient(int client, bool value, bool complete = false)
 {
 	if (IsValidClient(client) && IsClientParticipating(client))
 	{
@@ -2826,7 +3040,7 @@ SetStateClient(client, bool:value, bool:complete = false)
 			if (value)
 			{
 				EmitSoundToClient(client, SOUND_COMPLETE);
-				for (new i = 1; i <= MaxClients; i++)
+				for (int i = 1; i <= MaxClients; i++)
 				{
 					if (IsValidClient(i) && !IsFakeClient(i))
 					{
@@ -2839,7 +3053,8 @@ SetStateClient(client, bool:value, bool:complete = false)
 						}
 					}
 				}
-				new String:effect[128] = PARTICLE_WIN_BLUE;
+
+				char effect[128] = PARTICLE_WIN_BLUE;
 				if (GetClientTeam(client) == 2) effect = PARTICLE_WIN_RED;
 				ClientParticle(client, effect, 8.0);
 			}
@@ -2848,32 +3063,32 @@ SetStateClient(client, bool:value, bool:complete = false)
 	}
 }
 
-stock Float:GetSpeedMultiplier(Float:count)
+stock float GetSpeedMultiplier(float count)
 {
-	new Float:divide = ((currentSpeed - 1.0) / 7.5) + 1.0;
-	new Float:speed  = count / divide;
+	float divide = ((currentSpeed - 1.0) / 7.5) + 1.0;
+	float speed  = count / divide;
 	return speed;
 }
 
-stock Float:GetHostMultiplier(Float: count)
+stock float GetHostMultiplier(float count)
 {
-	new Float:divide = ((currentSpeed - 1.0) / 7.5) + 1.0;
-	new Float:speed  = count* divide;
+	float divide = ((currentSpeed - 1.0) / 7.5) + 1.0;
+	float speed  = count* divide;
 	return speed;
 }
 
-GetSoundMultiplier()
+int GetSoundMultiplier()
 {
-	new speed = SNDPITCH_NORMAL + RoundFloat((currentSpeed - 1.0) * 10.0);
+	int speed = SNDPITCH_NORMAL + RoundFloat((currentSpeed - 1.0) * 10.0);
 	return speed;
 }
 
-HookAllCheatCommands()
+void HookAllCheatCommands()
 {
-	decl String:name[64];
-	new Handle:cvar;
-	new bool:isCommand;
-	new flags;
+	char name[64];
+	Handle cvar;
+	bool isCommand;
+	int flags;
 
 	cvar = FindFirstConCommand(name, sizeof(name), isCommand, flags);
 	if (cvar == INVALID_HANDLE)
@@ -2895,10 +3110,13 @@ HookAllCheatCommands()
 	CloseHandle(cvar);
 }
 
-UpdateClientCheatValue()
+void UpdateClientCheatValue()
 {
-	if (GetConVarBool(ww_log)) LogMessage("Updating client cheat value");
-	for (new i = 1; i <= MaxClients; i++)
+#if defined(DEBUG)
+	LogMessage("[TF2Ware::UpdateClientCheatValue] Updating client cheat value");
+#endif
+
+	for (int i = 1; i <= MaxClients; i++)
 	{
 		if (IsValidClient(i) && (!(IsFakeClient(i))))
 		{
@@ -2907,24 +3125,26 @@ UpdateClientCheatValue()
 	}
 }
 
-public OnConVarChanged_SvCheats(Handle:convar, const String:oldValue[], const String:newValue[])
+public void OnConVarChanged_SvCheats(Handle convar, const char[] oldValue, const char[] newValue)
 {
 	UpdateClientCheatValue();
 }
 
-public Action:OnCheatCommand(client, args)
+public Action OnCheatCommand(int client, int args)
 {
-	if (GetConVarBool(ww_log)) LogMessage("on cheat command");
+#if defined(DEBUG)
+	LogMessage("[TF2Ware::OnCheatCommand] Client (%d) issued cheat command", client);
+#endif
+
 	if (GetConVarBool(ww_enable) && g_enabled)
 	{
-		decl String:command[32];
+		char command[32];
 		GetCmdArg(0, command, sizeof(command));
 
-		decl String:buf[64];
-		new size = GetArraySize(ww_allowedCommands);
-		for (new i = 0; i < size; ++i)
+		char buf[64];
+		for (int i = 0; i < sizeof(ALLOWED_CHEAT_COMMANDS); ++i)
 		{
-			GetArrayString(ww_allowedCommands, i, buf, sizeof(buf));
+			strcopy(buf, 0, ALLOWED_CHEAT_COMMANDS[i]);
 
 			if (StrEqual(buf, command, false) || GetConVarInt(FindConVar("sv_cheats")) == 1)
 			{
@@ -2932,26 +3152,22 @@ public Action:OnCheatCommand(client, args)
 			}
 		}
 
-		KickClient(client, "Attempted to use cheat command.");
+		KickClient(client, "%T", "Kicked_CheatCommand");
+
 		return Plugin_Handled;
 	}
 
 	return Plugin_Continue;
 }
 
-SetOverlay(i, String:overlay[512])
+void SetOverlay(int client, char overlay[512])
 {
-	if (IsValidClient(i) && (!(IsFakeClient(i))))
+	if (IsValidClient(client) && (!(IsFakeClient(client))))
 	{
-		new String:language[512];
-		new String:input[512];
+		char language[512];
+		char input[512];
 		// TRANSLATION
 		Format(language, sizeof(language), "");
-
-		if (g_Country[i] > 0)
-		{
-			Format(language, sizeof(language), "/%s", var_lang[g_Country[i]]);
-		}
 
 		if (StrEqual(overlay, ""))
 		{
@@ -2961,25 +3177,29 @@ SetOverlay(i, String:overlay[512])
 		{
 			Format(input, sizeof(input), "r_screenoverlay \"%s%s%s\"", materialpath, language, overlay);
 		}
-		ClientCommand(i, input);
-		g_ModifiedOverlay[i] = true;
+		ClientCommand(client, input);
+		g_ModifiedOverlay[client] = true;
 	}
 }
 
-UpdateHud(Float:time)
+void UpdateHud(float time)
 {
-	decl String:output[512];
-	decl String:add[5];
-	decl String:scorename[26];
-	new colorR = 255;
-	new colorG = 255;
-	new colorB = 0;
+	char output[512];
+	char add[5];
+	char scorename[26];
+
+	int colorR = 255;
+	int colorG = 255;
+	int colorB = 0;
+
 	Format(scorename, sizeof(scorename), "Points:");
+
 	if (g_Gamemode == GAMEMODE_WIPEOUT && SpecialRound != THIRDPERSON)
 	{
 		Format(scorename, sizeof(scorename), "Lives:");
 	}
-	for (new i = 1; i <= MaxClients; i++)
+
+	for (int i = 1; i <= MaxClients; i++)
 	{
 		if (IsValidClient(i))
 		{
@@ -3006,6 +3226,7 @@ UpdateHud(Float:time)
 					Format(add, sizeof(add), "+5");
 				}
 			}
+
 			Format(output, sizeof(output), "%s %i %s", scorename, g_Points[i], add);
 			SetHudTextParams(0.3, 0.70, time, colorR, colorG, colorB, 0);
 			ShowSyncHudText(i, hudScore, output);
@@ -3013,58 +3234,57 @@ UpdateHud(Float:time)
 	}
 }
 
-public SortPlayerTimes(elem1[], elem2[], const array[][], Handle: hndl)
+void ResetScores()
 {
-	if (elem1[1] > elem2[1])
+	for (int i = 1; i <= MaxClients; i++)
 	{
-		return -1;
-	}
-	else if (elem1[1] < elem2[1]) {
-		return 1;
-	}
-
-	return 0;
-}
-
-ResetScores()
-{
-	for (new i = 1; i <= MaxClients; i++)
-	{
-		if (g_Gamemode == GAMEMODE_WIPEOUT) g_Points[i] = 3;
-		else g_Points[i] = 0;
+		if (g_Gamemode == GAMEMODE_WIPEOUT)
+		{
+			g_Points[i] = 3;
+		}
+		else
+		{
+			g_Points[i] = 0;
+		}
 	}
 }
 
-GetHighestScore()
+int GetHighestScore()
 {
-	new out = 0;
+	int out = 0;
 
-	for (new i = 1; i <= MaxClients; i++)
+	for (int i = 1; i <= MaxClients; i++)
 	{
-		if (IsValidClient(i) && GetClientTeam(i) >= 2 && g_Points[i] > out) out = g_Points[i];
+		if (IsValidClient(i) && GetClientTeam(i) >= 2 && g_Points[i] > out)
+		{
+			out = g_Points[i];
+		}
 	}
 
 	return out;
 }
 
-GetLowestScore()
+int GetLowestScore()
 {
-	new out = 99;
+	int out = 99;
 
-	for (new i = 1; i <= MaxClients; i++)
+	for (int i = 1; i <= MaxClients; i++)
 	{
-		if (IsValidClient(i) && GetClientTeam(i) >= 2 && g_Points[i] < out) out = g_Points[i];
+		if (IsValidClient(i) && GetClientTeam(i) >= 2 && g_Points[i] < out)
+		{
+			out = g_Points[i];
+		}
 	}
 
 	return out;
 }
 
-GetAverageScore()
+int GetAverageScore()
 {
-	new out	  = 0;
-	new total = 0;
+	int out	  = 0;
+	int total = 0;
 
-	for (new i = 1; i <= MaxClients; i++)
+	for (int i = 1; i <= MaxClients; i++)
 	{
 		if (IsValidClient(i) && GetClientTeam(i) >= 2 && (g_Points[i] > 0))
 		{
@@ -3073,18 +3293,21 @@ GetAverageScore()
 		}
 	}
 
-	if ((total > 0) && (out > 0)) out = out / total;
+	if ((total > 0) && (out > 0))
+	{
+		out = out / total;
+	}
 
 	return out;
 }
 
-stock Float:GetAverageScoreFloat()
+stock float GetAverageScoreFloat()
 {
-	new out			 = 0;
-	new Float:out2 = 0.0;
-	new total		 = 0;
+	int out		= 0;
+	float out2	= 0.0;
+	int total	= 0;
 
-	for (new i = 1; i <= MaxClients; i++)
+	for (int i = 1; i <= MaxClients; i++)
 	{
 		if (IsValidClient(i) && GetClientTeam(i) >= 2 && (g_Points[i] > 0))
 		{
@@ -3093,20 +3316,23 @@ stock Float:GetAverageScoreFloat()
 		}
 	}
 
-	if ((total > 0) && (out > 0)) out2 = float(out) / float(total);
+	if ((total > 0) && (out > 0))
+	{
+		out2 = float(out) / float(total);
+	}
 
 	return out2;
 }
 
-ResetWinners()
+void ResetWinners()
 {
-	for (new i = 1; i <= MaxClients; i++)
+	for (int i = 1; i <= MaxClients; i++)
 	{
 		g_Winner[i] = 0;
 	}
 }
 
-public Action:Command_points(client, args)
+public Action Command_Points(int client, int args)
 {
 	PrintToChatAll("Gave %N 20 points", client);
 	g_Points[client] += 20;
@@ -3115,11 +3341,12 @@ public Action:Command_points(client, args)
 	return Plugin_Handled;
 }
 
-public Action:Command_list(client, args)
+public Action Command_List(int client, int args)
 {
 	PrintToConsole(client, "Listing all registered minigames...");
-	new String:output[128];
-	for (new i = 0; i < sizeof(g_name); i++)
+
+	char output[128];
+	for (int i = 0; i < sizeof(g_name); i++)
 	{
 		if (StrEqual(g_name[i], "")) continue;
 		if (GetMinigameConfNum(g_name[i], "enable", 1))
@@ -3128,12 +3355,14 @@ public Action:Command_list(client, args)
 			Format(output, sizeof(output), " %2d - %s (disabled)", GetMinigameConfNum(g_name[i], "id"), g_name[i]);
 		PrintToConsole(client, output);
 	}
+
+	return Plugin_Handled;
 }
 
 void RemoveNotifyFlag(char name[128])
 {
-	new Handle:cv1	= FindConVar(name);
-	new flags		= GetConVarFlags(cv1);
+	Handle cv1	= FindConVar(name);
+	int flags	= GetConVarFlags(cv1);
 	flags &= ~FCVAR_REPLICATED;
 	flags &= ~FCVAR_NOTIFY;
 	SetConVarFlags(cv1, flags);
@@ -3191,27 +3420,30 @@ void GotoGameConf(char[] game)
 	KvGoBack(MinigameConf);
 }*/
 
-Float:GetMinigameConfFloat(String:game[], String:key[], Float:def = 4.0)
+float GetMinigameConfFloat(char[] game, const char[] key, float def = 4.0)
 {
 	GotoGameConf(game);
-	new Float:value = KvGetFloat(MinigameConf, key, def);
+	float value = KvGetFloat(MinigameConf, key, def);
 	KvGoBack(MinigameConf);
+
 	return value;
 }
 
-GetMinigameConfNum(String:game[], String:key[], def = 0)
+int GetMinigameConfNum(char[] game, const char[] key, int def = 0)
 {
 	GotoGameConf(game);
-	new value = KvGetNum(MinigameConf, key, def);
+	int value = KvGetNum(MinigameConf, key, def);
 	KvGoBack(MinigameConf);
+
 	return value;
 }
 
-GetRandomWipeoutPlayer()
+int GetRandomWipeoutPlayer()
 {
-	new Handle:roll = CreateArray();
-	new out			  = -1;
-	for (new i = 1; i <= MaxClients; i++)
+	Handle roll = CreateArray();
+	int out		= -1;
+
+	for (int i = 1; i <= MaxClients; i++)
 	{
 		if (IsValidClient(i) && GetClientTeam(i) >= 2 && IsClientParticipating(i) == false && g_Points[i] > 0)
 		{
@@ -3219,105 +3451,146 @@ GetRandomWipeoutPlayer()
 		}
 	}
 
-	if (GetArraySize(roll) > 0) out = GetArrayCell(roll, GetRandomInt(0, GetArraySize(roll) - 1));
-	CloseHandle(roll);
+	if (GetArraySize(roll) > 0)
+	{
+		out = GetArrayCell(roll, GetRandomInt(0, GetArraySize(roll) - 1));
+	}
 
+	CloseHandle(roll);
 	return out;
 }
 
-stock bool:IsClientParticipating(iClient)
+stock bool IsClientParticipating(int iClient)
 {
-	if (g_Participating[iClient] == false) return false;
-	return true;
+	return g_Participating[iClient];
 }
 
-SetGameMode()
+void SetGameMode()
 {
-	new iOld	  = g_Gamemode;
-	new iGamemode = GetConVarInt(ww_gamemode);
-	if (iGamemode >= 0) g_Gamemode = iGamemode;
-	else {
+	int iOld	  = g_Gamemode;
+	int iGamemode = GetConVarInt(ww_gamemode);
+
+	if (iGamemode >= 0)
+	{
+		g_Gamemode = iGamemode;
+	}
+	else
+	{
 		g_Gamemode = GAMEMODE_NORMAL;
-		new iRoll  = GetRandomInt(0, 100);
-		if (iRoll <= 5) g_Gamemode = GAMEMODE_WIPEOUT;
+		int iRoll  = GetRandomInt(0, 100);
+
+		if (iRoll <= 5)
+		{
+			g_Gamemode = GAMEMODE_WIPEOUT;
+		}
 	}
 
 	if (iOld == GAMEMODE_WIPEOUT && g_Gamemode != iOld)
 	{
-		for (new i = 1; i <= MaxClients; i++)
+		for (int i = 1; i <= MaxClients; i++)
 		{
-			if (IsValidClient(i) && IsPlayerAlive(i)) SetWipeoutPosition(i, false);
+			if (IsValidClient(i) && IsPlayerAlive(i))
+			{
+				SetWipeoutPosition(i, false);
+			}
 		}
 	}
+
 	if (g_Gamemode == GAMEMODE_WIPEOUT && g_Gamemode != iOld)
 	{
-		for (new i = 1; i <= MaxClients; i++)
+		for (int i = 1; i <= MaxClients; i++)
 		{
-			if (IsValidClient(i) && IsPlayerAlive(i)) SetWipeoutPosition(i, true);
+			if (IsValidClient(i) && IsPlayerAlive(i))
+			{
+				SetWipeoutPosition(i, true);
+			}
 		}
 	}
 }
 
-RemoveAllParticipants()
+void RemoveAllParticipants()
 {
-	for (new i = 1; i <= MaxClients; i++)
+	for (int i = 1; i <= MaxClients; i++)
 	{
 		g_Participating[i] = false;
 	}
 }
 
-GetLeftWipeoutPlayers()
+int GetLeftWipeoutPlayers()
 {
-	new out = 0;
-	for (new i = 1; i <= MaxClients; i++)
+	int out = 0;
+
+	for (int i = 1; i <= MaxClients; i++)
 	{
-		if (IsValidClient(i) && GetClientTeam(i) >= 2 && g_Points[i] > 0) out++;
+		if (IsValidClient(i) && GetClientTeam(i) >= 2 && g_Points[i] > 0)
+		{
+			out++;
+		}
 	}
+
 	return out;
 }
 
-SetWipeoutPosition(iClient, bool:bState = false)
+void SetWipeoutPosition(int iClient, bool bState = false)
 {
-	new Float:fPos[3];
+	float fPos[3];
 	GetClientAbsOrigin(iClient, fPos);
-	if (bState) fPos[2] = GAMEMODE_WIPEOUT_HEIGHT;
-	else fPos[2] = -70.0;
+
+	if (bState)
+	{
+		fPos[2] = GAMEMODE_WIPEOUT_HEIGHT;
+	}
+	else
+	{
+		fPos[2] = -70.0;
+	}
+
 	TeleportEntity(iClient, fPos, NULL_VECTOR, NULL_VECTOR);
 }
 
-public Action:Timer_HandleWOLives(Handle:hTimer, any:iClient)
+public Action Timer_HandleWOLives(Handle hTimer, any iClient)
 {
 	HandleWipeoutLives(iClient);
+	return Plugin_Stop;
 }
 
-HandleWipeoutLives(iClient, bMessage = false)
+void HandleWipeoutLives(int iClient, bool bMessage = false)
 {
 	if (g_Gamemode == GAMEMODE_WIPEOUT && IsValidClient(iClient) && IsPlayerAlive(iClient) && g_Points[iClient] <= 0)
 	{
 		if (bMessage)
 		{
-			if (g_Points[iClient] == 0) CPrintToChatAllEx(iClient, "{teamcolor}%N{olive} has been {green}wiped out!", iClient);
-			if (g_Points[iClient] < 0) CPrintToChat(iClient, "{default}Please wait, the current {olive}Wipeout round{default} needs to finish before you can join.");
+			if (g_Points[iClient] == 0)
+			{
+				CPrintToChatAllEx(iClient, "{teamcolor}%N{olive} has been {green}wiped out!", iClient);
+			}
+
+			if (g_Points[iClient] < 0)
+			{
+				CPrintToChat(iClient, "{default}Please wait, the current {olive}Wipeout round{default} needs to finish before you can join.");
+			}
 		}
+
 		ForcePlayerSuicide(iClient);
 		CreateTimer(0.2, Timer_HandleWOLives, iClient);
 	}
 }
 
-public Action:TF2_CalcIsAttackCritical(iClient, iWeapon, String:StrWeapon[], &bool:bCrit)
+public Action TF2_CalcIsAttackCritical(int iClient, int iWeapon, char[] StrWeapon, bool &bCrit)
 {
 	if (g_enabled && GetConVarBool(ww_enable))
 	{
 		bCrit = false;
 		return Plugin_Changed;
 	}
-
-	return Plugin_Continue;
+	else
+	{
+		return Plugin_Continue;
+	}
 }
 
-bool:IsValidTeam(iClient)
+stock bool IsValidTeam(int iClient)
 {
-	new iTeam = GetClientTeam(iClient);
-	if (iTeam == 2 || iTeam == 3) return true;
-	return false;
+	int iTeam = GetClientTeam(iClient);
+	return view_as<TFTeam>(iTeam) == TFTeam_Blue || view_as<TFTeam>(iTeam) == TFTeam_Red;
 }

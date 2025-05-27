@@ -86,15 +86,17 @@ methodmap Spycrab < Microgame
 					SetEntPropFloat(i, Prop_Send, "m_flCloakMeter", 0.0);
 					TF2_RemovePlayerDisguise(i);
 				
-					duck = (GetEntData(i, FindSendPropOffs("CTFPlayer", "m_fFlags")) & 2);
+					duck = (GetEntData(i, FindSendPropInfo("CTFPlayer", "m_fFlags")) & 2);
 			  
 					GetClientEyeAngles(i, ang);
+					
 					if (ang[0] > min || duck == 0)
 					{
 						ForcePlayerSuicide(i);
 						SetStateClient(i, false, true);
 						// Explain to the client what he should've done so he isn't left clueless.
 						// We should probably add a translation file but I have no clue how those work D:
+#if 0
 						if (g_Country[i] == 1)
 						{
 							if (ang[0] > min && duck == 0) CPrintToChat(i, "{default}Le spycrab {red}si abbassano {default}e {red}guardano su{default}!");
@@ -102,10 +104,20 @@ methodmap Spycrab < Microgame
 							else CPrintToChat(i, "{default}Le spycrab {red}si abbassano{default} e guardano su!");
 						}
 						else
+#endif
 						{
-							if (ang[0] > min && duck == 0) CPrintToChat(i, "{default}Spycrabs {red}crouch {default}and {red}look up{default}!");
-							else if (ang[0] > min) CPrintToChat(i, "{default}Spycrabs {default}crouch and {red}look up{default}!");
-							else CPrintToChat(i, "{default}Spycrabs {red}crouch{default} and look up!");
+							if (ang[0] > min && duck == 0)
+							{
+								CPrintToChat(i, "{default}Spycrabs {red}crouch {default}and {red}look up{default}!");
+							}
+							else if (ang[0] > min)
+							{
+								CPrintToChat(i, "{default}Spycrabs {default}crouch and {red}look up{default}!");
+							}
+							else
+							{
+								CPrintToChat(i, "{default}Spycrabs {red}crouch{default} and look up!");
+							}
 						}
 					}
 				}

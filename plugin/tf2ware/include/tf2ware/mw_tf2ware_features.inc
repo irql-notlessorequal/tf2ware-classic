@@ -33,26 +33,28 @@
 
 new g_PlayerVisibleWeapon[MAXPLAYERS+1] = -1;
 
-stock bool:IsValidClient(iClient) {
-	if (iClient <= 0) return false;
-	if (iClient > MaxClients) return false;
-	if (!IsClientConnected(iClient)) return false;
-	return IsClientInGame(iClient);
-}
-
-GiveId(bool:mustbealive = false) {
-	new id = 0;
-	for (new client = 1; client <= MaxClients; client++) {
-		if (IsValidClient(client) && (mustbealive == false || IsPlayerAlive(client))) {
-			id += 1;
-			g_Id[client] = id;
-		}
+stock bool IsValidClient(int iClient)
+{
+	if (iClient <= 0)
+	{
+		return false;
 	}
+	if (iClient > MaxClients)
+	{
+		return false;
+	}
+
+	if (!IsClientConnected(iClient))
+	{
+		return false;
+	}
+
+	return IsClientInGame(iClient);
 }
 
 stock void NoCollision(bool input)
 {
-	for (new i = 1; i <= MaxClients; i++)
+	for (int i = 1; i <= MaxClients; i++)
 	{
 		if (IsValidEntity(i) && IsValidClient(i))
 		{
@@ -68,8 +70,10 @@ stock void NoCollision(bool input)
 	}
 }
 
-PyroExplode(Float:vec1[3]) {
-	new color[4]={188,220,255,200};
+void PyroExplode(float vec1[3])
+{
+	static int color[4] = {188, 220, 255, 200};
+
 	EmitSoundFromOrigin("ambient/explosions/explode_8.wav", vec1);
 	TE_SetupExplosion(vec1, g_ExplosionSprite, 10.0, 1, 0, 0, 750); // 600
 	TE_SendToAll();
@@ -81,8 +85,10 @@ void ExplosionDamage(float origin[3])
 {    
 	float PlayerVec[3];
 	float distance;
-	for (new i = 1; i <= MaxClients; i++) {
-		if(!IsClientInGame(i) || !IsPlayerAlive(i) )
+
+	for (int i = 1; i <= MaxClients; i++)
+	{
+		if (!IsClientInGame(i) || !IsPlayerAlive(i) )
 		{
 			continue;
 		}
@@ -90,47 +96,92 @@ void ExplosionDamage(float origin[3])
 		GetClientAbsOrigin(i, PlayerVec);
 		
 		distance = GetVectorDistance(origin, PlayerVec, true);
-		if(distance > 100000.0)
+		if (distance > 100000.0)
 		{
 			continue;
 		}
 		
-		new dmg = RoundFloat(100000.0 - distance) / 50;
-		new health = GetClientHealth(i) - dmg;
+		int dmg = RoundFloat(100000.0 - distance) / 50;
+		int health = GetClientHealth(i) - dmg;
 		
 		if (health > 0)
 		{
 			SetEntityHealth(i, health);
 		}
-		if (health <= 0)
+		else if (health <= 0)
 		{
 			ForcePlayerSuicide(i);
 		}
 	}
 }
 
-EmitSoundFromOrigin(const String:sound[],const Float:orig[3]) {
-	EmitSoundToAll(sound,SOUND_FROM_WORLD,SNDCHAN_AUTO,SNDLEVEL_NORMAL,SND_NOFLAGS,SNDVOL_NORMAL,SNDPITCH_NORMAL,-1,orig,NULL_VECTOR,true,0.0);
+void EmitSoundFromOrigin(const char[] sound, const float orig[3])
+{
+	EmitSoundToAll(
+		.sample = sound,
+		.entity = SOUND_FROM_WORLD,
+		.channel = SNDCHAN_AUTO,
+		.level = SNDLEVEL_NORMAL,
+		.flags = SND_NOFLAGS,
+		.volume = SNDVOL_NORMAL,
+		.pitch = SNDPITCH_NORMAL,
+		.speakerentity = -1,
+		.origin = orig,
+		.dir = NULL_VECTOR,
+		.updatePos = true,
+		.soundtime = 0.0
+	);
 }
 
-SetClientClass(i, String:tfclass[128]) {
-	new TFClassType:input = TFClass_Scout;
-	if (StrEqual(tfclass,"soldier")) input = TFClass_Soldier;
-	if (StrEqual(tfclass,"spy")) input = TFClass_Spy;
-	if (StrEqual(tfclass,"demoman")) input = TFClass_DemoMan;
-	if (StrEqual(tfclass,"sniper")) input = TFClass_Sniper;
-	if (StrEqual(tfclass,"medic")) input = TFClass_Medic;
-	if (StrEqual(tfclass,"engineer")) input = TFClass_Engineer;
-	if (StrEqual(tfclass,"heavy")) input = TFClass_Heavy;
-	if (StrEqual(tfclass,"pyro")) input = TFClass_Pyro;
+void SetClientClass(int i, char tfclass[128])
+{
+	TFClassType input;
+	if (StrEqual(tfclass, "soldier"))
+	{
+		input = TFClass_Soldier;
+	}
+	else if (StrEqual(tfclass, "spy"))
+	{
+		input = TFClass_Spy;
+	}
+	else if (StrEqual(tfclass, "demoman"))
+	{
+		input = TFClass_DemoMan;
+	}
+	else if (StrEqual(tfclass, "sniper"))
+	{
+		input = TFClass_Sniper;
+	}
+	else if (StrEqual(tfclass, "medic"))
+	{
+		input = TFClass_Medic;
+	}
+	else if (StrEqual(tfclass, "engineer"))
+	{
+		input = TFClass_Engineer;
+	}
+	else if (StrEqual(tfclass, "heavy"))
+	{
+		input = TFClass_Heavy;
+	}
+	else if (StrEqual(tfclass, "pyro"))
+	{
+		input = TFClass_Pyro;
+	}
+	else
+	{
+		input = TFClass_Scout;
+	}
 
-	if (IsValidClient(i)) {
+	if (IsValidClient(i))
+	{
 		if (TF2_GetPlayerClass(i) != input)
 		{
 			TF2_SetPlayerClass(i, input);
 			SetVariantString("");
 			AcceptEntityInput(i, "SetCustomModel");
 		}
+
 		HealClient(i);
 	}
 }
@@ -224,38 +275,44 @@ stock bool IsPlayerTaunting(int client)
 	return (playerCond & TF2_PLAYER_TAUNTING);
 }  
 
-public RemoveClientWeapons(i) {
-	if (GetConVarBool(ww_log)) LogMessage("Removing all client weapons");
-
-#if defined(ENABLE_ATTACHMENTS)
-	RemoveFakeWeapon(i);
+public void RemoveClientWeapons(int client)
+{
+#if defined(DEBUG)
+	LogMessage("[TF2Ware::RemoveClientWeapons] Removing all client weapons");
 #endif
 
-	if (IsValidClient(i) && (IsPlayerAlive(i)) && (g_Winner[i] == 0))
+#if defined(ENABLE_ATTACHMENTS)
+	RemoveFakeWeapon(client);
+#endif
+
+	if (IsValidClient(client) && (IsPlayerAlive(client)) && (g_Winner[client] == 0))
 	{
-		SetClientSlot(i, 0);
+		SetClientSlot(client, 0);
 		for (new j = 0; j <= 5; j++)
 		{
-			TF2_RemoveWeaponSlot(i, j);
+			TF2_RemoveWeaponSlot(client, j);
 		}
 
-		SetWeaponState(i, false);
+		SetWeaponState(client, false);
 	}
 }
 
-public SetWeaponAmmo(client, slot1, slot2) {
-	new ActiveWeapon = GetEntDataEnt2(client,FindSendPropOffs("CTFPlayer", "m_hActiveWeapon"));
+stock void SetWeaponAmmo(int client, int slot1, int slot2)
+{
+	int ActiveWeapon = GetEntDataEnt2(client, FindSendPropOffs("CTFPlayer", "m_hActiveWeapon"));
 	if (IsValidEntity(ActiveWeapon))
 	{
-		SetEntData(ActiveWeapon,FindSendPropOffs("CBaseCombatWeapon", "m_iClip1"),slot1,4);
-		SetEntData(client,FindSendPropOffs("CTFPlayer", "m_iAmmo")+4,slot2,4);
-		SetEntData(client,FindSendPropOffs("CTFPlayer", "m_iAmmo")+8,slot2,4);
+		SetEntData(ActiveWeapon, FindSendPropOffs("CBaseCombatWeapon", "m_iClip1"), slot1, 4);
+		SetEntData(client, FindSendPropOffs("CTFPlayer", "m_iAmmo") + 4, slot2, 4);
+		SetEntData(client, FindSendPropOffs("CTFPlayer", "m_iAmmo") + 8, slot2, 4);
 	}
 }
 
-public Action:SetWeaponState(client, bool:input) {
-	new ActiveWeapon = GetEntDataEnt2(client,FindSendPropOffs("CTFPlayer", "m_hActiveWeapon"));
-	new iEntity = g_PlayerVisibleWeapon[client];
+public void SetWeaponState(int client, bool input)
+{
+	int ActiveWeapon = GetEntDataEnt2(client,FindSendPropOffs("CTFPlayer", "m_hActiveWeapon"));
+	int iEntity = g_PlayerVisibleWeapon[client];
+
 	if (IsValidEntity(ActiveWeapon))
 	{
 		if (input == true)
@@ -288,7 +345,8 @@ public Action:SetWeaponState(client, bool:input) {
 	}
 }
 
-public void GiveClientWeapon(int client, char weapon[128], int slot, bool input) {
+public void GiveClientWeapon(int client, char weapon[128], int slot, bool input)
+{
 	if (IsValidClient(client) && IsPlayerAlive(client))
 	{
 		int weaponIdx = -1;
@@ -363,7 +421,7 @@ public void GiveClientWeapon(int client, char weapon[128], int slot, bool input)
 }
 
 #if defined ENABLE_ATTACHMENTS
-RemoveFakeWeapon(&iClient) {
+void RemoveFakeWeapon(&iClient) {
 	new iEntity = g_PlayerVisibleWeapon[iClient];
 	g_PlayerVisibleWeapon[iClient] = -1;
 	
@@ -374,16 +432,13 @@ RemoveFakeWeapon(&iClient) {
 }
 #endif
 
-public Action:RemoveClientSlot(i, slot) {
-	if (IsValidClient(i) && (IsPlayerAlive(i)))
-	{
-		TF2_RemoveWeaponSlot(i, slot);
-	}
-}
+public void RemoveAllWeapons()
+{
+#if defined(DEBUG)
+	LogMessage("[TF2Ware::RemoveAllWeapons] Removing all weapons");
+#endif
 
-public Action:RemoveAllWeapons() {
-	if (GetConVarBool(ww_log)) LogMessage("Removing all weapons");
-	for (new i = 1; i <= MaxClients; i++)
+	for (int i = 1; i <= MaxClients; i++)
 	{
 		if (IsValidClient(i) && (IsPlayerAlive(i)))
 		{
@@ -469,17 +524,22 @@ public Action HandlePlayerItems(int iClient)
 
 new Handle:GameTextHandle = INVALID_HANDLE;
 
-ShowGameText(const String:strMessage[], const String:strIcon[] = "leaderboard_dominated", Float:life = 35.0) {
-	if (GameTextHandle != INVALID_HANDLE) TriggerTimer(GameTextHandle);
+void ShowGameText(const char[] strMessage, const char[] strIcon = "leaderboard_dominated", float life = 35.0)
+{
+	if (GameTextHandle != INVALID_HANDLE)
+	{
+		TriggerTimer(GameTextHandle);
+	}
 
 	int iEntity = CreateEntityByName("game_text_tf");
-	DispatchKeyValue(iEntity,"message", strMessage);
-	DispatchKeyValue(iEntity,"display_to_team", "0");
-	DispatchKeyValue(iEntity,"icon", strIcon);
-	DispatchKeyValue(iEntity,"targetname", "game_text1");
-	DispatchKeyValue(iEntity,"background", "0");
+	DispatchKeyValue(iEntity, "message", strMessage);
+	DispatchKeyValue(iEntity, "display_to_team", "0");
+	DispatchKeyValue(iEntity, "icon", strIcon);
+	DispatchKeyValue(iEntity, "targetname", "game_text1");
+	DispatchKeyValue(iEntity, "background", "0");
 	DispatchSpawn(iEntity);
 	AcceptEntityInput(iEntity, "Display", iEntity, iEntity);
+	
 	GameTextHandle = CreateTimer(life, KillGameText, iEntity);
 }
 
@@ -496,14 +556,14 @@ public Action KillGameText(Handle hTimer, any iEntityRef)
 	return Plugin_Stop;
 }
 
-stock ChangeClientTeamAlive(int client, int team)
+stock void ChangeClientTeamAlive(int client, int team)
 {
 	SetEntProp(client, Prop_Send, "m_lifeState", 2);
 	ChangeClientTeam(client, team);
 	SetEntProp(client, Prop_Send, "m_lifeState", 0);
 }
 
-bool HasMapEnded()
+stock bool HasMapEnded()
 {
 	int timeLeft = -1;
 	GetMapTimeLeft(timeLeft);	
@@ -527,17 +587,24 @@ void ClearAllTaunts(iClient)
 
 public int GetHealTarget(int client)
 {
-	if(!IsValidClient(client) || TF2_GetPlayerClass(client) != TFClass_Medic)
+	if (!IsValidClient(client) || TF2_GetPlayerClass(client) != TFClass_Medic)
+	{
 		return 0;
+	}
 	
-	new weapon = GetPlayerWeaponSlot(client, 1);
+	int weapon = GetPlayerWeaponSlot(client, 1);
 	if (weapon == -1)
+	{
 		return 0;
+	}
 		
-	new String:classname[64];
+	char classname[64];
 	GetEdictClassname(weapon, classname, 64);
-	if(!StrEqual(classname, "tf_weapon_medigun"))
+
+	if (!StrEqual(classname, "tf_weapon_medigun"))
+	{
 		return 0;
+	}
 	
 	return GetEntDataEnt2(weapon, FindSendPropInfo("CWeaponMedigun", "m_hHealingTarget"));
 }
@@ -577,17 +644,17 @@ stock bool ParentEntity(int parent, int attachment, const char[] attachPoint = "
 	return true;
 }
 
-stock Entity_GetTargetName(entity, char[] buffer, size)
+stock int Entity_GetTargetName(int entity, char[] buffer, int size)
 {
 	return GetEntPropString(entity, Prop_Data, "m_target", buffer, size);
 }
 
-stock Entity_SetClassName(entity, const char[] className)
+stock bool Entity_SetClassName(int entity, const char[] className)
 {
 	return DispatchKeyValue(entity, "classname", className);
 }
 
-stock Entity_SetName(entity, const char[] name, any ...)
+stock bool Entity_SetName(int entity, const char[] name, any ...)
 {
 	char format[128];
 	VFormat(format, sizeof(format), name, 3);
@@ -595,7 +662,7 @@ stock Entity_SetName(entity, const char[] name, any ...)
 	return DispatchKeyValue(entity, "targetname", format);
 }
 
-static Entity_PointHurtAtTarget(entity, target, const char[] name="")
+static void Entity_PointHurtAtTarget(int entity, target, const char[] name="")
 {
 	char targetName[128];
 	Entity_GetTargetName(entity, targetName, sizeof(targetName));
