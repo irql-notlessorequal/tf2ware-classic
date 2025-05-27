@@ -72,7 +72,6 @@
 #define PARTICLE_WIN_RED	 "teleportedin_red"
 
 #define TF2_PLAYER_TAUNTING		(1 << 7)	 // 128 = Taunting
-#define TF_COND_TEAM_GLOWS		114
 
 #define GAMEMODE_NORMAL			0
 #define GAMEMODE_WIPEOUT		1

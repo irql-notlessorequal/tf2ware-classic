@@ -469,7 +469,7 @@ stock void DisableClientWeapons(int client)
 	{
 		RemoveClientWeapons(client);
 		
-		if (SpecialRound == 6 && (!(StrEqual(minigame, "SimonSays") && simon_action == 0)))
+		if (SpecialRound == BONK && (!(StrEqual(minigame, "SimonSays") && simon_action == 0)))
 		{
 			GiveClientWeapon(client, "tf_weapon_bat", 2, true);
 			SetClientSlot(client, 2);

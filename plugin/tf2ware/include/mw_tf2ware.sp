@@ -281,6 +281,7 @@ public void OnMapStart()
 		HookConVarChange(ww_enable, StartMinigame_cvar);
 		HookConVarChange(ww_overhead_scores, OverheadScoresChanged);
 		HookEvent("post_inventory_application", EventInventoryApplication, EventHookMode_Post);
+		HookEvent("player_spawn", Player_Spawn);
 		HookEvent("player_death", Player_Death, EventHookMode_Post);
 		HookEvent("player_team", Player_Team, EventHookMode_Post);
 		HookEvent("teamplay_round_start", Event_RoundStart, EventHookMode_PostNoCopy);
@@ -1541,11 +1542,6 @@ public Action EventInventoryApplication(Handle event, const char[] name, bool do
 #if defined(DEBUG)
 	LogMessage("[TF2Ware::EventInventoryApplication] Client (%d) post inventory", client);
 #endif
-
-	/**
-	 * Not needed in this gamemode.
-	 */
-	TF2_RemoveCondition(client, TF_COND_TEAM_GLOWS);
 
 	if (g_Spawned[client] == false && g_waiting && GetConVarBool(ww_enable) && g_enabled && !IsFakeClient(client))
 	{
@@ -3400,6 +3396,19 @@ void InitMinigame()
 			DispatchOnClientJustEntered(i);
 		}
 	}
+}
+
+public void Player_Spawn(Handle event, const char[] name, bool dontBroadcast)
+{
+	if (!GetConVarBool(ww_enable))
+		return;
+
+	int client = GetClientOfUserId(GetEventInt(event, "userid"));
+
+	/**
+	 * Not needed in this gamemode.
+	 */
+	TF2_RemoveCondition(client, TFCond_SpawnOutline);
 }
 
 public void Player_Death(Handle event, const char[] name, bool dontBroadcast)
