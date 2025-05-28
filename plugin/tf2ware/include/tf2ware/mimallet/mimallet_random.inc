@@ -23,10 +23,11 @@
  */
 #pragma newdecls required
 
-#define M_PI 3.141519
-#define STD_DEV 2.2
-#define x64_HIGH 0
-#define x64_LOW 1
+#define INT32_MAX	0x7FFFFFFF
+#define INT32_MIN  -0x7FFFFFFF
+
+#define x64_HIGH	0
+#define x64_LOW		1
 
 // Golden ratio constant for LoopMix128 - golden ratio fractional part * 2^64
 static const int GR[2] = { 0x9e3779b9, 0x7f4a7c15 };
@@ -34,7 +35,7 @@ static const int GR[2] = { 0x9e3779b9, 0x7f4a7c15 };
 // For LoopMix128
 int fast_loop[2] = { 0xDEADBEEF, 0x12345678 };
 int slow_loop[2] = { 0xABCDEF01, 0x23456789 };
-int mix[2] = { 0x01234567, 0x89ABCDEF };
+int mix[2] = { 0x1234567, 0x89ABCDEF };
 
 static void add64(const int a[2], const int b[2], int result[2])
 {
@@ -47,23 +48,35 @@ static void add64(const int a[2], const int b[2], int result[2])
 
 static void mul64(const int a[2], const int b[2], int result[2])
 {
-    int a_hi = a[x64_HIGH], a_lo = a[x64_LOW];
-    int b_hi = b[x64_HIGH], b_lo = b[x64_LOW];
+    int a_lo_lo = a[x64_LOW] & 0xFFFF;
+    int a_lo_hi = (a[x64_LOW] >> 16) & 0xFFFF;
+    int a_hi_lo = a[x64_HIGH] & 0xFFFF;
+    int a_hi_hi = (a[x64_HIGH] >> 16) & 0xFFFF;
 
-    // Compute partial products
-    int lo_lo = a_lo * b_lo;
-    int hi_lo = a_hi * b_lo;
-    int lo_hi = a_lo * b_hi;
-    int hi_hi = a_hi * b_hi;
+    int b_lo_lo = b[x64_LOW] & 0xFFFF;
+    int b_lo_hi = (b[x64_LOW]  >> 16) & 0xFFFF;
+    int b_hi_lo = b[x64_HIGH] & 0xFFFF;
+    int b_hi_hi = (b[x64_HIGH] >> 16) & 0xFFFF;
 
-    // Combine the partial products, handling carries
-    int mid1 = hi_lo + (lo_lo >> 32);
-    int carry1 = (mid1 < hi_lo);
-    int mid2 = lo_hi + mid1;
-    int carry2 = (mid2 < lo_hi) || (mid2 < mid1);
+    // Calculate low * low
+    int p0 = a_lo_lo * b_lo_lo;
+    int p1 = a_lo_lo * b_lo_hi;
+    int p2 = a_lo_hi * b_hi_lo;
+    int p3 = a_hi_hi * b_hi_hi;
 
-    result[x64_LOW] = lo_lo;
-    result[x64_HIGH] = hi_hi + (mid2 >> 32) + carry1 + carry2;
+    // Combine for 32-bit low part
+    int temp = (p1 & 0xFFFF) + (p2 & 0xFFFF) + (p0 >> 16);
+    int low = (p0 & 0xFFFF) | ((temp & 0xFFFF) << 16);
+
+    // Carry from low to high
+    int carry = (temp >> 16) + (p1 >> 16) + (p2 >> 16) + p3;
+
+    // High part: cross terms (a_hi * b_lo) and (a_lo * b_hi) (low words only)
+    carry += a_hi_lo * b_lo_lo;
+    carry += a_lo_lo * b_hi_lo;
+
+    result[x64_LOW] = low;
+    result[x64_HIGH] = carry;
 }
 
 static void xor64(const int a[2], const int b[2], int result[2])
@@ -142,9 +155,6 @@ public void MimalletInitRand()
 
 	add64(mix, seed, mix);
 }
-
-#define INT32_MAX	0x7FFFFFFF
-#define INT32_MIN  -0x7FFFFFFF
 
 public int MalletGetRand32()
 {
