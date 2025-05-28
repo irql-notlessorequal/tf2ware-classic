@@ -5,7 +5,7 @@
 
 int InternalSwapWeapon(int client, int weaponEntity, int slot)
 {
-#if defined MALLET_DEBUG
+#if defined(MALLET_DEBUG)
 	PrintToServer("[Mallet] [SwapWeapon] client=%d weaponEntity=%d slot=%d", client, weaponEntity, slot);
 #endif
 
