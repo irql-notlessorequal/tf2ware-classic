@@ -397,7 +397,7 @@ public void GiveClientWeapon(int client, char weapon[128], int slot, bool input)
 			if (StrEqual(weapon, "tf_weapon_pipebomblauncher")) SetWeaponAmmo(client, 8, 24);
 		}
 
-#if defined ENABLE_ATTACHMENTS
+#if defined(ENABLE_ATTACHMENTS)
 		// Create a model everyone else can oodle at
 		RemoveFakeWeapon(client);
 		
@@ -469,7 +469,7 @@ stock void DisableClientWeapons(int client)
 	{
 		RemoveClientWeapons(client);
 		
-		if (SpecialRound == BONK && (!(StrEqual(minigame, "SimonSays") && simon_action == 0)))
+		if (SpecialRound == BONK)
 		{
 			GiveClientWeapon(client, "tf_weapon_bat", 2, true);
 			SetClientSlot(client, 2);
@@ -528,7 +528,7 @@ stock void DisableClientWeapons(int client)
 // This function is meant to handle player wearables.
 // Ideally it would call some kind of way to re-add a player's wearables, but until we find a way to do that, removing them will do.
 
-public Action HandlePlayerItems(int iClient)
+public void HandlePlayerItems(int iClient)
 {
 	if (!IsValidClient(iClient)) return;
 	if (!IsPlayerAlive(iClient)) return;
@@ -561,7 +561,8 @@ void ShowGameText(const char[] strMessage, const char[] strIcon = "leaderboard_d
 
 public Action KillGameText(Handle hTimer, any iEntityRef)
 {
-	int iEntity = _:EntRefToEntIndex(iEntityRef);
+	int iEntity = EntRefToEntIndex(view_as<int>(iEntityRef));
+
 	if ((iEntity > 0) && IsValidEntity(iEntity))
 	{
 		AcceptEntityInput(iEntity, "kill");

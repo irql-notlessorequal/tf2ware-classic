@@ -121,7 +121,7 @@ public Microgame GetRandomMicrogame(int &idx)
 	 * Epic RNG here.
 	 * I love SourcePawn so much.
 	 */
-	idx = MICROGAME_SNAPSHOT.GetKey(GetRandomInt(0, MICROGAME_SNAPSHOT.Length - 1));
+	idx = MICROGAME_SNAPSHOT.GetKey(MalletGetRandomInt(0, MICROGAME_SNAPSHOT.Length - 1));
 	Microgame mg;
 
 	PrintToServer("[GetRandomMicrogame] Requesting microgame %d", idx);

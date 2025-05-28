@@ -75,4 +75,9 @@
 	{
 		"en"	"Everything Is At A New Perspective!!"
 	}
+
+	"Special_Wipeout"
+	{
+		"en"	"#PLACEHOLDER"
+	}
 }

@@ -32,6 +32,7 @@
 #include <mallet>
 #else
 #include "tf2ware/mimallet/mimallet_weapons_wearable.inc"
+#include "tf2ware/mimallet/mimallet_random.inc"
 #endif
 
 // Fixes
@@ -46,9 +47,16 @@
  */
 #include "tf2ware/tf2ware_core.inc"
 
+/**
+ * Gamemode names.
+ * 
+ * Planned for future removal.
+ */
 char g_name[MAX_MINIGAMES][24];
 
-// Handles
+/**
+ * Gamemode ConVar handles
+ */
 Handle ww_enable = INVALID_HANDLE;
 Handle ww_speed = INVALID_HANDLE;
 Handle ww_music = INVALID_HANDLE;
@@ -58,12 +66,21 @@ Handle ww_gamemode = INVALID_HANDLE;
 Handle ww_force_special = INVALID_HANDLE;
 Handle ww_overhead_scores = INVALID_HANDLE;
 Handle ww_kamikaze_style = INVALID_HANDLE;
+Handle ww_score_style = INVALID_HANDLE;
+
+/**
+ * TF2 ConVar handles
+ */
+Handle ConVar_TFTournamentHideDominationIcons = INVALID_HANDLE;
+Handle ConVar_TFAirblastCray = INVALID_HANDLE;
+Handle ConVar_TFBotDifficulty = INVALID_HANDLE;
+
+/**
+ * Misc. handles
+ */
 Handle hudScore = INVALID_HANDLE;
 // REPLACE WEAPON
 Handle MicrogameTimer = INVALID_HANDLE;
-Handle ConVar_TFTournamentHideDominationIcons = INVALID_HANDLE;
-Handle ConVar_TFAirblastCray = INVALID_HANDLE;
-
 // Keyvalues configuration handle
 Handle MinigameConf = INVALID_HANDLE;
 
@@ -104,7 +121,13 @@ int gVelocityOffset = -1;
 
 // Strings
 char materialpath[512]			   = "tf2ware/";
-// Name of current minigame being played
+/**
+ * Name of current minigame being played
+ * 
+ * TODO:
+ * I want to remove this but there's some config
+ * related things preventing me from removing it.
+ */
 char minigame[24];
 // VALID iMinigame FORWARD HANDLERS //////////////
 
@@ -169,9 +192,13 @@ public void OnPluginStart()
 
 	// Check for SDKHooks
 	if (GetExtensionFileStatus("sdkhooks.ext") < 1)
+	{
 		SetFailState("SDK Hooks is not loaded.");
+	}
 
 #if !defined(ENABLE_MALLET)
+	MimalletInitRand();
+
 	if (!MimalletInitWearables())
 	{
 		SetFailState("MimalletInitWearables returned FALSE.");
@@ -195,17 +222,19 @@ public void OnPluginStart()
 
 	ConVar_TFTournamentHideDominationIcons = FindConVar("tf_tournament_hide_domination_icons");
 	ConVar_TFAirblastCray = FindConVar("tf_airblast_cray");
+	ConVar_TFBotDifficulty = FindConVar("tf_bot_difficulty");
 
 	// ConVars
-	ww_enable		 = CreateConVar("ww_enable", "0", "Enables/Disables TF2Ware.", FCVAR_PLUGIN);
-	ww_force		 = CreateConVar("ww_force", "0", "Force a certain minigame (0 to not force).", FCVAR_PLUGIN);
-	ww_speed		 = CreateConVar("ww_speed", "1.0", "Speed level.", FCVAR_PLUGIN);
-	ww_music		 = CreateConVar("ww_music_fix", "0", "Apply music fix? Should only be on for localhosts during testing", FCVAR_PLUGIN);
-	ww_special		 = CreateConVar("ww_special", "0", "Next round is Special Round?", FCVAR_PLUGIN);
-	ww_gamemode		 = CreateConVar("ww_gamemode", "-1", "Gamemode", FCVAR_PLUGIN);
-	ww_force_special = CreateConVar("ww_force_special", "0", "Forces a specific Special Round on Special Round", FCVAR_PLUGIN);
-	ww_overhead_scores = CreateConVar("ww_overhead_scores", "0", "Re-enables overhead scores, a feature that was long removed.", FCVAR_PLUGIN, true, 0.0, true, 1.0);
-	ww_kamikaze_style = CreateConVar("ww_kamikaze_style", "0", "Picks the bomb model logic for Kamikaze. (0 = Use the Payload cart [default], 1 = Use the old Bo-Bomb model)", FCVAR_PLUGIN, true, 0.0, true, 1.0);
+	ww_enable			= CreateConVar("ww_enable", "0", "Enables/Disables TF2Ware.", FCVAR_PLUGIN);
+	ww_force			= CreateConVar("ww_force", "0", "Force a certain minigame (0 to not force).", FCVAR_PLUGIN);
+	ww_speed			= CreateConVar("ww_speed", "1.0", "Speed level.", FCVAR_PLUGIN);
+	ww_music			= CreateConVar("ww_music_fix", "0", "Apply music fix? Should only be on for localhost during testing", FCVAR_PLUGIN);
+	ww_special			= CreateConVar("ww_special", "0", "Next round is Special Round?", FCVAR_PLUGIN);
+	ww_gamemode			= CreateConVar("ww_gamemode", "-1", "Gamemode", FCVAR_PLUGIN);
+	ww_force_special 	= CreateConVar("ww_force_special", "0", "Forces a specific Special Round on Special Round", FCVAR_PLUGIN);
+	ww_overhead_scores	= CreateConVar("ww_overhead_scores", "0", "Re-enables overhead scores, a feature that was long removed.", FCVAR_PLUGIN, true, 0.0, true, 1.0);
+	ww_kamikaze_style	= CreateConVar("ww_kamikaze_style", "0", "Picks the bomb model logic for Kamikaze. (0 = Use the Payload cart [default], 1 = Use the old Bo-Bomb model)", FCVAR_PLUGIN, true, 0.0, true, 1.0);
+	ww_score_style		= CreateConVar("ww_score_style", "1", "Picks the player score HUD style. (0 = original, 1 = TF2Ware Classic [default])", FCVAR_PLUGIN, true, 0.0, true, 1.0);
 
 	// MINIGAME REGISTRATION
 	AddMiniGame(MG_AIRBLAST, new Airblast());
@@ -325,6 +354,7 @@ public void OnMapStart()
 
 		SetConVarInt(ConVar_TFTournamentHideDominationIcons, 0, true);
 		SetConVarInt(FindConVar("mp_friendlyfire"), 1);
+		SetConVarInt(ConVar_TFBotDifficulty, 0);
 
 		/**
 		 * Revert to pre-JI airblast.
@@ -1787,11 +1817,11 @@ int RollMinigame()
 
 public Action Player_Team(Handle event, const char[] name, bool dontBroadcast)
 {
+	int client	= GetClientOfUserId(GetEventInt(event, "userid"));
 	int oldTeam = GetEventInt(event, "oldteam");
 	int newTeam = GetEventInt(event, "team");
 
 #if defined(DEBUG)
-	int client	= GetClientOfUserId(GetEventInt(event, "userid"));
 	LogMessage("[TF2Ware::Player_Team] Client (%N) changed team", client);
 #endif
 
@@ -1801,7 +1831,7 @@ public Action Player_Team(Handle event, const char[] name, bool dontBroadcast)
 
 		if (oldTeam < 2 && newTeam >= 2)
 		{
-			GiveSpecialRoundInfo();
+			GiveSpecialRoundInfo(client);
 		}
 	}
 
@@ -2012,7 +2042,8 @@ public Action Game_Start(Handle hTimer)
 		// Play the microgame's music
 		char sound[512];
 		Format(sound, sizeof(sound), "imgay/tf2ware/minigame_%d.mp3", iMinigame);
-		if (StrEqual(minigame, "Ghostbusters") && GetRandomInt(1, 3) == 1)
+
+		if (view_as<Microgames>(currentMicrogame) == MG_GHOSTBUSTERS && GetRandomInt(1, 3) == 1)
 		{
 			Format(sound, sizeof(sound), "imgay/tf2ware/minigame_%d_alt.mp3", iMinigame);
 		}
@@ -2670,6 +2701,7 @@ public Action Classic_EndMap(Handle hTimer)
 	ResetConVar(FindConVar("mp_friendlyfire"));
 	ResetConVar(FindConVar("tf_spawn_glows_duration"));
 	ResetConVar(ConVar_TFAirblastCray);
+	ResetConVar(ConVar_TFBotDifficulty);
 	ResetConVar(ConVar_TFTournamentHideDominationIcons);
 
 	RestorePlayerFreeze();
@@ -2832,47 +2864,59 @@ public Action SpecialRound_Timer(Handle hTimer)
 				EmitSoundToAll(SOUND_SELECT);
 			}
 
-			GiveSpecialRoundInfo();
+			GiveSpecialRoundInfo(-1);
 		}
 	}
 
 	return Plugin_Stop;
 }
 
-void GiveSpecialRoundInfo()
+void GiveSpecialRoundInfo(int client)
 {
 	if (SpecialRound != NONE)
 	{
-		/**
-		 * I don't think we can use localization on game_text_tf,
-		 * for now use the English text.
-		 */
-		char Desc[128];
-		Format(Desc, sizeof (Desc), "%T", var_special_phrases[view_as<int>(SpecialRound) - 1], "en");
-
-		char Text[128];
-		Format(Text, sizeof(Text), "SPECIAL ROUND: %s!\n%s",
-			var_special_name[view_as<int>(SpecialRound) - 1], Desc);
-		ShowGameText(Text, "leaderboard_dominated");
-
-		/**
-		 * Also print to the players chat in case they have a very special hud.
-		 * 
-		 * This variant now supports translations meaning that the description
-		 * and "SPECIAL ROUND: " text can be translated, while keeping the special
-		 * round name in English.
-		 */
-		for (int i = 1; i <= MaxClients; i++)
+		if (client == -1)
 		{
-			if (IsClientInGame(i))
+			/**
+			 * I don't think we can use localization on game_text_tf,
+			 * for now use the English text.
+			 */
+			char Desc[128];
+			Format(Desc, sizeof (Desc), "%T", var_special_phrases[view_as<int>(SpecialRound) - 1], LANG_SERVER);
+
+			char Text[128];
+			Format(Text, sizeof(Text), "SPECIAL ROUND: %s!\n%s",
+				var_special_name[view_as<int>(SpecialRound) - 1], Desc);
+			ShowGameText(Text, "leaderboard_dominated");
+
+			/**
+			 * Also print to the players chat in case they have a very special hud.
+			 * 
+			 * This variant now supports translations meaning that the description
+			 * and "SPECIAL ROUND: " text can be translated, while keeping the special
+			 * round name in English.
+			 */
+			for (int i = 1; i <= MaxClients; i++)
 			{
-				SetGlobalTransTarget(i);
+			if (IsClientInGame(i))
+				{
+					char desc[64];
+					Format(desc, sizeof (desc), "%T", var_special_phrases[view_as<int>(SpecialRound) - 1], i);
 
-				char desc[64];
-				Format(desc, sizeof (desc), "%T", var_special_phrases[view_as<int>(SpecialRound) - 1], i);
-
-				PrintToChat(i, "%T", "SpecialRound", var_special_name[view_as<int>(SpecialRound) - 1], desc);
+					CPrintToChat(i, "{olive}%T{default}", "SpecialRound", i, var_special_name[view_as<int>(SpecialRound) - 1], desc);
+				}
 			}
+		}
+		else
+		{
+			/**
+			 * Player likely just joined or came out of spectator,
+			 * show them what they are playing.
+			 */
+			char desc[64];
+			Format(desc, sizeof (desc), "%T", var_special_phrases[view_as<int>(SpecialRound) - 1], client);
+
+			CPrintToChat(client, "{olive}%T{default}", "SpecialRound", client, var_special_name[view_as<int>(SpecialRound) - 1], desc);
 		}
 	}
 }
@@ -3201,6 +3245,8 @@ void SetOverlay(int client, char overlay[512])
 
 void UpdateHud(float time)
 {
+	bool newStyle = GetConVarBool(ww_score_style);
+
 	char output[512];
 	char add[5];
 	char scorename[26];
@@ -3209,11 +3255,27 @@ void UpdateHud(float time)
 	int colorG = 255;
 	int colorB = 0;
 
-	Format(scorename, sizeof(scorename), "Points:");
-
-	if (g_Gamemode == GAMEMODE_WIPEOUT && SpecialRound != THIRDPERSON)
+	if (newStyle)
 	{
-		Format(scorename, sizeof(scorename), "Lives:");
+		if (g_Gamemode == GAMEMODE_WIPEOUT && SpecialRound != THIRDPERSON)
+		{
+			Format(scorename, sizeof(scorename), "lives");
+		}
+		else
+		{
+			Format(scorename, sizeof(scorename), "points");
+		}
+	}
+	else
+	{
+		if (g_Gamemode == GAMEMODE_WIPEOUT && SpecialRound != THIRDPERSON)
+		{
+			Format(scorename, sizeof(scorename), "Lives:");
+		}
+		else
+		{
+			Format(scorename, sizeof(scorename), "Points:");
+		}
 	}
 
 	for (int i = 1; i <= MaxClients; i++)
@@ -3225,27 +3287,36 @@ void UpdateHud(float time)
 			{
 				if (!g_Complete[i] && IsClientParticipating(i) && bossBattle != 1 && SpecialRound != THIRDPERSON)
 				{
-					Format(add, sizeof(add), "-1");
+					Format(add, sizeof(add), newStyle ? "(-1)" : "-1");
 				}
 				if (!g_Complete[i] && IsClientParticipating(i) && bossBattle == 1 && SpecialRound != THIRDPERSON)
 				{
-					Format(add, sizeof(add), "-5");
+					Format(add, sizeof(add), newStyle ? "(-5)" : "-5");
 				}
 			}
 			else
 			{
 				if (g_Complete[i] && IsClientParticipating(i) && bossBattle != 1 && SpecialRound != THIRDPERSON)
 				{
-					Format(add, sizeof(add), "+1");
+					Format(add, sizeof(add), newStyle ? "(+1)" : "+1");
 				}
 				if (g_Complete[i] && IsClientParticipating(i) && bossBattle == 1 && SpecialRound != THIRDPERSON)
 				{
-					Format(add, sizeof(add), "+5");
+					Format(add, sizeof(add), newStyle ? "(+5)" : "+5");
 				}
 			}
 
-			Format(output, sizeof(output), "%s %i %s", scorename, g_Points[i], add);
-			SetHudTextParams(0.3, 0.70, time, colorR, colorG, colorB, 0);
+			if (newStyle)
+			{
+				Format(output, sizeof(output), "%i %s %s", g_Points[i], scorename, add);
+				SetHudTextParams(-1.0, 0.95, time, colorR, colorG, colorB, 0);
+			}
+			else
+			{
+				Format(output, sizeof(output), "%s %i %s", scorename, g_Points[i], add);
+				SetHudTextParams(0.3, 0.70, time, colorR, colorG, colorB, 0);
+			}
+
 			ShowSyncHudText(i, hudScore, output);
 		}
 	}
@@ -3443,12 +3514,15 @@ void GotoGameConf(char[] game)
 	}
 }
 
+#if 0
 // This is never used... yet. No need for it for now.
-/*GetMinigameConfStr(String:game[], String:key[], String:buffer, size) {
+void GetMinigameConfStr(char[] game, const char[] key, char[] buffer, int size)
+{
 	GotoGameConf(game);
 	KvGetString(MinigameConf, key, buffer, size);
 	KvGoBack(MinigameConf);
-}*/
+}
+#endif
 
 float GetMinigameConfFloat(char[] game, const char[] key, float def = 4.0)
 {

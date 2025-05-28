@@ -21,17 +21,17 @@
 
 #define MAX_MINIGAMES		 40
 
-#define PLUGIN_VERSION		 "0.0.48"
+#define PLUGIN_VERSION		 "0.0.49"
 
 #define MUSIC_SPECIAL_START		"imgay/tf2ware/special_intro.mp3"
-#define MUSIC_SPECIAL_START_LEN  2.011429
+#define MUSIC_SPECIAL_START_LEN  2.111429
 #define MUSIC_SPECIAL_WIN		"imgay/tf2ware/special_win.mp3"
 #define MUSIC_SPECIAL_FAIL		"imgay/tf2ware/special_fail.mp3"
-#define MUSIC_SPECIAL_END_LEN	2.011429
+#define MUSIC_SPECIAL_END_LEN	2.111429
 #define MUSIC_SPECIAL_SPEEDUP	"imgay/tf2ware/special_speedup.mp3"
-#define MUSIC_SPECIAL_SPEEDUP_LEN	3.735510
+#define MUSIC_SPECIAL_SPEEDUP_LEN	3.835510
 #define MUSIC_SPECIAL_GAMEOVER	"imgay/tf2ware/special_gameover.mp3"
-#define MUSIC_SPECIAL_GAMEOVER_LEN	3.944490
+#define MUSIC_SPECIAL_GAMEOVER_LEN	8.17
 
 #define MUSIC_WIPEOUT_START		"imgay/tf2ware/tf2ware_intro.mp3"
 #define MUSIC_WIPEOUT_START_LEN	 2.18
@@ -60,7 +60,7 @@
 #define SOUND_COMPLETE		 "imgay/tf2ware/complete_me.mp3"
 #define SOUND_COMPLETE_YOU	 "imgay/tf2ware/complete_you.mp3"
 #define SOUND_MINISCORE		 "items/pumpkin_drop.wav"
-#define SOUND_HEAVY_KISS	 "vo/heavy_generic01.wav"
+#define SOUND_HEAVY_KISS	 "vo/heavy_generic01.mp3"
 #define MUSIC_WAITING		 "imgay/tf2ware/waitingforplayers.mp3"
 #define MUSIC_SPECIAL		 "imgay/tf2ware/specialround.mp3"
 #define MUSIC_SPECIAL_LEN	 13.5
@@ -68,8 +68,8 @@
 
 #define SND_CHANNEL_SPECIFIC	32
 
-#define PARTICLE_WIN_BLUE	 "teleportedin_blue"
-#define PARTICLE_WIN_RED	 "teleportedin_red"
+#define PARTICLE_WIN_BLUE	"teleportedin_blue"
+#define PARTICLE_WIN_RED	"teleportedin_red"
 
 #define TF2_PLAYER_TAUNTING		(1 << 7)	 // 128 = Taunting
 
@@ -77,11 +77,11 @@
 #define GAMEMODE_WIPEOUT		1
 #define GAMEMODE_WIPEOUT_HEIGHT 1190.0
 
-#define WW_BOMB "pl_hoodoo/alarm_clock_ticking_3.wav"
-#define WW_BOMB_MODEL "models/custom/dirty_bomb_cart.mdl"
-#define WW_BOMB_OLD_MODEL "models/tf2ware/bobomb.mdl"
-#define PARTICLE_BOMB "cinefx_goldrush_embers"
-#define PARTICLE_EXPLODE "cinefx_goldrush_initial_smoke"
+#define WW_BOMB				"pl_hoodoo/alarm_clock_ticking_3.wav"
+#define WW_BOMB_MODEL		"models/custom/dirty_bomb_cart.mdl"
+#define WW_BOMB_OLD_MODEL	"models/tf2ware/bobomb.mdl"
+#define PARTICLE_BOMB		"cinefx_goldrush_embers"
+#define PARTICLE_EXPLODE	"cinefx_goldrush_initial_smoke"
 
 bool InternalIsAlpine = false;
 

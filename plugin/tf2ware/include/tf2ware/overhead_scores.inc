@@ -47,7 +47,8 @@ stock void CreateSprite(int client)
 			char sprite[256];
 			float scale = 0.2;
 			
-			if (status == 2 && StrEqual(minigame, "Ghostbusters")) {
+			if (status == 2 && view_as<Microgames>(currentMicrogame) == MG_GHOSTBUSTERS)
+			{
 				if (g_Mission[client] == 0)
 				{
 					Format(sprite, sizeof(sprite), "materials/tf2ware/medicsign2.vmt");
