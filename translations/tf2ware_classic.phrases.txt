@@ -80,4 +80,15 @@
 	{
 		"en"	"#PLACEHOLDER"
 	}
+
+	"Frogger_MadeItFirst"
+	{
+		"#format" "{1:s}"
+		"en" 	"{teamcolor}%N{default} made it to the goal first!"
+	}
+
+	"Frogger_10SecLeft"
+	{
+		"en"	"The boss will end in {red}10 seconds{default}!"
+	}
 }

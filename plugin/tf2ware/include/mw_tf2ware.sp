@@ -160,10 +160,10 @@ Microgame currentMicrogame;
 #include "tf2ware/microgames/hugging.inc"
 #include "tf2ware/microgames/jumprope.inc"
 #include "tf2ware/microgames/ghostbusters.inc"
+#include "tf2ware/microgames/frogger.inc"
 
 #if 0
 #include "tf2ware/microgames/redfloor.inc"
-#include "tf2ware/microgames/frogger.inc"
 #endif
 
 #include "tf2ware/mw_tf2ware_features.inc"
@@ -236,13 +236,16 @@ public void OnPluginStart()
 	ww_kamikaze_style	= CreateConVar("ww_kamikaze_style", "0", "Picks the bomb model logic for Kamikaze. (0 = Use the Payload cart [default], 1 = Use the old Bo-Bomb model)", FCVAR_PLUGIN, true, 0.0, true, 1.0);
 	ww_score_style		= CreateConVar("ww_score_style", "1", "Picks the player score HUD style. (0 = original, 1 = TF2Ware Classic [default])", FCVAR_PLUGIN, true, 0.0, true, 1.0);
 
-	// MINIGAME REGISTRATION
+	/**
+	 * MINIGAME REGISTRATION
+	 */
 	AddMiniGame(MG_AIRBLAST, new Airblast());
 	AddMiniGame(MG_AIR_RAID, new AirRaid());
 	AddMiniGame(MG_BBALL, new BBall());
 	AddMiniGame(MG_BARREL, new Barrel());
 	AddMiniGame(MG_COLOR_TEXT, new ColorText());
 	AddMiniGame(MG_FLOOD, new Flood());
+	AddMiniGame(MG_FROGGER, new Frogger());
 	AddMiniGame(MG_GHOSTBUSTERS, new Ghostbusters());
 	AddMiniGame(MG_GOOMBA, new Goomba());
 	AddMiniGame(MG_HIT_ENEMY, new HitEnemy());
@@ -539,6 +542,11 @@ void DispatchOnClientJustEntered(int client)
 			view_as<Flood>(currentMicrogame).OnClientJustEntered(client);
 		}
 
+		case MG_FROGGER:
+		{
+			view_as<Frogger>(currentMicrogame).OnClientJustEntered(client);
+		}
+
 		case MG_GHOSTBUSTERS:
 		{
 			view_as<Ghostbusters>(currentMicrogame).OnClientJustEntered(client);
@@ -648,6 +656,11 @@ void DispatchOnMicrogameStart()
 		case MG_FLOOD:
 		{
 			view_as<Flood>(currentMicrogame).OnMicrogameStart();
+		}
+
+		case MG_FROGGER:
+		{
+			view_as<Frogger>(currentMicrogame).OnMicrogameStart();
 		}
 
 		case MG_GHOSTBUSTERS:
@@ -761,6 +774,11 @@ void DispatchOnMicrogameTimer(int timeLeft)
 			view_as<Flood>(currentMicrogame).OnMicrogameTimer(timeLeft);
 		}
 
+		case MG_FROGGER:
+		{
+			view_as<Frogger>(currentMicrogame).OnMicrogameTimer(timeLeft);
+		}
+
 		case MG_GHOSTBUSTERS:
 		{
 			view_as<Ghostbusters>(currentMicrogame).OnMicrogameTimer(timeLeft);
@@ -870,6 +888,11 @@ void DispatchOnMicrogameEnd()
 		case MG_FLOOD:
 		{
 			view_as<Flood>(currentMicrogame).OnMicrogameEnd();
+		}
+
+		case MG_FROGGER:
+		{
+			view_as<Frogger>(currentMicrogame).OnMicrogameEnd();
 		}
 
 		case MG_GHOSTBUSTERS:
@@ -983,6 +1006,11 @@ void DispatchOnMicrogamePostEnd()
 			view_as<Flood>(currentMicrogame).OnMicrogamePostEnd();
 		}
 
+		case MG_FROGGER:
+		{
+			view_as<Frogger>(currentMicrogame).OnMicrogamePostEnd();
+		}
+
 		case MG_GHOSTBUSTERS:
 		{
 			view_as<Ghostbusters>(currentMicrogame).OnMicrogamePostEnd();
@@ -1092,6 +1120,11 @@ void DispatchOnMicrogameFrame()
 		case MG_FLOOD:
 		{
 			view_as<Flood>(currentMicrogame).OnMicrogameFrame();
+		}
+
+		case MG_FROGGER:
+		{
+			view_as<Frogger>(currentMicrogame).OnMicrogameFrame();
 		}
 
 		case MG_GHOSTBUSTERS:
@@ -1205,6 +1238,11 @@ void DispatchOnClientDeath(int client)
 			view_as<Flood>(currentMicrogame).OnClientDeath(client);
 		}
 
+		case MG_FROGGER:
+		{
+			view_as<Frogger>(currentMicrogame).OnClientDeath(client);
+		}
+
 		case MG_GHOSTBUSTERS:
 		{
 			view_as<Ghostbusters>(currentMicrogame).OnClientDeath(client);
@@ -1314,6 +1352,11 @@ bool DispatchIsMicrogamePlayable(Microgame mg, int players)
 		case MG_FLOOD:
 		{
 			return view_as<Flood>(mg).IsMicrogamePlayable(players);
+		}
+
+		case MG_FROGGER:
+		{
+			return view_as<Frogger>(mg).IsMicrogamePlayable(players);
 		}
 
 		case MG_GHOSTBUSTERS:
