@@ -1,6 +1,7 @@
 /**
  * TF2Ware Classic
- * Copyright (C) 2025 IRQL_NOT_LESS_OR_EQUAL
+ *
+ * Copyright (C) 2025		IRQL_NOT_LESS_OR_EQUAL
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -71,6 +72,7 @@ Handle ww_score_style = INVALID_HANDLE;
 /**
  * TF2 ConVar handles
  */
+Handle ConVar_MPFriendlyFire = INVALID_HANDLE;
 Handle ConVar_TFTournamentHideDominationIcons = INVALID_HANDLE;
 Handle ConVar_TFAirblastCray = INVALID_HANDLE;
 Handle ConVar_TFBotDifficulty = INVALID_HANDLE;
@@ -113,7 +115,7 @@ int g_result = 0;
 int g_bomb								   = 0;
 int RoundStarts							   = 0;
 int g_lastboss							   = 0;
-int g_minigamestotal					   = 0;
+int g_MinigamesTotal					   = 0;
 int bossBattle							   = 0;
 bool g_Participating[MAXPLAYERS + 1] = false;
 int g_Gamemode							   = 0;
@@ -174,10 +176,19 @@ Microgame currentMicrogame;
 public Plugin myinfo =
 {
 	name		= "TF2Ware Classic",
-	author		= "Mecha the Slag, gavintlgold, IRQL_NOT_LESS_OR_EQUAL",
+	author		= "Mecha the Slag, NuclearWatermelon, gavintlgold, IRQL_NOT_LESS_OR_EQUAL",
 	description = "Wario Ware in Team Fortress 2!",
 	version		= PLUGIN_VERSION,
 	url			= "https://github.com/irql-notlessorequal/tf2ware-classic"
+};
+
+static const char ALLOWED_CHEAT_COMMANDS[][] =
+{
+	"host_timescale",
+	"r_screenoverlay",
+	"thirdperson",
+	"firstperson",
+	"sv_cheats"
 };
 
 public void OnPluginStart()
@@ -220,6 +231,7 @@ public void OnPluginStart()
 		PrintToServer("* FATAL ERROR: Failed to get offset for CBaseEntity::m_vecVelocity[0]");
 	}
 
+	ConVar_MPFriendlyFire = FindConVar("mp_friendlyfire");
 	ConVar_TFTournamentHideDominationIcons = FindConVar("tf_tournament_hide_domination_icons");
 	ConVar_TFAirblastCray = FindConVar("tf_airblast_cray");
 	ConVar_TFBotDifficulty = FindConVar("tf_bot_difficulty");
@@ -232,6 +244,14 @@ public void OnPluginStart()
 	ww_special			= CreateConVar("ww_special", "0", "Next round is Special Round?", FCVAR_PLUGIN);
 	ww_gamemode			= CreateConVar("ww_gamemode", "-1", "Gamemode", FCVAR_PLUGIN);
 	ww_force_special 	= CreateConVar("ww_force_special", "0", "Forces a specific Special Round on Special Round", FCVAR_PLUGIN);
+	/**
+	 * TODO(irql):
+	 * 
+	 * Switch this to a tri-state which is the following:
+	 * 0 = Disabled
+	 * 1 = Always enabled
+	 * 2 = Only display between microgames and at the end (legacy behaviour)
+	 */
 	ww_overhead_scores	= CreateConVar("ww_overhead_scores", "0", "Re-enables overhead scores, a feature that was long removed.", FCVAR_PLUGIN, true, 0.0, true, 1.0);
 	ww_kamikaze_style	= CreateConVar("ww_kamikaze_style", "0", "Picks the bomb model logic for Kamikaze. (0 = Use the Payload cart [default], 1 = Use the old Bo-Bomb model)", FCVAR_PLUGIN, true, 0.0, true, 1.0);
 	ww_score_style		= CreateConVar("ww_score_style", "1", "Picks the player score HUD style. (0 = original, 1 = TF2Ware Classic [default])", FCVAR_PLUGIN, true, 0.0, true, 1.0);
@@ -269,6 +289,11 @@ public void OnMapStart()
 	char map[128];
 	GetCurrentMap(map, 8);
 
+	/**
+	 * TODO(irql):
+	 * 
+	 * Migrate to the TF2WareMapType enum.
+	 */
 	bool isRegularMap = StrEqual(map, "tf2ware");
 	bool isAlternateMap = StrEqual(map, "tf2ware_alpine_v4", false);
 
@@ -290,6 +315,7 @@ public void OnMapStart()
 		BuildPath(Path_SM, imFile, sizeof(imFile), "configs/minigames.cfg");
 
 		MinigameConf = CreateKeyValues("Minigames");
+		
 		if (FileToKeyValues(MinigameConf, imFile))
 		{
 			PrintToServer("Loaded minigames from minigames.cfg");
@@ -305,7 +331,8 @@ public void OnMapStart()
 
 			KvRewind(MinigameConf);
 		}
-		else {
+		else
+		{
 			PrintToServer("Failed to load minigames.cfg!");
 		}
 
@@ -320,6 +347,7 @@ public void OnMapStart()
 		HookEvent("teamplay_game_over", Event_RoundEnd, EventHookMode_PostNoCopy);
 		HookEvent("teamplay_round_stalemate", Event_RoundEnd, EventHookMode_PostNoCopy);
 		HookEvent("teamplay_round_win", Event_RoundEnd, EventHookMode_PostNoCopy);
+
 		RegAdminCmd("ww_list", Command_List, ADMFLAG_GENERIC, "Lists all the registered, enabled plugins and their ids");
 		RegAdminCmd("ww_give", Command_Points, ADMFLAG_GENERIC, "Gives you 20 points - You're a winner! (testing feature)");
 		RegAdminCmd("ww_event", Command_Event, ADMFLAG_GENERIC, "Starts a debugging event");
@@ -356,7 +384,7 @@ public void OnMapStart()
 		RemoveNotifyFlag("tf_airblast_cray");
 
 		SetConVarInt(ConVar_TFTournamentHideDominationIcons, 0, true);
-		SetConVarInt(FindConVar("mp_friendlyfire"), 1);
+		SetConVarInt(ConVar_MPFriendlyFire, 1);
 		SetConVarInt(ConVar_TFBotDifficulty, 0);
 
 		/**
@@ -1485,16 +1513,21 @@ public Action Event_RoundStart(Handle event, const char[] name, bool dontBroadca
 			SetGameMode();
 			ResetScores();
 			StartMinigame();
-			for (int i = 1; i <= MaxClients; i++)
+
+			for (int client = 1; client <= MaxClients; client++)
 			{
-				if (IsValidClient(i) && g_Spawned[i])
+				if (IsValidClient(client) && g_Spawned[client])
 				{
-					if (!IsFakeClient(i))
+					if (!IsFakeClient(client))
 					{
-						StopSound(i, SND_CHANNEL_SPECIFIC, MUSIC_WAITING);
-						SetOverlay(i, "");
+						StopSound(client, SND_CHANNEL_SPECIFIC, MUSIC_WAITING);
+						SetOverlay(client, "");
 					}
-					if (g_Gamemode == GAMEMODE_WIPEOUT) SetWipeoutPosition(i, true);
+
+					if (g_Gamemode == GAMEMODE_WIPEOUT)
+					{
+						SetWipeoutPosition(client, true);
+					}
 				}
 			}
 
@@ -1678,9 +1711,11 @@ public Action EventInventoryApplication(Handle event, const char[] name, bool do
 			{
 				// do nothing
 			}
-			else {
+			else
+			{
 				SetWipeoutPosition(client, true);
 			}
+
 			HandleWipeoutLives(client);
 		}
 	}
@@ -1688,7 +1723,7 @@ public Action EventInventoryApplication(Handle event, const char[] name, bool do
 	return Plugin_Continue;
 }
 
-void precacheSound(const char[] var0)
+stock void precacheSound(const char[] var0)
 {
 	char buffer[128];
 	PrecacheSound(var0, true);
@@ -1887,7 +1922,7 @@ void HandOutPoints()
 	LogMessage("[TF2Ware::HandOutPoints] Handing out points");
 #endif
 
-	for (int i = 1; i <= MaxClients; i++)
+	for (int client = 1; client <= MaxClients; client++)
 	{
 		int points = 1;
 		if (bossBattle == 1)
@@ -1895,24 +1930,90 @@ void HandOutPoints()
 			points = 5;
 		}
 
-		if ((IsValidClient(i)) && IsClientParticipating(i))
+		if ((IsValidClient(client)) && IsClientParticipating(client))
 		{
-			if (g_Complete[i])
+			if (g_Complete[client])
 			{
-				if (g_Gamemode == GAMEMODE_NORMAL) g_Points[i] += points;
-			}
-			else {
-				if (g_Gamemode == GAMEMODE_WIPEOUT && g_Points[i] > 0)
+				if (g_Gamemode == GAMEMODE_NORMAL)
 				{
-					g_Points[i] -= points;
-					if (g_Points[i] < 0) g_Points[i] = 0;
-					HandleWipeoutLives(i, true);
+					g_Points[client] += points;
+				}
+			}
+			else
+			{
+				if (g_Gamemode == GAMEMODE_WIPEOUT && g_Points[client] > 0)
+				{
+					g_Points[client] -= points;
+
+					if (g_Points[client] < 0)
+					{
+						g_Points[client] = 0;
+					}
+
+					HandleWipeoutLives(client, true);
 				}
 			}
 		}
 
-		g_Complete[i] = false;
+		g_Complete[client] = false;
 	}
+}
+
+stock void PrintWipeoutMessage(int candidatePlayers[MAX_WIPEOUT_PLAYERS], int populated)
+{
+	char formatString[512];
+
+	for (int i = 0; i < populated; i++)
+	{
+		StrCat(formatString, sizeof (formatString), "%N");
+	}
+
+	PrintCenterTextAll(formatString, candidatePlayers);
+}
+
+int PopulateWipeoutPlayers(int candidatePlayers[MAX_WIPEOUT_PLAYERS])
+{
+	int playersAdded = 0;
+	
+	/**
+	 * TODO: Add a dynamic limit.
+	 */
+
+	for (int client = MaxClients; client >= 1; client--)
+	{
+		if (!IsValidClient(client))
+		{
+			continue;
+		}
+
+		if (!IsClientParticipating(client))
+		{
+			continue;
+		}
+
+		if (GetClientTeam(client) < 2)
+		{
+			continue;
+		}
+
+		/**
+		 * We use points as lives, so...
+		 */
+		if (g_Points[client] <= 0)
+		{
+			continue;
+		}
+
+		if (playersAdded + 1 > MAX_WIPEOUT_PLAYERS)
+		{
+			break;
+		}
+
+		candidatePlayers[playersAdded++] = client;
+		g_Participating[client] = true;
+	}
+
+	return playersAdded;
 }
 
 void StartMinigame()
@@ -1924,7 +2025,7 @@ void StartMinigame()
 #endif
 		
 		SetConVarInt(FindConVar("mp_respawnwavetime"), 9999);
-		SetConVarInt(FindConVar("mp_friendlyfire"), 1);
+		SetConVarInt(ConVar_MPFriendlyFire, 1);
 
 		float MUSIC_INFO_LEN;
 		char MUSIC_INFO[PLATFORM_MAX_PATH];
@@ -1948,42 +2049,26 @@ void StartMinigame()
 		RespawnAll();
 		RemoveAllParticipants();
 		UpdateHud(GetSpeedMultiplier(MUSIC_INFO_LEN));
+
 		if (SpecialRound == SINGLEPLAYER)
 		{
 			NoCollision(true);
 		}
 
 		currentSpeed = GetConVarFloat(ww_speed);
+		
 		ServerCommand("host_timescale %f", GetHostMultiplier(1.0));
 		ServerCommand("phys_timescale %f", GetHostMultiplier(1.0));
 
 		if (g_Gamemode == GAMEMODE_WIPEOUT)
 		{
-			// Get two people to fight it off
-			int personA = GetRandomWipeoutPlayer();
-			if (IsValidClient(personA))
-			{
-				g_Participating[personA] = true;
-			}
+			int candidatePlayers[MAX_WIPEOUT_PLAYERS];
+			int populated = PopulateWipeoutPlayers(candidatePlayers);
 
-			int personB = GetRandomWipeoutPlayer();
-			if (IsValidClient(personB))
-			{
-				g_Participating[personB] = true;
-			}
-
-			int personC = -1;
-			if (GetLeftWipeoutPlayers() > 4)
-			{
-				personC = GetRandomWipeoutPlayer();
-			}
-
-			if (IsValidClient(personC))
-			{
-				g_Participating[personC] = true;
-			}
-
-			if (IsValidClient(personA) == false || IsValidClient(personB) == false)
+			/**
+			 * Everyone lost, lol.
+			 */
+			if (populated == 0)
 			{
 				status	   = 4;
 				bossBattle = 2;
@@ -1991,17 +2076,16 @@ void StartMinigame()
 				return;
 			}
 
-			char strMessage[512];
-			Format(strMessage, sizeof(strMessage), "%N\n%N", personA, personB);
-
-			if (IsValidClient(personC)) Format(strMessage, sizeof(strMessage), "%s\n%N", strMessage, personC);
-			PrintCenterTextAll(strMessage);
+			PrintWipeoutMessage(candidatePlayers, populated);
 		}
 		else
 		{
-			for (int i = 1; i <= MaxClients; i++)
+			for (int client = 1; client <= MaxClients; client++)
 			{
-				if (IsValidClient(i) && GetClientTeam(i) >= 2 && g_Spawned[i] == true) g_Participating[i] = true;
+				if (IsValidClient(client) && GetClientTeam(client) >= 2 && g_Spawned[client])
+				{
+					g_Participating[client] = true;
+				}
 			}
 		}
 
@@ -2129,8 +2213,15 @@ public Action Game_Start(Handle hTimer)
 
 		// timeleft counter. Let it stay longer on boss battles.
 		timeleft = 8;
-		if (bossBattle == 1) CreateTimer(GetSpeedMultiplier(3.0), CountDown_Timer);
-		else CreateTimer(GetSpeedMultiplier(1.0), CountDown_Timer);
+
+		if (bossBattle == 1)
+		{
+			CreateTimer(GetSpeedMultiplier(3.0), CountDown_Timer);
+		}
+		else
+		{
+			CreateTimer(GetSpeedMultiplier(1.0), CountDown_Timer);
+		}
 
 		// get the lasting time from the cfg
 		MicrogameTimer = CreateTimer(GetSpeedMultiplier(GetMinigameConfFloat(minigame, "duration")), EndGame);
@@ -2139,6 +2230,7 @@ public Action Game_Start(Handle hTimer)
 		LogMessage("[TF2Ware::Game_Start] Microgame started post");
 #endif
 	}
+
 	return Plugin_Stop;
 }
 
@@ -2225,7 +2317,7 @@ public Action EndGame(Handle hTimer)
 		g_attack = (SpecialRound == BONK);
 
 		/**
-		 * Send a late end event here to maintain compatiblity.
+		 * Send a late end event here to maintain compatibility.
 		 */
 		DispatchOnMicrogamePostEnd();
 
@@ -2295,6 +2387,7 @@ public Action EndGame(Handle hTimer)
 				}
 			}
 		}
+		
 		UpdateHud(GetSpeedMultiplier(MUSIC_INFO_LEN));
 
 		bool bHandlePoints = true;
@@ -2352,7 +2445,7 @@ public Action EndGame(Handle hTimer)
 		// RESPAWN END
 
 		bool speedup = false;
-		g_minigamestotal += 1;
+		g_MinigamesTotal += 1;
 
 		if (bossBattle == 1) bossBattle = 2;
 
@@ -2372,17 +2465,17 @@ public Action EndGame(Handle hTimer)
 		}
 		else
 		{
-			if ((g_minigamestotal == 4) && (bossBattle == 0)) speedup = true;
-			if ((g_minigamestotal == 8) && (bossBattle == 0)) speedup = true;
-			if ((g_minigamestotal == 12) && (bossBattle == 0)) speedup = true;
-			if ((g_minigamestotal == 16) && (bossBattle == 0)) speedup = true;
-			if ((g_minigamestotal == 19) && (bossBattle == 0))
+			if ((g_MinigamesTotal == 4) && (bossBattle == 0)) speedup = true;
+			if ((g_MinigamesTotal == 8) && (bossBattle == 0)) speedup = true;
+			if ((g_MinigamesTotal == 12) && (bossBattle == 0)) speedup = true;
+			if ((g_MinigamesTotal == 16) && (bossBattle == 0)) speedup = true;
+			if ((g_MinigamesTotal == 19) && (bossBattle == 0))
 			{
 				speedup	   = true;
 				bossBattle = 1;
 			}
 
-			if ((g_minigamestotal >= 19) && bossBattle == 2 && SpecialRound == DOUBLE_BOSS_BATTLE && Special_TwoBosses == false)
+			if ((g_MinigamesTotal >= 19) && bossBattle == 2 && SpecialRound == DOUBLE_BOSS_BATTLE && Special_TwoBosses == false)
 			{
 				speedup			  = true;
 				bossBattle		  = 1;
@@ -2628,10 +2721,13 @@ public Action Victory_Timer(Handle hTimer)
 		char winnerstring_names[512];
 		char pointsname[512];
 
-		Format(pointsname, sizeof(pointsname), "points");
 		if (g_Gamemode == GAMEMODE_WIPEOUT)
 		{
 			Format(pointsname, sizeof(pointsname), "lives");
+		}
+		else
+		{
+			Format(pointsname, sizeof(pointsname), "points");
 		}
 
 		bool bAccepted = false;
@@ -2734,15 +2830,15 @@ public Action Classic_EndMap(Handle hTimer)
 	ResetWinners();
 	g_waiting = true;
 	RoundStarts = 0;
-	g_minigamestotal = 0;
+	g_MinigamesTotal = 0;
 
 	ServerCommand("host_timescale %f", 1.0);
 	ServerCommand("phys_timescale %f", 1.0);
 
 	ResetConVar(FindConVar("mp_respawnwavetime"));
 	ResetConVar(FindConVar("mp_forcecamera"));
-	ResetConVar(FindConVar("mp_friendlyfire"));
-	ResetConVar(FindConVar("tf_spawn_glows_duration"));
+
+	ResetConVar(ConVar_MPFriendlyFire);
 	ResetConVar(ConVar_TFAirblastCray);
 	ResetConVar(ConVar_TFBotDifficulty);
 	ResetConVar(ConVar_TFTournamentHideDominationIcons);
@@ -2794,20 +2890,29 @@ public Action RestartAll_Timer(Handle hTimer)
 		ResetScores();
 		SetStateAll(false);
 		ResetWinners();
-		g_minigamestotal = 0;
+		g_MinigamesTotal = 0;
 
 		for (int i = 1; i <= MaxClients; i++)
 		{
 			if (IsValidClient(i) && IsPlayerAlive(i)) DisableClientWeapons(i);
 		}
 
-		// Roll special round
+		/**
+		 * Roll special round
+		 * 
+		 * TODO(irql):
+		 * - Replace the special round system with the following:
+		 *   > 33% chance to roll a special round
+		 *   > After that there is a cooldown for 3 rounds
+		 *   > Cannot be rolled as the first round
+		 */
 		if ((GetRandomInt(0, 9) == 5 || GetConVarBool(ww_special)) && SpecialRound == NONE)
 		{
 			status = 6;
 			StartSpecialRound();
 		}
-		else {
+		else
+		{
 			status = 0;
 			SetGameMode();
 			ResetScores();
@@ -3061,7 +3166,11 @@ void RespawnClient(int i, bool force = false, bool savepos = true)
 			}
 
 			TF2_RespawnPlayer(i);
-			if ((savepos) && (alive)) TeleportEntity(i, pos, ang, vel);
+
+			if (savepos && alive)
+			{
+				TeleportEntity(i, pos, ang, vel);
+			}
 		}
 
 		TF2_RemovePlayerDisguise(i);
@@ -3103,8 +3212,13 @@ void DrawScoresheet()
 
 	for (int i = GetClientCount(); i > 0; i--)
 	{
-		if (count >= 10) break;
-		if (IsValidClient(i) && !IsClientObserver(i)) {
+		if (count >= 10)
+		{
+			break;
+		}
+
+		if (IsValidClient(i) && !IsClientObserver(i))
+		{
 			GetClientName(players[i], cName, sizeof(cName));
 			Format(Lines[count], 128, "%2d - %s", g_Points[players[i]], cName);
 			count++;
@@ -3163,6 +3277,7 @@ void SetStateClient(int client, bool value, bool complete = false)
 				ClientParticle(client, effect, 8.0);
 			}
 		}
+		
 		g_Complete[client] = value;
 	}
 }
@@ -3220,11 +3335,11 @@ void UpdateClientCheatValue()
 	LogMessage("[TF2Ware::UpdateClientCheatValue] Updating client cheat value");
 #endif
 
-	for (int i = 1; i <= MaxClients; i++)
+	for (int client = 1; client <= MaxClients; client++)
 	{
-		if (IsValidClient(i) && (!(IsFakeClient(i))))
+		if (IsValidClient(client) && !IsFakeClient(client))
 		{
-			SendConVarValue(i, FindConVar("sv_cheats"), "1");
+			SendConVarValue(client, FindConVar("sv_cheats"), "1");
 		}
 	}
 }
@@ -3246,6 +3361,7 @@ public Action OnCheatCommand(int client, int args)
 		GetCmdArg(0, command, sizeof(command));
 
 		char buf[64];
+
 		for (int i = 0; i < sizeof(ALLOWED_CHEAT_COMMANDS); ++i)
 		{
 			strcopy(buf, 0, ALLOWED_CHEAT_COMMANDS[i]);
@@ -3281,6 +3397,7 @@ void SetOverlay(int client, char overlay[512])
 		{
 			Format(input, sizeof(input), "r_screenoverlay \"%s%s%s\"", materialpath, language, overlay);
 		}
+
 		ClientCommand(client, input);
 		g_ModifiedOverlay[client] = true;
 	}
@@ -3367,15 +3484,15 @@ void UpdateHud(float time)
 
 void ResetScores()
 {
-	for (int i = 1; i <= MaxClients; i++)
+	for (int client = 1; client <= MaxClients; client++)
 	{
 		if (g_Gamemode == GAMEMODE_WIPEOUT)
 		{
-			g_Points[i] = 3;
+			g_Points[client] = 3;
 		}
 		else
 		{
-			g_Points[i] = 0;
+			g_Points[client] = 0;
 		}
 	}
 }
@@ -3384,11 +3501,11 @@ int GetHighestScore()
 {
 	int out = 0;
 
-	for (int i = 1; i <= MaxClients; i++)
+	for (int client = 1; client <= MaxClients; client++)
 	{
-		if (IsValidClient(i) && GetClientTeam(i) >= 2 && g_Points[i] > out)
+		if (IsValidClient(client) && GetClientTeam(client) >= 2 && g_Points[client] > out)
 		{
-			out = g_Points[i];
+			out = g_Points[client];
 		}
 	}
 
@@ -3399,11 +3516,11 @@ int GetLowestScore()
 {
 	int out = 99;
 
-	for (int i = 1; i <= MaxClients; i++)
+	for (int client = 1; client <= MaxClients; client++)
 	{
-		if (IsValidClient(i) && GetClientTeam(i) >= 2 && g_Points[i] < out)
+		if (IsValidClient(client) && GetClientTeam(client) >= 2 && g_Points[client] < out)
 		{
-			out = g_Points[i];
+			out = g_Points[client];
 		}
 	}
 
@@ -3415,11 +3532,11 @@ int GetAverageScore()
 	int out	  = 0;
 	int total = 0;
 
-	for (int i = 1; i <= MaxClients; i++)
+	for (int client = 1; client <= MaxClients; client++)
 	{
-		if (IsValidClient(i) && GetClientTeam(i) >= 2 && (g_Points[i] > 0))
+		if (IsValidClient(client) && GetClientTeam(client) >= 2 && (g_Points[client] > 0))
 		{
-			out += g_Points[i];
+			out += g_Points[client];
 			total += 1;
 		}
 	}
@@ -3438,11 +3555,11 @@ stock float GetAverageScoreFloat()
 	float out2	= 0.0;
 	int total	= 0;
 
-	for (int i = 1; i <= MaxClients; i++)
+	for (int client = 1; client <= MaxClients; client++)
 	{
-		if (IsValidClient(i) && GetClientTeam(i) >= 2 && (g_Points[i] > 0))
+		if (IsValidClient(client) && GetClientTeam(client) >= 2 && (g_Points[client] > 0))
 		{
-			out += g_Points[i];
+			out += g_Points[client];
 			total += 1;
 		}
 	}
@@ -3457,18 +3574,23 @@ stock float GetAverageScoreFloat()
 
 void ResetWinners()
 {
-	for (int i = 1; i <= MaxClients; i++)
+	for (int client = 1; client <= MaxClients; client++)
 	{
-		g_Winner[i] = 0;
+		g_Winner[client] = 0;
 	}
 }
 
 public Action Command_Points(int client, int args)
 {
-	PrintToChatAll("Gave %N 20 points", client);
+	char clientName[128];
+	GetClientName(client, clientName, sizeof (clientName));
+
+	CPrintToChatAll("%T", "CheatCommandGive", LANG_SERVER, clientName);
+
 	g_Points[client] += 20;
 	g_Points[0] += 20;
 	g_Points[1] += 20;
+
 	return Plugin_Handled;
 }
 
@@ -3477,20 +3599,30 @@ public Action Command_List(int client, int args)
 	PrintToConsole(client, "Listing all registered minigames...");
 
 	char output[128];
+	
 	for (int i = 0; i < sizeof(g_name); i++)
 	{
-		if (StrEqual(g_name[i], "")) continue;
+		if (StrEqual(g_name[i], ""))
+		{
+			continue;
+		}
+
 		if (GetMinigameConfNum(g_name[i], "enable", 1))
+		{
 			Format(output, sizeof(output), " %2d - %s", GetMinigameConfNum(g_name[i], "id"), g_name[i]);
+		}
 		else
+		{
 			Format(output, sizeof(output), " %2d - %s (disabled)", GetMinigameConfNum(g_name[i], "id"), g_name[i]);
+		}
+
 		PrintToConsole(client, output);
 	}
 
 	return Plugin_Handled;
 }
 
-void RemoveNotifyFlag(char name[128])
+stock void RemoveNotifyFlag(char name[128])
 {
 	Handle cv1	= FindConVar(name);
 	int flags	= GetConVarFlags(cv1);
@@ -3503,11 +3635,11 @@ void InitMinigame()
 {
 	DispatchOnMicrogameStart();
 
-	for (int i = 1; i <= MaxClients; i++)
+	for (int client = 1; client <= MaxClients; client++)
 	{
-		if (IsValidClient(i) && IsClientParticipating(i))
+		if (IsValidClient(client) && IsClientParticipating(client))
 		{
-			DispatchOnClientJustEntered(i);
+			DispatchOnClientJustEntered(client);
 		}
 	}
 }
@@ -3585,28 +3717,6 @@ int GetMinigameConfNum(char[] game, const char[] key, int def = 0)
 	return value;
 }
 
-int GetRandomWipeoutPlayer()
-{
-	Handle roll = CreateArray();
-	int out		= -1;
-
-	for (int i = 1; i <= MaxClients; i++)
-	{
-		if (IsValidClient(i) && GetClientTeam(i) >= 2 && IsClientParticipating(i) == false && g_Points[i] > 0)
-		{
-			PushArrayCell(roll, i);
-		}
-	}
-
-	if (GetArraySize(roll) > 0)
-	{
-		out = GetArrayCell(roll, GetRandomInt(0, GetArraySize(roll) - 1));
-	}
-
-	CloseHandle(roll);
-	return out;
-}
-
 stock bool IsClientParticipating(int iClient)
 {
 	return g_Participating[iClient];
@@ -3657,9 +3767,9 @@ void SetGameMode()
 
 void RemoveAllParticipants()
 {
-	for (int i = 1; i <= MaxClients; i++)
+	for (int client = 1; client <= MaxClients; client++)
 	{
-		g_Participating[i] = false;
+		g_Participating[client] = false;
 	}
 }
 
@@ -3667,9 +3777,9 @@ int GetLeftWipeoutPlayers()
 {
 	int out = 0;
 
-	for (int i = 1; i <= MaxClients; i++)
+	for (int client = 1; client <= MaxClients; client++)
 	{
-		if (IsValidClient(i) && GetClientTeam(i) >= 2 && g_Points[i] > 0)
+		if (IsValidClient(client) && GetClientTeam(client) >= 2 && g_Points[client] > 0)
 		{
 			out++;
 		}

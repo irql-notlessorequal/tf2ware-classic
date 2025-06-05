@@ -298,6 +298,11 @@ methodmap Ghostbusters < Microgame
 			Ghostbusters_target[client] = 0;
 
 			SDKHook(client, SDKHook_OnTakeDamage, Ghostbusters_Damage);
+
+			/**
+			 * We need to update player sprites.
+			 */
+			CreateSprite(client);
 		}
 	}
 

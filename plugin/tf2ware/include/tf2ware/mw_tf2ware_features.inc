@@ -1,6 +1,7 @@
 /**
  * TF2Ware Classic
- * Copyright (C) 2025 IRQL_NOT_LESS_OR_EQUAL
+ *
+ * Copyright (C) 2025		IRQL_NOT_LESS_OR_EQUAL
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -319,14 +320,14 @@ stock void SetWeaponAmmo(int client, int slot1, int slot2)
 	if (IsValidEntity(ActiveWeapon))
 	{
 		SetEntData(ActiveWeapon, FindSendPropOffs("CBaseCombatWeapon", "m_iClip1"), slot1, 4);
-		SetEntData(client, FindSendPropOffs("CTFPlayer", "m_iAmmo") + 4, slot2, 4);
-		SetEntData(client, FindSendPropOffs("CTFPlayer", "m_iAmmo") + 8, slot2, 4);
+		SetEntData(client, 		 FindSendPropOffs("CTFPlayer", "m_iAmmo") + 4, slot2, 4);
+		SetEntData(client,		 FindSendPropOffs("CTFPlayer", "m_iAmmo") + 8, slot2, 4);
 	}
 }
 
 public void SetWeaponState(int client, bool input)
 {
-	int ActiveWeapon = GetEntDataEnt2(client,FindSendPropOffs("CTFPlayer", "m_hActiveWeapon"));
+	int ActiveWeapon = GetEntDataEnt2(client, FindSendPropOffs("CTFPlayer", "m_hActiveWeapon"));
 	int iEntity = g_PlayerVisibleWeapon[client];
 
 	if (IsValidEntity(ActiveWeapon))

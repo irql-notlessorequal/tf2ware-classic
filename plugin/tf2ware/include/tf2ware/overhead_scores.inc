@@ -1,6 +1,7 @@
 /**
  * TF2Ware Classic
- * Copyright (C) 2025 IRQL_NOT_LESS_OR_EQUAL
+ *
+ * Copyright (C) 2025		IRQL_NOT_LESS_OR_EQUAL
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -53,14 +54,12 @@ stock void CreateSprite(int client)
 				{
 					Format(sprite, sizeof(sprite), "materials/tf2ware/medicsign2.vmt");
 				}
-
-				if (g_Mission[client] == 1)
+				else if (g_Mission[client] == 1)
 				{
 					Format(sprite, sizeof(sprite), "materials/tf2ware/ghost2.vmt");
 					scale = 0.5;
 				}
-
-				if (g_Mission[client] == 2)
+				else if (g_Mission[client] == 2)
 				{
 					Format(sprite, sizeof(sprite), "materials/tf2ware/frankenstein.vmt");
 					scale = 0.3;

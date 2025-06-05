@@ -3,6 +3,13 @@
 int JumpRope_Speed = 0;
 const int JumpRope_DrainHP = 8;
 
+/**
+ * TODO(irql):
+ * 
+ * Jump Rope seems to be completely fucking broken.
+ * You will die instantly for some reason.
+ */
+
 methodmap JumpRope < Microgame
 {
 	public JumpRope()

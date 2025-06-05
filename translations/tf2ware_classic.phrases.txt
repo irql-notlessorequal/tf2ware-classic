@@ -10,6 +10,12 @@
 		"en"	"You have been given an average of the current player points to even out the playing field."
 	}
 
+	"CheatCommandGive"
+	{
+		"#format" "{1:s}"
+		"en"	"{strange}{1} gave themselves 20 points.{default}"
+	}
+
 	"WinnerStringPrefix_Single"
 	{
 		"en"	"{green}The winner is"

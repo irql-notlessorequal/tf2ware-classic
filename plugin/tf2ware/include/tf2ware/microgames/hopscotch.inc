@@ -56,6 +56,14 @@ methodmap Hopscotch < Microgame
 				GiveClientWeapon(client, "tf_weapon_rocketlauncher", 0, true);
 			}
 		
+			/**
+			 * TODO(irql):
+			 * 
+			 * For the rocket jumping minigame, we should be able to
+			 * use the same logic from airblast to spread everyone out
+			 * in a circle instead of columns and rows.
+			 */
+
 			float vel[3];
 			vel[0] = 0.0;
 			vel[1] = 0.0;

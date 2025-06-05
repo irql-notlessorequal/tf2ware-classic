@@ -24,6 +24,8 @@ Extract the .smx into your server's SourceMod plugins folder.
 
 Extract the assets into your server's `tf` folder.
 
+Install `tf2ware_classic.phrases.txt` into SourceMod's translations folder.
+
 # Usage.
 
 1. Load the `tf2ware` map on your server.
@@ -34,7 +36,9 @@ Extract the assets into your server's `tf` folder.
 
 ## Main
 
-- Mecha The Slag for creating TF2Ware
+- `Mecha The Slag` for creating TF2Ware
+
+- `NuclearWatermelon` and `gavintlgold` for contributions to the original codebase
 
 - TF2Ware Ultimate for helping me notice Mecha's stupidity in sprite handling
 
@@ -42,15 +46,16 @@ Extract the assets into your server's `tf` folder.
 
 ## Microgames
 
-- Mecha The Slag for all microgames not explicitly listed.
+- `Mecha The Slag` for all microgames not explicitly listed.
 
-- gNatFreak for the "Color Text" microgame
+- `gNatFreak` for the "Color Text" microgame
 
 # License
 
 ```
 TF2Ware Classic
-Copyright (C) 2025 IRQL_NOT_LESS_OR_EQUAL
+
+Copyright (C) 2025		IRQL_NOT_LESS_OR_EQUAL
 
 This program is free software; you can redistribute it and/or modify it
 under the terms of the GNU General Public License as published by the

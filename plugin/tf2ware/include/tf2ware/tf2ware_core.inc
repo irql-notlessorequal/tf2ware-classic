@@ -1,7 +1,7 @@
 /**
  * TF2Ware Classic
  * 
- * Copyright (C) 2025 IRQL_NOT_LESS_OR_EQUAL
+ * Copyright (C) 2025		IRQL_NOT_LESS_OR_EQUAL
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -21,28 +21,28 @@
 
 #define MAX_MINIGAMES		 40
 
-#define PLUGIN_VERSION		 "0.0.49"
+#define PLUGIN_VERSION		 "0.0.54"
 
-#define MUSIC_SPECIAL_START		"imgay/tf2ware/special_intro.mp3"
-#define MUSIC_SPECIAL_START_LEN  2.111429
-#define MUSIC_SPECIAL_WIN		"imgay/tf2ware/special_win.mp3"
-#define MUSIC_SPECIAL_FAIL		"imgay/tf2ware/special_fail.mp3"
-#define MUSIC_SPECIAL_END_LEN	2.111429
-#define MUSIC_SPECIAL_SPEEDUP	"imgay/tf2ware/special_speedup.mp3"
+#define MUSIC_SPECIAL_START			"imgay/tf2ware/special_intro.mp3"
+#define MUSIC_SPECIAL_START_LEN 	2.111429
+#define MUSIC_SPECIAL_WIN			"imgay/tf2ware/special_win.mp3"
+#define MUSIC_SPECIAL_FAIL			"imgay/tf2ware/special_fail.mp3"
+#define MUSIC_SPECIAL_END_LEN		2.111429
+#define MUSIC_SPECIAL_SPEEDUP		"imgay/tf2ware/special_speedup.mp3"
 #define MUSIC_SPECIAL_SPEEDUP_LEN	3.835510
-#define MUSIC_SPECIAL_GAMEOVER	"imgay/tf2ware/special_gameover.mp3"
+#define MUSIC_SPECIAL_GAMEOVER		"imgay/tf2ware/special_gameover.mp3"
 #define MUSIC_SPECIAL_GAMEOVER_LEN	8.17
 
-#define MUSIC_WIPEOUT_START		"imgay/tf2ware/tf2ware_intro.mp3"
-#define MUSIC_WIPEOUT_START_LEN	 2.18
-#define MUSIC_WIPEOUT_WIN		"imgay/tf2ware/tf2ware_win.mp3"
-#define MUSIC_WIPEOUT_FAIL		"imgay/tf2ware/tf2ware_fail.mp3"
-#define MUSIC_WIPEOUT_END_LEN	2.2
-#define MUSIC_WIPEOUT_SPEEDUP	"imgay/tf2ware/tf2ware_speedup.mp3"
-#define MUSIC_WIPEOUT_SPEEDUP_LEN	 3.29
-#define MUSIC_WIPEOUT_BOSS		"imgay/tf2ware/boss.mp3"
-#define MUSIC_WIPEOUT_BOSS_LEN	3.9
-#define MUSIC_WIPEOUT_GAMEOVER	"imgay/tf2ware/warioman_gameover.mp3"
+#define MUSIC_WIPEOUT_START			"imgay/tf2ware/tf2ware_intro.mp3"
+#define MUSIC_WIPEOUT_START_LEN		2.18
+#define MUSIC_WIPEOUT_WIN			"imgay/tf2ware/tf2ware_win.mp3"
+#define MUSIC_WIPEOUT_FAIL			"imgay/tf2ware/tf2ware_fail.mp3"
+#define MUSIC_WIPEOUT_END_LEN		2.2
+#define MUSIC_WIPEOUT_SPEEDUP		"imgay/tf2ware/tf2ware_speedup.mp3"
+#define MUSIC_WIPEOUT_SPEEDUP_LEN	3.29
+#define MUSIC_WIPEOUT_BOSS			"imgay/tf2ware/boss.mp3"
+#define MUSIC_WIPEOUT_BOSS_LEN		3.9
+#define MUSIC_WIPEOUT_GAMEOVER		"imgay/tf2ware/warioman_gameover.mp3"
 #define MUSIC_WIPEOUT_GAMEOVER_LEN	8.17
 
 #define MUSIC_START			 "imgay/tf2ware/warioman_intro.mp3"
@@ -68,8 +68,16 @@
 
 #define SND_CHANNEL_SPECIFIC	32
 
-#define PARTICLE_WIN_BLUE	"teleportedin_blue"
-#define PARTICLE_WIN_RED	"teleportedin_red"
+/**
+ * Wipeout now scales between two and twelve players.
+ * 
+ * With one additional player being added
+ * for every seven players.
+ */
+#define MAX_WIPEOUT_PLAYERS		12
+
+#define PARTICLE_WIN_BLUE		"teleportedin_blue"
+#define PARTICLE_WIN_RED		"teleportedin_red"
 
 #define TF2_PLAYER_TAUNTING		(1 << 7)	 // 128 = Taunting
 
@@ -99,6 +107,15 @@ stock void InternalSetAlpineVariant(bool value)
 	InternalIsAlpine = value;
 }
 
+enum TF2WareMapType
+{
+	CLASSIC_DEFAULT = 0,
+	CLASSIC_ALPINE = 1,
+
+	LEGACY_DEFAULT = 2,
+	LEGACY_ALPINE = 3
+}
+
 enum TF2WareStatus
 {
 	INACTIVE = 0,
@@ -122,7 +139,10 @@ enum SpecialRounds
 	SINGLEPLAYER,
 	LEAST_IS_BEST,
 	BONK,
-	THIRDPERSON
+	THIRDPERSON,
+#if 0
+	WIPEOUT
+#endif
 };
 
 enum Microgames
@@ -157,12 +177,3 @@ enum Microgames
 	MG_PINATA = 24,
 	MG_GHOSTBUSTERS = 25,
 }
-
-char ALLOWED_CHEAT_COMMANDS[][] =
-{
-	"host_timescale",
-	"r_screenoverlay",
-	"thirdperson",
-	"firstperson",
-	"sv_cheats"
-};

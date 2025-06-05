@@ -1,6 +1,7 @@
 /**
  * TF2Ware Classic
- * Copyright (C) 2025 IRQL_NOT_LESS_OR_EQUAL
+ *
+ * Copyright (C) 2025		IRQL_NOT_LESS_OR_EQUAL
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -24,8 +25,9 @@
 	4:      Singleplayer    Everyone is invisible
 	5:      Worst is Best   The person with the least points win
 	6:      Bonk            Everyone gets a bat to push people with    
-	7:      Thirdperson     Forced into thirdperson!    
+	7:      Thirdperson     Forced into thirdperson!
 
+	8:		Wipeout
 */
 #pragma newdecls required
 
@@ -41,7 +43,10 @@ char var_special_name[][] =
 	"SINGLEPLAYER",
 	"LEAST IS BEST",
 	"BONK",
-	"THIRDPERSON"
+	"THIRDPERSON",
+#if 0
+	"WIPEOUT"
+#endif
 };
 
 char var_special_phrases[][] =
@@ -52,7 +57,10 @@ char var_special_phrases[][] =
 	"Special_Singleplayer",
 	"Special_LeastIsBest",
 	"Special_Bonk",
-	"Special_ThirdPerson"
+	"Special_ThirdPerson",
+#if 0
+	"Special_Wipeout"
+#endif
 };
 
 public void Special_NoTouch(int entity, int other)

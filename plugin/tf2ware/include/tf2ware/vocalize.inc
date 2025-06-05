@@ -1,6 +1,7 @@
 /**
  * TF2Ware Classic
- * Copyright (C) 2025 IRQL_NOT_LESS_OR_EQUAL
+ *
+ * Copyright (C) 2025		IRQL_NOT_LESS_OR_EQUAL
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the

@@ -166,7 +166,9 @@ methodmap Frogger < Microgame
 							{
 								CreateTimer(0.1, Frogger_Timer);
 								g_Frogger_Timer = 0;
-							} else {
+							}
+							else
+							{
 								CreateTimer(0.0, Frogger_Timer);
 								CPrintToChatAll("The boss will end in {red}10 seconds{default}!");
 							}
@@ -186,6 +188,8 @@ public Action Frogger_Respawn(Handle hTimer, any client)
 	{
 		RespawnClient(client, true, false);
 	}
+
+	return Plugin_Stop;
 }
 
 
@@ -200,7 +204,7 @@ public Action Frogger_Ragdoll(Handle timer, any client)
 		}
 	}
 
-	return Plugin_Handled;
+	return Plugin_Stop;
 }
 
 public Action Frogger_Timer(Handle hTimer)
