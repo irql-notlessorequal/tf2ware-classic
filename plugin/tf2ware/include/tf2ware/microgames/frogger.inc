@@ -42,15 +42,16 @@ methodmap Frogger < Microgame
 		/**
 		 * Let's turn them back
 		 */
-		for (int i = 1; i <= MaxClients; i++)
+		for (int client = 1; client <= MaxClients; client++)
 		{
-			if (IsValidClient(i))
+			if (IsValidClient(client))
 			{
 				SetVariantString("");
-				AcceptEntityInput(i, "SetCustomModel");
+				AcceptEntityInput(client, "SetCustomModel");
 				SetVariantInt(0);
-				AcceptEntityInput(i, "SetCustomModelRotates");
-				ClientCommand(i, "wait; firstperson");
+				AcceptEntityInput(client, "SetCustomModelRotates");
+
+				ToggleThirdperson(client, false);
 			}
 		}
 	}
@@ -335,5 +336,6 @@ void Frogger_Position(int client)
 	}
 
 	TeleportEntity(client, pos, ang, vel);
-	ClientCommand(client, "wait; thirdperson");
+
+	ToggleThirdperson(client, true);
 }

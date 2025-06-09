@@ -73,6 +73,7 @@ Handle ww_score_style = INVALID_HANDLE;
  * TF2 ConVar handles
  */
 Handle ConVar_MPFriendlyFire = INVALID_HANDLE;
+Handle ConVar_TFPlayerMovementRestartFreeze = INVALID_HANDLE;
 Handle ConVar_TFTournamentHideDominationIcons = INVALID_HANDLE;
 Handle ConVar_TFAirblastCray = INVALID_HANDLE;
 Handle ConVar_TFBotDifficulty = INVALID_HANDLE;
@@ -107,18 +108,19 @@ int iMinigame;
 int status;
 int randommini;
 int g_offsCollisionGroup;
-int timeleft = 8;
+int g_TimeLeft = 8;
 int white;
 int g_HaloSprite;
 int g_ExplosionSprite;
 int g_result = 0;
-int g_bomb								   = 0;
-int RoundStarts							   = 0;
-int g_lastboss							   = 0;
-int g_MinigamesTotal					   = 0;
-int bossBattle							   = 0;
-bool g_Participating[MAXPLAYERS + 1] = false;
-int g_Gamemode							   = 0;
+int g_bomb								= 0;
+int RoundStarts							= 0;
+static int SpecialRoundCooldown			= 1;
+int g_LastBoss							= 0;
+int g_MinigamesTotal					= 0;
+int bossBattle							= 0;
+bool g_Participating[MAXPLAYERS + 1]	= false;
+int g_Gamemode							= 0;
 int gVelocityOffset = -1;
 
 // Strings
@@ -186,8 +188,6 @@ static const char ALLOWED_CHEAT_COMMANDS[][] =
 {
 	"host_timescale",
 	"r_screenoverlay",
-	"thirdperson",
-	"firstperson",
 	"sv_cheats"
 };
 
@@ -232,6 +232,7 @@ public void OnPluginStart()
 	}
 
 	ConVar_MPFriendlyFire = FindConVar("mp_friendlyfire");
+	ConVar_TFPlayerMovementRestartFreeze = FindConVar("tf_player_movement_restart_freeze");
 	ConVar_TFTournamentHideDominationIcons = FindConVar("tf_tournament_hide_domination_icons");
 	ConVar_TFAirblastCray = FindConVar("tf_airblast_cray");
 	ConVar_TFBotDifficulty = FindConVar("tf_bot_difficulty");
@@ -1509,7 +1510,9 @@ public Action Event_RoundStart(Handle event, const char[] name, bool dontBroadca
 		if (RoundStarts == 1)
 		{
 			g_waiting = false;
-			ClearPlayerFreeze();
+
+			SetConVarInt(ConVar_TFPlayerMovementRestartFreeze, 0);
+
 			SetGameMode();
 			ResetScores();
 			StartMinigame();
@@ -1535,9 +1538,12 @@ public Action Event_RoundStart(Handle event, const char[] name, bool dontBroadca
 			LogMessage("[TF2Ware::Event_RoundStart] Waiting-for-players period has ended");
 #endif
 		}
+
+		SpecialRoundCooldown--;		
 	}
 
 	RoundStarts++;
+
 	return Plugin_Continue;
 }
 
@@ -1657,6 +1663,7 @@ public Action EventInventoryApplication(Handle event, const char[] name, bool do
 	}
 
 	g_Spawned[client] = true;
+
 	if (GetConVarBool(ww_enable) && g_enabled)
 	{
 		SetEntityRenderMode(client, RENDER_NORMAL);
@@ -1830,7 +1837,7 @@ int RollMinigame()
 	 * Remaining logic TODO:
 	 * - Handle disablement of microgames (probably won't be a feature anymore)
 	 * - Do we still handle the "chance" value?
-	 * - Use "g_lastboss" to prevent repeating the boss during double boss battle.
+	 * - Use "g_LastBoss" to prevent repeating the boss during double boss battle.
 	 */
 	Microgame candidate;
 	int candidateIndex = GetConVarInt(ww_force);
@@ -1974,9 +1981,10 @@ stock void PrintWipeoutMessage(int candidatePlayers[MAX_WIPEOUT_PLAYERS], int po
 int PopulateWipeoutPlayers(int candidatePlayers[MAX_WIPEOUT_PLAYERS])
 {
 	int playersAdded = 0;
+	int dynamicLimit = MAX_WIPEOUT_PLAYERS;
 	
 	/**
-	 * TODO: Add a dynamic limit.
+	 * TODO(irql): Add a dynamic limit.
 	 */
 
 	for (int client = MaxClients; client >= 1; client--)
@@ -2004,7 +2012,7 @@ int PopulateWipeoutPlayers(int candidatePlayers[MAX_WIPEOUT_PLAYERS])
 			continue;
 		}
 
-		if (playersAdded + 1 > MAX_WIPEOUT_PLAYERS)
+		if (playersAdded + 1 > dynamicLimit)
 		{
 			break;
 		}
@@ -2113,7 +2121,7 @@ void StartMinigame()
 
 		if (bossBattle == 1)
 		{
-			g_lastboss = iMinigame;
+			g_LastBoss = iMinigame;
 		}
 
 		CreateTimer(GetSpeedMultiplier(MUSIC_INFO_LEN), Game_Start);
@@ -2145,11 +2153,11 @@ public Action Game_Start(Handle hTimer)
 
 		if (SpecialRound == NO_TOUCHING)
 		{
-			for (int i = 1; i <= MaxClients; i++)
+			for (int client = 1; client <= MaxClients; client++)
 			{
-				if (IsValidClient(i) && !IsFakeClient(i)) 
+				if (IsValidClient(client) && !IsFakeClient(client)) 
 				{
-					ClientCommand(i, "wait; thirdperson");
+					ToggleThirdperson(client, true);
 				}
 			}
 		}
@@ -2211,8 +2219,8 @@ public Action Game_Start(Handle hTimer)
 		// show the mission text
 		PrintMissionText();
 
-		// timeleft counter. Let it stay longer on boss battles.
-		timeleft = 8;
+		// g_TimeLeft counter. Let it stay longer on boss battles.
+		g_TimeLeft = 8;
 
 		if (bossBattle == 1)
 		{
@@ -2254,19 +2262,21 @@ void PrintMissionText()
 
 public Action CountDown_Timer(Handle hTimer)
 {
-	if ((status == 2) && (timeleft > 0))
+	if (status == 2 && g_TimeLeft > 0)
 	{
-		timeleft = timeleft - 1;
+		g_TimeLeft = g_TimeLeft - 1;
 		CreateTimer(GetSpeedMultiplier(0.4), CountDown_Timer);
+
 		if (bossBattle != 1)
 		{
-			DispatchOnMicrogameTimer(timeleft);
+			DispatchOnMicrogameTimer(g_TimeLeft);
 		}
-		if (timeleft == 2)
+
+		if (g_TimeLeft == 2)
 		{
 			for (int i = 1; i <= MaxClients; i++)
 			{
-				if (IsValidClient(i) && (!(IsFakeClient(i))) && g_ModifiedOverlay[i] == false)
+				if (IsValidClient(i) && !IsFakeClient(i) && g_ModifiedOverlay[i] == false)
 				{
 					SetOverlay(i, "");
 				}
@@ -2391,12 +2401,17 @@ public Action EndGame(Handle hTimer)
 		UpdateHud(GetSpeedMultiplier(MUSIC_INFO_LEN));
 
 		bool bHandlePoints = true;
+
 		if (g_Gamemode == GAMEMODE_WIPEOUT)
 		{
 			bool bSomeoneWon = false;
+
 			for (int i = 1; i <= MaxClients; i++)
 			{
-				if (IsValidClient(i) && IsClientParticipating(i) && g_Complete[i] == true) bSomeoneWon = true;
+				if (IsValidClient(i) && IsClientParticipating(i) && g_Complete[i] == true)
+				{
+					bSomeoneWon = true;
+				}
 			}
 
 			if (bSomeoneWon == false && bossBattle == 1 && GetLeftWipeoutPlayers() == 2)
@@ -2436,9 +2451,12 @@ public Action EndGame(Handle hTimer)
 
 		if (SpecialRound == THIRDPERSON)
 		{
-			for (int i = 1; i <= MaxClients; i++)
+			for (int client = 1; client <= MaxClients; client++)
 			{
-				if (IsValidClient(i) && !IsFakeClient(i)) ClientCommand(i, "wait; thirdperson");
+				if (IsValidClient(client) && !IsFakeClient(client))
+				{
+					ToggleThirdperson(client, true);
+				}
 			}
 		}
 
@@ -2734,9 +2752,11 @@ public Action Victory_Timer(Handle hTimer)
 		for (int i = 1; i <= MaxClients; i++)
 		{
 			SetOverlay(i, "");
+
 			if (IsValidClient(i) && (GetClientTeam(i) == 2 || GetClientTeam(i) == 3))
 			{
 				bAccepted = false;
+
 				if (g_Gamemode == GAMEMODE_WIPEOUT)
 				{
 					if (g_Points[i] > 0) bAccepted = true;
@@ -2748,10 +2768,12 @@ public Action Victory_Timer(Handle hTimer)
 				if (bAccepted)
 				{
 					g_Winner[i] = 1;
+
 					if (GetConVarBool(ww_overhead_scores))
 					{
 						CreateSprite(i);
 					}
+
 					RespawnClient(i, true, true);
 					SetWeaponState(i, true);
 					winnernumber += 1;
@@ -2841,9 +2863,8 @@ public Action Classic_EndMap(Handle hTimer)
 	ResetConVar(ConVar_MPFriendlyFire);
 	ResetConVar(ConVar_TFAirblastCray);
 	ResetConVar(ConVar_TFBotDifficulty);
+	ResetConVar(ConVar_TFPlayerMovementRestartFreeze);
 	ResetConVar(ConVar_TFTournamentHideDominationIcons);
-
-	RestorePlayerFreeze();
 
 	int entity = FindEntityByClassname(-1, "game_end");
 	if (entity == -1 && (entity = CreateEntityByName("game_end")) == -1)
@@ -2863,6 +2884,35 @@ public Action Classic_EndMap(Handle hTimer)
 	}
 
 	return Plugin_Stop;
+}
+
+stock bool ShouldDoSpecialRound()
+{
+	if (SpecialRound != NONE)
+	{
+		return false;
+	}
+
+	if (GetConVarBool(ww_special))
+	{
+		/**
+		 * Forced by an admin.
+		 */
+		return true;
+	}
+
+	if (SpecialRoundCooldown > 0)
+	{
+		/**
+		 * Don't roll a special round at the start.
+		 * 
+		 * Or if we've played a special round already.
+		 */
+		return false;
+	}
+
+	int rand = MalletGetRandomInt(0, 100);
+	return 33 <= rand <= 66;
 }
 
 public Action RestartAll_Timer(Handle hTimer)
@@ -2894,20 +2944,15 @@ public Action RestartAll_Timer(Handle hTimer)
 
 		for (int i = 1; i <= MaxClients; i++)
 		{
-			if (IsValidClient(i) && IsPlayerAlive(i)) DisableClientWeapons(i);
+			if (IsValidClient(i) && IsPlayerAlive(i))
+			{
+				DisableClientWeapons(i);
+			}
 		}
 
-		/**
-		 * Roll special round
-		 * 
-		 * TODO(irql):
-		 * - Replace the special round system with the following:
-		 *   > 33% chance to roll a special round
-		 *   > After that there is a cooldown for 3 rounds
-		 *   > Cannot be rolled as the first round
-		 */
-		if ((GetRandomInt(0, 9) == 5 || GetConVarBool(ww_special)) && SpecialRound == NONE)
+		if (ShouldDoSpecialRound())
 		{
+			SpecialRoundCooldown = 3;
 			status = 6;
 			StartSpecialRound();
 		}

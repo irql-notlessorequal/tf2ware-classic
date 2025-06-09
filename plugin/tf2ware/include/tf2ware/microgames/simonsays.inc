@@ -44,7 +44,7 @@ methodmap SimonSays < Microgame
 
 	public void OnMicrogameFrame()
 	{
-		if (timeleft <= 6)
+		if (g_TimeLeft <= 6)
 		{
 			for (int i = 1; i <= MaxClients; i++)
 			{

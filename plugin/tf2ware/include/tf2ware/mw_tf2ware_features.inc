@@ -325,7 +325,7 @@ stock void SetWeaponAmmo(int client, int slot1, int slot2)
 	}
 }
 
-public void SetWeaponState(int client, bool input)
+stock void SetWeaponState(int client, bool input)
 {
 	int ActiveWeapon = GetEntDataEnt2(client, FindSendPropOffs("CTFPlayer", "m_hActiveWeapon"));
 	int iEntity = g_PlayerVisibleWeapon[client];
@@ -449,7 +449,7 @@ void RemoveFakeWeapon(&iClient) {
 }
 #endif
 
-public void RemoveAllWeapons()
+stock void RemoveAllWeapons()
 {
 #if defined(DEBUG)
 	LogMessage("[TF2Ware::RemoveAllWeapons] Removing all weapons");
@@ -588,19 +588,15 @@ stock bool HasMapEnded()
 	return timeLeft >= 0 && timeLeft < 300;
 }
 
-void ClearPlayerFreeze()
-{
-	SetConVarInt(FindConVar("tf_player_movement_restart_freeze"), 0);
-}
-
-void RestorePlayerFreeze()
-{
-	SetConVarInt(FindConVar("tf_player_movement_restart_freeze"), 1);
-}
-
-void ClearAllTaunts(int iClient)
+stock void ClearAllTaunts(int iClient)
 {
 	TF2_RemoveCondition(iClient, TFCond_Taunting);
+}
+
+stock void ToggleThirdperson(int client, bool enabled=false)
+{
+	SetVariantInt(view_as<int>(enabled));
+	AcceptEntityInput(client, "SetForcedTauntCam");
 }
 
 public int GetHealTarget(int client)
@@ -611,6 +607,7 @@ public int GetHealTarget(int client)
 	}
 	
 	int weapon = GetPlayerWeaponSlot(client, 1);
+
 	if (weapon == -1)
 	{
 		return 0;
@@ -627,7 +624,7 @@ public int GetHealTarget(int client)
 	return GetEntDataEnt2(weapon, FindSendPropInfo("CWeaponMedigun", "m_hHealingTarget"));
 }
 
-int GetClientMaxHealth(int iClient)
+stock int GetClientMaxHealth(int iClient)
 {
 	return TF2_GetPlayerResourceData(iClient, TFResource_MaxHealth);
 }

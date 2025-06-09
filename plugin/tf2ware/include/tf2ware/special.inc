@@ -131,11 +131,11 @@ void ResetSpecialRoundEffect(int specialRound)
 	{
 		case NO_TOUCHING:
 		{
-			for (int i = 1; i <= MaxClients; i++)
+			for (int client = 1; client <= MaxClients; client++)
 			{
-				if (IsValidClient(i))
+				if (IsValidClient(client))
 				{
-					SDKUnhook(i, SDKHook_Touch, Special_NoTouch);
+					SDKUnhook(client, SDKHook_Touch, Special_NoTouch);
 				}
 			}
 		}
@@ -143,34 +143,34 @@ void ResetSpecialRoundEffect(int specialRound)
 		case SINGLEPLAYER:
 		{
 			NoCollision(false);
-			for (int i = 1; i <= MaxClients; i++)
+			for (int client = 1; client <= MaxClients; client++)
 			{
-				if (IsValidClient(i))
+				if (IsValidClient(client))
 				{
-					SetEntityRenderColor(i, 255, 255, 255, 255);
-					SetEntityRenderMode(i, RENDER_NORMAL);
+					SetEntityRenderColor(client, 255, 255, 255, 255);
+					SetEntityRenderMode(client, RENDER_NORMAL);
 				}
 			}			
 		}
 
 		case BONK:
 		{
-			for (int i = 1; i <= MaxClients; i++)
+			for (int client = 1; client <= MaxClients; client++)
 			{
-				if (IsValidClient(i))
+				if (IsValidClient(client))
 				{
-					SDKUnhook(i, SDKHook_OnTakeDamage, Special_DamagePush);
+					SDKUnhook(client, SDKHook_OnTakeDamage, Special_DamagePush);
 				}
 			}			
 		}
 
 		case THIRDPERSON:
 		{
-			for (int i = 1; i <= MaxClients; i++)
+			for (int client = 1; client <= MaxClients; client++)
 			{
-				if (IsValidClient(i) && !IsFakeClient(i))
+				if (IsValidClient(client) && !IsFakeClient(client))
 				{
-					ClientCommand(i, "wait; firstperson");
+					ToggleThirdperson(client, false);
 				}
 			}		
 		}
@@ -183,11 +183,11 @@ void AddSpecialRoundEffect(int specialRound)
 	{
 		case NO_TOUCHING:
 		{
-			for (int i = 1; i <= MaxClients; i++)
+			for (int client = 1; client <= MaxClients; client++)
 			{
-				if (IsValidClient(i))
+				if (IsValidClient(client))
 				{
-					SDKHook(i, SDKHook_Touch, Special_NoTouch);
+					SDKHook(client, SDKHook_Touch, Special_NoTouch);
 				}
 			}			
 		}
@@ -200,34 +200,35 @@ void AddSpecialRoundEffect(int specialRound)
 		case SINGLEPLAYER:
 		{
 			NoCollision(true);
-			for (int i = 1; i <= MaxClients; i++)
+
+			for (int client = 1; client <= MaxClients; client++)
 			{
-				if (IsValidClient(i))
+				if (IsValidClient(client))
 				{
-					SetEntityRenderColor(i, 255, 255, 255, 0);
-					SetEntityRenderMode(i, RENDER_NONE);
+					SetEntityRenderColor(client, 255, 255, 255, 0);
+					SetEntityRenderMode(client, RENDER_NONE);
 				}
 			}			
 		}
 
 		case BONK:
 		{
-			for (int i = 1; i <= MaxClients; i++)
+			for (int client = 1; client <= MaxClients; client++)
 			{
-				if (IsValidClient(i))
+				if (IsValidClient(client))
 				{
-					SDKHook(i, SDKHook_OnTakeDamage, Special_DamagePush);
+					SDKHook(client, SDKHook_OnTakeDamage, Special_DamagePush);
 				}
 			}			
 		}
 
 		case THIRDPERSON:
 		{
-			for (int i = 1; i <= MaxClients; i++)
+			for (int client = 1; client <= MaxClients; client++)
 			{
-				if (IsValidClient(i) && !IsFakeClient(i))
+				if (IsValidClient(client) && !IsFakeClient(client))
 				{
-					ClientCommand(i, "wait; thirdperson");
+					ToggleThirdperson(client, true);
 				}
 			}			
 		}

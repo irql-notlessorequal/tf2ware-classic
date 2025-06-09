@@ -23,7 +23,7 @@ methodmap Movement < Microgame
 
 	public void OnMicrogameFrame()
 	{
-		if (timeleft <= 5)
+		if (g_TimeLeft <= 5)
 		{
 			float fVelocity[3];
 			float speed;
