@@ -120,7 +120,6 @@ int g_LastBoss							= 0;
 int g_MinigamesTotal					= 0;
 int bossBattle							= 0;
 bool g_Participating[MAXPLAYERS + 1]	= false;
-int g_Gamemode							= 0;
 int gVelocityOffset = -1;
 
 // Strings
@@ -341,6 +340,7 @@ public void OnMapStart()
 		HookConVarChange(ww_enable, StartMinigame_cvar);
 		HookConVarChange(ww_overhead_scores, OverheadScoresChanged);
 		HookEvent("post_inventory_application", EventInventoryApplication, EventHookMode_Post);
+		HookEvent("player_say", Player_Say, EventHookMode_Pre);
 		HookEvent("player_spawn", Player_Spawn);
 		HookEvent("player_death", Player_Death, EventHookMode_Post);
 		HookEvent("player_team", Player_Team, EventHookMode_Post);
@@ -1466,6 +1466,29 @@ bool DispatchIsMicrogamePlayable(Microgame mg, int players)
 	}
 }
 
+public Action DispatchOnPlayerChatSay(int client, const char message[256])
+{
+	switch (view_as<Microgames>(currentMicrogame))
+	{
+		case MG_COLOR_TEXT:
+		{
+			bool ret = view_as<ColorText>(currentMicrogame).OnPlayerChatMessage(client, message);
+			return ret ? Plugin_Handled : Plugin_Continue;			
+		}
+
+		case MG_MATH:
+		{
+			bool ret = view_as<Math>(currentMicrogame).OnPlayerChatMessage(client, message);
+			return ret ? Plugin_Handled : Plugin_Continue;
+		}
+
+		default:
+		{
+			return Plugin_Continue;
+		}
+	}
+}
+
 public Microgame GetCurrentMicrogame()
 {
 	return currentMicrogame;
@@ -1527,7 +1550,7 @@ public Action Event_RoundStart(Handle event, const char[] name, bool dontBroadca
 						SetOverlay(client, "");
 					}
 
-					if (g_Gamemode == GAMEMODE_WIPEOUT)
+					if (SpecialRound == WIPEOUT)
 					{
 						SetWipeoutPosition(client, true);
 					}
@@ -1567,7 +1590,7 @@ public void OnClientPostAdminCheck(int client)
 
 	UpdateClientCheatValue();
 
-	if (g_Gamemode == GAMEMODE_WIPEOUT)
+	if (SpecialRound == WIPEOUT)
 	{
 		g_Points[client] = -1;
 	}
@@ -1603,6 +1626,13 @@ public void OnClientDisconnect(int client)
 	LogMessage("[TF2Ware::OnClientDisconnect] Client (%d) disconnected", client);
 #endif
 
+	if (GetConVarBool(ww_overhead_scores))
+	{
+		DestroySprite(client);
+	}
+
+	g_Points[client] = 0;
+	g_Participating[client] = false;
 	g_Spawned[client] = false;
 }
 
@@ -1712,7 +1742,7 @@ public Action EventInventoryApplication(Handle event, const char[] name, bool do
 			SetEntityRenderColor(client, 255, 255, 255, 0);
 		}
 
-		if (g_Gamemode == GAMEMODE_WIPEOUT && g_waiting == false)
+		if (SpecialRound == WIPEOUT && g_waiting == false)
 		{
 			if (status == 2 && IsClientParticipating(client))
 			{
@@ -1779,7 +1809,7 @@ public void OnGameFrame()
 	{
 		DispatchOnMicrogameFrame();
 
-		if (g_Gamemode == GAMEMODE_WIPEOUT && status == 1)
+		if (SpecialRound == WIPEOUT && status == 1)
 		{
 			for (int i = 1; i <= MaxClients; i++)
 			{
@@ -1941,14 +1971,14 @@ void HandOutPoints()
 		{
 			if (g_Complete[client])
 			{
-				if (g_Gamemode == GAMEMODE_NORMAL)
+				if (SpecialRound != WIPEOUT)
 				{
 					g_Points[client] += points;
 				}
 			}
 			else
 			{
-				if (g_Gamemode == GAMEMODE_WIPEOUT && g_Points[client] > 0)
+				if (SpecialRound == WIPEOUT && g_Points[client] > 0)
 				{
 					g_Points[client] -= points;
 
@@ -1978,14 +2008,19 @@ stock void PrintWipeoutMessage(int candidatePlayers[MAX_WIPEOUT_PLAYERS], int po
 	PrintCenterTextAll(formatString, candidatePlayers);
 }
 
-int PopulateWipeoutPlayers(int candidatePlayers[MAX_WIPEOUT_PLAYERS])
+stock int GetWipeoutLimit()
 {
-	int playersAdded = 0;
-	int dynamicLimit = MAX_WIPEOUT_PLAYERS;
-	
 	/**
 	 * TODO(irql): Add a dynamic limit.
 	 */
+
+	return MAX_WIPEOUT_PLAYERS;
+}
+
+int PopulateWipeoutPlayers(int candidatePlayers[MAX_WIPEOUT_PLAYERS])
+{
+	int playersAdded = 0;
+	int dynamicLimit = GetWipeoutLimit();
 
 	for (int client = MaxClients; client >= 1; client--)
 	{
@@ -2038,7 +2073,7 @@ void StartMinigame()
 		float MUSIC_INFO_LEN;
 		char MUSIC_INFO[PLATFORM_MAX_PATH];
 		
-		if (g_Gamemode == GAMEMODE_WIPEOUT)
+		if (SpecialRound == WIPEOUT)
 		{
 			MUSIC_INFO_LEN = MUSIC_WIPEOUT_START_LEN;
 			Format(MUSIC_INFO, sizeof(MUSIC_INFO), MUSIC_WIPEOUT_START);
@@ -2068,7 +2103,7 @@ void StartMinigame()
 		ServerCommand("host_timescale %f", GetHostMultiplier(1.0));
 		ServerCommand("phys_timescale %f", GetHostMultiplier(1.0));
 
-		if (g_Gamemode == GAMEMODE_WIPEOUT)
+		if (SpecialRound == WIPEOUT)
 		{
 			int candidatePlayers[MAX_WIPEOUT_PLAYERS];
 			int populated = PopulateWipeoutPlayers(candidatePlayers);
@@ -2150,8 +2185,7 @@ public Action Game_Start(Handle hTimer)
 		{
 			NoCollision(true);
 		}
-
-		if (SpecialRound == NO_TOUCHING)
+		else if (SpecialRound == NO_TOUCHING)
 		{
 			for (int client = 1; client <= MaxClients; client++)
 			{
@@ -2161,8 +2195,7 @@ public Action Game_Start(Handle hTimer)
 				}
 			}
 		}
-
-		if (g_Gamemode == GAMEMODE_WIPEOUT)
+		else if (SpecialRound == WIPEOUT)
 		{
 			for (int i2 = 1; i2 <= MaxClients; i2++)
 			{
@@ -2305,7 +2338,7 @@ public Action EndGame(Handle hTimer)
 		char MUSIC_INFO_WIN[PLATFORM_MAX_PATH];
 		char MUSIC_INFO_FAIL[PLATFORM_MAX_PATH];
 
-		if (g_Gamemode == GAMEMODE_WIPEOUT)
+		if (SpecialRound == WIPEOUT)
 		{
 			MUSIC_INFO_LEN = MUSIC_WIPEOUT_END_LEN;
 			Format(MUSIC_INFO_WIN, sizeof(MUSIC_INFO_WIN), MUSIC_WIPEOUT_WIN);
@@ -2402,7 +2435,7 @@ public Action EndGame(Handle hTimer)
 
 		bool bHandlePoints = true;
 
-		if (g_Gamemode == GAMEMODE_WIPEOUT)
+		if (SpecialRound == WIPEOUT)
 		{
 			bool bSomeoneWon = false;
 
@@ -2436,7 +2469,7 @@ public Action EndGame(Handle hTimer)
 			RespawnAll();
 		}
 		
-		if (g_Gamemode == GAMEMODE_WIPEOUT)
+		if (SpecialRound == WIPEOUT)
 		{
 			for (int i2 = 1; i2 <= MaxClients; i2++)
 			{
@@ -2467,7 +2500,7 @@ public Action EndGame(Handle hTimer)
 
 		if (bossBattle == 1) bossBattle = 2;
 
-		if (g_Gamemode == GAMEMODE_WIPEOUT)
+		if (SpecialRound == WIPEOUT)
 		{
 			if ((GetAverageScoreFloat() <= 2.80) && (bossBattle == 0) && currentSpeed <= 1.0) speedup = true;
 			if ((GetAverageScoreFloat() <= 2.50) && (bossBattle == 0) && currentSpeed <= 2.0) speedup = true;
@@ -2501,21 +2534,29 @@ public Action EndGame(Handle hTimer)
 			}
 		}
 
-		if (g_Gamemode == GAMEMODE_WIPEOUT && GetLeftWipeoutPlayers() <= 1)
+		if (SpecialRound == WIPEOUT && GetLeftWipeoutPlayers() <= 1)
 		{
 			status = 4;
 			CreateTimer(GetSpeedMultiplier(MUSIC_INFO_LEN), Victory_Timer);
 		}
+
+		/**
+		 * TODO(irql):
+		 * 
+		 * Mecha....WHY
+		 */
 		if (speedup == false)
 		{
 			status = 10;
 			CreateTimer(GetSpeedMultiplier(MUSIC_INFO_LEN), StartMinigame_timer2);
 		}
+
 		if (speedup == true)
 		{
 			status = 3;
 			CreateTimer(GetSpeedMultiplier(MUSIC_INFO_LEN), SpeedUp_Timer);
 		}
+		
 		if (bossBattle == 2 && speedup == false)
 		{
 			status = 4;
@@ -2541,7 +2582,7 @@ public Action SpeedUp_Timer(Handle hTimer)
 			float MUSIC_INFO_LEN;
 			char MUSIC_INFO[PLATFORM_MAX_PATH];
 			
-			if (g_Gamemode == GAMEMODE_WIPEOUT)
+			if (SpecialRound == WIPEOUT)
 			{
 				MUSIC_INFO_LEN = MUSIC_WIPEOUT_BOSS_LEN;
 				Format(MUSIC_INFO, sizeof(MUSIC_INFO), MUSIC_WIPEOUT_BOSS);
@@ -2625,7 +2666,7 @@ public Action SpeedUp_Timer(Handle hTimer)
 			float MUSIC_INFO_LEN;
 			char MUSIC_INFO[PLATFORM_MAX_PATH];
 
-			if (g_Gamemode == GAMEMODE_WIPEOUT)
+			if (SpecialRound == WIPEOUT)
 			{
 				MUSIC_INFO_LEN = MUSIC_WIPEOUT_SPEEDUP_LEN;
 				Format(MUSIC_INFO, sizeof(MUSIC_INFO), MUSIC_WIPEOUT_SPEEDUP);
@@ -2684,7 +2725,7 @@ public Action Victory_Timer(Handle hTimer)
 		float MUSIC_INFO_LEN;
 		char MUSIC_INFO[PLATFORM_MAX_PATH];
 
-		if (g_Gamemode == GAMEMODE_WIPEOUT)
+		if (SpecialRound == WIPEOUT)
 		{
 			MUSIC_INFO_LEN = MUSIC_WIPEOUT_GAMEOVER_LEN;
 			Format(MUSIC_INFO, sizeof(MUSIC_INFO), MUSIC_WIPEOUT_GAMEOVER);
@@ -2739,7 +2780,7 @@ public Action Victory_Timer(Handle hTimer)
 		char winnerstring_names[512];
 		char pointsname[512];
 
-		if (g_Gamemode == GAMEMODE_WIPEOUT)
+		if (SpecialRound == WIPEOUT)
 		{
 			Format(pointsname, sizeof(pointsname), "lives");
 		}
@@ -2757,14 +2798,26 @@ public Action Victory_Timer(Handle hTimer)
 			{
 				bAccepted = false;
 
-				if (g_Gamemode == GAMEMODE_WIPEOUT)
+				if (SpecialRound == WIPEOUT)
 				{
-					if (g_Points[i] > 0) bAccepted = true;
+					if (g_Points[i] > 0)
+					{
+						bAccepted = true;
+					}
 				}
-				else {
-					if (SpecialRound != LEAST_IS_BEST && g_Points[i] >= targetscore) bAccepted = true;
-					if (SpecialRound == LEAST_IS_BEST && g_Points[i] <= targetscore) bAccepted = true;
+				else
+				{
+					if (SpecialRound != LEAST_IS_BEST && g_Points[i] >= targetscore)
+					{
+						bAccepted = true;
+					}
+
+					if (SpecialRound == LEAST_IS_BEST && g_Points[i] <= targetscore)
+					{
+						bAccepted = true;
+					}
 				}
+
 				if (bAccepted)
 				{
 					g_Winner[i] = 1;
@@ -2815,6 +2868,12 @@ public Action Victory_Timer(Handle hTimer)
 			ReplaceStringEx(winnerstring_names, sizeof(winnerstring_names), ", ", "");
 		}
 
+		/**
+		 * TODO(irql):
+		 * 
+		 * - Migrate to the localized version
+		 * - Reword the string to "The winners [is/are] %s with %i %s!"
+		 */
 		if (winnernumber == 1)
 		{
 			Format(winnerstring_prefix, sizeof(winnerstring_prefix), "{green}The winner is");
@@ -2981,7 +3040,24 @@ public void StartSpecialRound()
 		
 		if (GetConVarInt(ww_force_special) <= 0)
 		{
-			SpecialRound = view_as<SpecialRounds>(GetRandomInt(1, SPECIAL_TOTAL));
+			do
+			{
+				SpecialRound = view_as<SpecialRounds>(GetRandomInt(1, SPECIAL_TOTAL));
+
+				/**
+				 * Require at least six players to enable Wipeout
+				 * as a valid special round.
+				 */
+				if (SpecialRound == WIPEOUT && GetClientCount() < 6)
+				{
+					continue;
+				}
+				else
+				{
+					break;
+				}
+			}
+			while (true);
 		}
 		else
 		{
@@ -3194,7 +3270,7 @@ void RespawnClient(int i, bool force = false, bool savepos = true)
 			force2 = true;
 		}
 
-		if (g_Gamemode == GAMEMODE_WIPEOUT && g_Points[i] <= 0)
+		if (SpecialRound == WIPEOUT && g_Points[i] <= 0)
 		{
 			force2 = false;
 		}
@@ -3299,7 +3375,7 @@ void SetStateClient(int client, bool value, bool complete = false)
 					{
 						EmitSoundToClient(i, SOUND_COMPLETE_YOU, client);
 
-						if (IsClientParticipating(i) && IsPlayerAlive(i) && g_Gamemode == GAMEMODE_WIPEOUT && i != client)
+						if (IsClientParticipating(i) && IsPlayerAlive(i) && SpecialRound == WIPEOUT && i != client)
 						{
 							SetStateClient(i, false, true);
 							ForcePlayerSuicide(i);
@@ -3462,7 +3538,7 @@ void UpdateHud(float time)
 
 	if (newStyle)
 	{
-		if (g_Gamemode == GAMEMODE_WIPEOUT && SpecialRound != THIRDPERSON)
+		if (SpecialRound == WIPEOUT)
 		{
 			Format(scorename, sizeof(scorename), "lives");
 		}
@@ -3473,7 +3549,7 @@ void UpdateHud(float time)
 	}
 	else
 	{
-		if (g_Gamemode == GAMEMODE_WIPEOUT && SpecialRound != THIRDPERSON)
+		if (SpecialRound == WIPEOUT)
 		{
 			Format(scorename, sizeof(scorename), "Lives:");
 		}
@@ -3488,13 +3564,15 @@ void UpdateHud(float time)
 		if (IsValidClient(i))
 		{
 			Format(add, sizeof(add), "");
-			if (g_Gamemode == GAMEMODE_WIPEOUT)
+
+			if (SpecialRound == WIPEOUT)
 			{
-				if (!g_Complete[i] && IsClientParticipating(i) && bossBattle != 1 && SpecialRound != THIRDPERSON)
+				if (!g_Complete[i] && IsClientParticipating(i) && bossBattle != 1)
 				{
 					Format(add, sizeof(add), newStyle ? "(-1)" : "-1");
 				}
-				if (!g_Complete[i] && IsClientParticipating(i) && bossBattle == 1 && SpecialRound != THIRDPERSON)
+
+				if (!g_Complete[i] && IsClientParticipating(i) && bossBattle == 1)
 				{
 					Format(add, sizeof(add), newStyle ? "(-5)" : "-5");
 				}
@@ -3505,6 +3583,7 @@ void UpdateHud(float time)
 				{
 					Format(add, sizeof(add), newStyle ? "(+1)" : "+1");
 				}
+
 				if (g_Complete[i] && IsClientParticipating(i) && bossBattle == 1 && SpecialRound != THIRDPERSON)
 				{
 					Format(add, sizeof(add), newStyle ? "(+5)" : "+5");
@@ -3531,7 +3610,7 @@ void ResetScores()
 {
 	for (int client = 1; client <= MaxClients; client++)
 	{
-		if (g_Gamemode == GAMEMODE_WIPEOUT)
+		if (SpecialRound == WIPEOUT)
 		{
 			g_Points[client] = 3;
 		}
@@ -3689,6 +3768,20 @@ void InitMinigame()
 	}
 }
 
+public Action Player_Say(Handle event, const char[] name, bool dontBroadcast)
+{
+	if (!GetConVarBool(ww_enable))
+	{
+		return Plugin_Continue;
+	}
+
+	char message[256];
+	int client = GetClientOfUserId(GetEventInt(event, "userid"));
+	GetEventString(event, "text", message, sizeof (message));
+
+	return DispatchOnPlayerChatSay(client, message);
+}
+
 public void Player_Spawn(Handle event, const char[] name, bool dontBroadcast)
 {
 	if (!GetConVarBool(ww_enable))
@@ -3769,43 +3862,11 @@ stock bool IsClientParticipating(int iClient)
 
 void SetGameMode()
 {
-	int iOld	  = g_Gamemode;
-	int iGamemode = GetConVarInt(ww_gamemode);
-
-	if (iGamemode >= 0)
+	for (int client = 1; client <= MaxClients; client++)
 	{
-		g_Gamemode = iGamemode;
-	}
-	else
-	{
-		g_Gamemode = GAMEMODE_NORMAL;
-		int iRoll  = GetRandomInt(0, 100);
-
-		if (iRoll <= 5)
+		if (IsValidClient(client) && IsPlayerAlive(client))
 		{
-			g_Gamemode = GAMEMODE_WIPEOUT;
-		}
-	}
-
-	if (iOld == GAMEMODE_WIPEOUT && g_Gamemode != iOld)
-	{
-		for (int i = 1; i <= MaxClients; i++)
-		{
-			if (IsValidClient(i) && IsPlayerAlive(i))
-			{
-				SetWipeoutPosition(i, false);
-			}
-		}
-	}
-
-	if (g_Gamemode == GAMEMODE_WIPEOUT && g_Gamemode != iOld)
-	{
-		for (int i = 1; i <= MaxClients; i++)
-		{
-			if (IsValidClient(i) && IsPlayerAlive(i))
-			{
-				SetWipeoutPosition(i, true);
-			}
+			SetWipeoutPosition(client, (SpecialRound == WIPEOUT));
 		}
 	}
 }
@@ -3858,7 +3919,7 @@ public Action Timer_HandleWOLives(Handle hTimer, any iClient)
 
 void HandleWipeoutLives(int iClient, bool bMessage = false)
 {
-	if (g_Gamemode == GAMEMODE_WIPEOUT && IsValidClient(iClient) && IsPlayerAlive(iClient) && g_Points[iClient] <= 0)
+	if (SpecialRound == WIPEOUT && IsValidClient(iClient) && IsPlayerAlive(iClient) && g_Points[iClient] <= 0)
 	{
 		if (bMessage)
 		{

@@ -67,6 +67,11 @@ methodmap Microgame < Handle
 	{
 	}
 
+	public bool OnPlayerChatMessage(int client, const char[] message)
+	{
+		return false;
+	}
+
 	/* Game */
 
 	public void OnMicrogameTimer(int timeLeft)

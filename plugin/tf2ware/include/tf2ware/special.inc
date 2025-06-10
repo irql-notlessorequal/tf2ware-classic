@@ -31,7 +31,7 @@
 */
 #pragma newdecls required
 
-#define SPECIAL_TOTAL 7
+#define SPECIAL_TOTAL	8
 
 bool Special_TwoBosses = false;
 
@@ -44,9 +44,7 @@ char var_special_name[][] =
 	"LEAST IS BEST",
 	"BONK",
 	"THIRDPERSON",
-#if 0
 	"WIPEOUT"
-#endif
 };
 
 char var_special_phrases[][] =
@@ -58,9 +56,7 @@ char var_special_phrases[][] =
 	"Special_LeastIsBest",
 	"Special_Bonk",
 	"Special_ThirdPerson",
-#if 0
 	"Special_Wipeout"
-#endif
 };
 
 public void Special_NoTouch(int entity, int other)

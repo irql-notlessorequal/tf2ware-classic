@@ -9,17 +9,11 @@ methodmap Math < Microgame
 		return view_as<Math>(MG_MATH);
 	}
 
-	public void OnMicrogameSetup()
-	{
-		RegConsoleCmd("say", Math_Player_Say);
-		RegConsoleCmd("say_team", Math_Player_Say);
-	}
-
 	public void OnMicrogameStart()
 	{
-		int random1 = GetRandomInt(3, 15);
-		int random2 = GetRandomInt(3, 15);
-		int form = GetRandomInt(1,3);
+		int random1 = GetRandomInt(2, 16);
+		int random2 = GetRandomInt(2, 16);
+		int form = GetRandomInt(1, 3);
 		char formString[12];
 	
 		if (form == 1)
@@ -30,7 +24,7 @@ methodmap Math < Microgame
 			 */
 			if (GetRandomInt(1, 50) == 1)
 			{
-				random1 = GetRandomInt(1,9)*1000;
+				random1 = GetRandomInt(1, 9) * 1000;
 				random2 = 9001 - random1;
 			}
 
@@ -74,6 +68,88 @@ methodmap Math < Microgame
 			ShowHudText(client, 5, "%s = ?", MathQuestion);
 		}
 	}
+
+	public bool OnPlayerChatMessage(int client, const char[] message)
+	{
+		if (!IsValidClient(client))
+		{
+			return false;
+		}
+
+		if (!IsClientParticipating(client))
+		{
+			return false;
+		}
+
+		if (IsPlayerAlive(client) && (status == 2) && (g_Complete[client] == false))
+		{		
+			if (!Math_IsStringANumber(message))
+			{
+				return false;
+			}
+		
+			int guess = StringToInt(message);
+		
+			if (guess == g_result)
+			{
+				SetHudTextParams(
+					.x = -1.0,
+					.y = 0.4,
+					.holdTime = 3.0,
+					.r = 0,
+					.g = 255,
+					.b = 0,
+					.a = 255,
+					.effect = 0,
+					.fxTime = 6.0,
+					.fadeIn = 0.2,
+					.fadeOut = 0.5
+				);
+
+				// Replace the current display to include the guess instead of a question mark
+				ShowHudText(client, 5, "%s = %d", MathQuestion, guess);            
+				SetStateClient(client, true, true);
+
+				if (!g_first)
+				{
+					for (int i = 1; i <= MaxClients; i++)
+					{
+						if (IsValidClient(i))
+						{
+							CPrintToChatEx(i, client, "{teamcolor}%N{green} guessed the answer first!", client);
+						}
+					}
+
+					g_first = true;
+				}
+
+				return true;
+			}
+			else
+			{
+				SetHudTextParams(
+					.x = -1.0,
+					.y = 0.4,
+					.holdTime = 3.0,
+					.r = 255,
+					.g = 0,
+					.b = 0,
+					.a = 255,
+					.effect = 0,
+					.fxTime = 6.0,
+					.fadeIn = 0.2,
+					.fadeOut = 0.5
+				);
+
+				// Use a notequals sign!
+				ShowHudText(client, 5, "%s = %d", MathQuestion, guess);
+				ForcePlayerSuicide(client);
+				return false;
+			}        
+		}
+
+		return false;
+	}
 }
 
 stock bool Math_IsStringANumber(const char arg[64])
@@ -90,100 +166,4 @@ stock bool Math_IsStringANumber(const char arg[64])
 	{
 		return false;
 	}
-}
-
-Action Math_Player_Say(int iClient, int iArgs)
-{
-	// Check to make sure this is happening during the math minigame
-	if (view_as<Microgames>(currentMicrogame) != MG_MATH)
-	{
-		return Plugin_Continue;
-	}
-
-	if (iArgs < 1)
-	{
-		return Plugin_Continue;
-	}
-
-	if (!(IsValidClient(iClient)))
-	{
-		return Plugin_Continue;
-	}
-
-	if (!IsClientParticipating(iClient))
-	{
-		return Plugin_Continue;
-	}
-	
-	if (IsPlayerAlive(iClient) && (status == 2) && (g_Complete[iClient] == false))
-	{
-		// Retrieve the first argument and check it's a valid trigger
-		char strArgument[64];
-		GetCmdArg(1, strArgument, sizeof(strArgument));
-		
-		if (!Math_IsStringANumber(strArgument))
-		{
-			return Plugin_Continue;
-		}
-		
-		new guess = StringToInt(strArgument);
-		
-		if (guess == g_result)
-		{
-			SetHudTextParams(
-				.x = -1.0,
-				.y = 0.4,
-				.holdTime = 3.0,
-				.r = 0,
-				.g = 255,
-				.b = 0,
-				.a = 255,
-				.effect = 0,
-				.fxTime = 6.0,
-				.fadeIn = 0.2,
-				.fadeOut = 0.5
-			);
-
-			// Replace the current display to include the guess instead of a question mark
-			ShowHudText(iClient, 5, "%s = %d", MathQuestion, guess);            
-			SetStateClient(iClient, true, true);
-
-			if (!g_first)
-			{
-				for (int i = 1; i <= MaxClients; i++)
-				{
-					if (IsValidClient(i))
-					{
-						CPrintToChatEx(i, iClient, "{teamcolor}%N{green} guessed the answer first!", iClient);
-					}
-				}
-
-				g_first = true;
-			}
-
-			return Plugin_Handled;
-		}
-		else
-		{
-			SetHudTextParams(
-				.x = -1.0,
-				.y = 0.4,
-				.holdTime = 3.0,
-				.r = 255,
-				.g = 0,
-				.b = 0,
-				.a = 255,
-				.effect = 0,
-				.fxTime = 6.0,
-				.fadeIn = 0.2,
-				.fadeOut = 0.5
-			);
-
-			// Use a notequals sign!
-			ShowHudText(iClient, 5, "%s = %d", MathQuestion, guess);
-			ForcePlayerSuicide(iClient);
-			return Plugin_Continue;
-		}        
-	}
-	return Plugin_Continue;
 }

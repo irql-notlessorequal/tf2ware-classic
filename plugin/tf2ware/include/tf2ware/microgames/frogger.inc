@@ -149,7 +149,8 @@ methodmap Frogger < Microgame
 				if (pos[1] > 3751.0 && g_Complete[i] == false )
 				{
 					bool bWin = true;
-					if (g_Gamemode == GAMEMODE_WIPEOUT && g_Frogger_Goal)
+
+					if (SpecialRound == WIPEOUT && g_Frogger_Goal)
 					{
 						bWin = false;
 					}
@@ -163,7 +164,7 @@ methodmap Frogger < Microgame
 
 						if (!g_Frogger_Goal)
 						{
-							if (g_Gamemode == GAMEMODE_WIPEOUT)
+							if (SpecialRound == WIPEOUT)
 							{
 								CreateTimer(0.1, Frogger_Timer);
 								g_Frogger_Timer = 0;

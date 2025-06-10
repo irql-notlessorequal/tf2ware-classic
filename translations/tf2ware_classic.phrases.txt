@@ -84,7 +84,7 @@
 
 	"Special_Wipeout"
 	{
-		"en"	"#PLACEHOLDER"
+		"en"	"Now It's Personal!"
 	}
 
 	"Frogger_MadeItFirst"

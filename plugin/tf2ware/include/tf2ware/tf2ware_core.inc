@@ -79,10 +79,9 @@
 #define PARTICLE_WIN_BLUE		"teleportedin_blue"
 #define PARTICLE_WIN_RED		"teleportedin_red"
 
+#define TF2_WEARABLE_RAZORBACK	57
 #define TF2_PLAYER_TAUNTING		(1 << 7)	 // 128 = Taunting
 
-#define GAMEMODE_NORMAL			0
-#define GAMEMODE_WIPEOUT		1
 #define GAMEMODE_WIPEOUT_HEIGHT 1190.0
 
 #define WW_BOMB				"pl_hoodoo/alarm_clock_ticking_3.wav"
@@ -140,9 +139,7 @@ enum SpecialRounds
 	LEAST_IS_BEST,
 	BONK,
 	THIRDPERSON,
-#if 0
 	WIPEOUT
-#endif
 };
 
 enum Microgames

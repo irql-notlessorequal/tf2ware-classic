@@ -52,12 +52,6 @@ methodmap ColorText < Microgame
 		return view_as<ColorText>(MG_COLOR_TEXT);
 	}
 
-	public void OnMicrogameSetup()
-	{
-		RegConsoleCmd("say", ColorText_Player_Say);
-		RegConsoleCmd("say_team", ColorText_Player_Say);
-	}
-
 	public void OnMicrogameStart()
 	{
 		ColorTextSync = CreateHudSynchronizer();
@@ -91,46 +85,38 @@ methodmap ColorText < Microgame
 	{
 		CloseHandle(ColorTextSync);
 	}
-}
 
-public Action ColorText_Player_Say(int iClient, int iArgs)
-{
-	if (ColorTextSync == INVALID_HANDLE)
+	public bool OnPlayerChatMessage(int client, const char[] message)
 	{
-		return Plugin_Continue;
-	}
-
-	if (iArgs < 1)
-	{
-		return Plugin_Continue;
-	}
-
-	if (!IsValidClient(iClient))
-	{
-		return Plugin_Continue;
-	}
-
-	if (!IsClientParticipating(iClient))
-	{
-		return Plugin_Continue;
-	}
-
-	if ((IsPlayerAlive(iClient)) && (status == 2) && (g_Complete[iClient] == false))
-	{
-		// Retrieve the first argument and check it's the correct color
-		char strArgument[64];
-		GetCmdArg(1, strArgument, sizeof(strArgument));
-		
-		if (!strncmp(g_sColors[color_target], strArgument, 2, false))
+		if (ColorTextSync == INVALID_HANDLE)
 		{
-			SetStateClient(iClient, true, true);
-			return Plugin_Handled;
+			return false;
 		}
-		else
-		{
-			ForcePlayerSuicide(iClient);
-		}
-	}
 
-	return Plugin_Continue;
+		if (!IsValidClient(client))
+		{
+			return false;
+		}
+
+		if (!IsClientParticipating(client))
+		{
+			return false;
+		}
+
+		if ((IsPlayerAlive(client)) && (status == 2) && (g_Complete[client] == false))
+		{
+			if (!strncmp(g_sColors[color_target], message, 2, false))
+			{
+				SetStateClient(client, true, true);
+				return true;
+			}
+			else
+			{
+				ForcePlayerSuicide(client);
+				return false;
+			}			
+		}
+
+		return false;
+	}
 }

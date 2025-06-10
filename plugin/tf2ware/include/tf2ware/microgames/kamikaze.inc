@@ -135,7 +135,8 @@ methodmap Kamikaze < Microgame
 						g_bomb = 0;
 					}
 			
-					g_bomb = CreateEntityByName("tf_wearable");
+					g_bomb = CreateEntityByName("tf_wearable_razorback");
+
 					if (IsValidEdict(g_bomb))
 					{ 
 						/**
@@ -143,17 +144,14 @@ methodmap Kamikaze < Microgame
 						 * 
 						 * Fuck you Valve and your restrictions.
 						 */
-						SetEntProp(g_bomb, Prop_Send, "m_nModelIndex", PrecacheModel(WW_BOMB_MODEL));
+						SetEntProp(g_bomb, Prop_Send, "m_iItemDefinitionIndex", TF2_WEARABLE_RAZORBACK);
+						SetEntProp(g_bomb, Prop_Send, "m_nModelIndexOverrides", PrecacheModel(WW_BOMB_MODEL));
 						SetEntProp(g_bomb, Prop_Send, "m_bValidatedAttachedEntity", true);
 						SetEntProp(g_bomb, Prop_Send, "m_hOwnerEntity", client);
 
 						if (DispatchSpawn(g_bomb))
 						{
 							MalletEquipWearable(client, g_bomb);
-							if (!ParentEntity(client, g_bomb, "flag"))
-							{
-								PrintToServer("[TF2Ware Classic] [Kamikaze] Failed to parent bomb onto player!");
-							}
 						}
 						else
 						{
