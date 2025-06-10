@@ -73,51 +73,42 @@ methodmap Spycrab < Microgame
 			float ang[3];
 			int duck;
 		
-			for (int i = 1; i <= MaxClients; i++)
+			for (int client = 1; client <= MaxClients; client++)
 			{
 				min = -35.0;
-				if (IsValidClient(i) && IsPlayerAlive(i) && IsClientParticipating(i))
+				if (IsValidClient(client) && IsPlayerAlive(client) && IsClientParticipating(client))
 				{
-					if (GetEntProp(i, Prop_Send, "m_nPlayerCond") & 16) 
+					if (GetEntProp(client, Prop_Send, "m_nPlayerCond") & 16) 
 					{
-						SetEntProp(i, Prop_Send, "m_nPlayerCond", 0);
+						SetEntProp(client, Prop_Send, "m_nPlayerCond", 0);
 					}
 
-					SetEntPropFloat(i, Prop_Send, "m_flCloakMeter", 0.0);
-					TF2_RemovePlayerDisguise(i);
+					SetEntPropFloat(client, Prop_Send, "m_flCloakMeter", 0.0);
+					TF2_RemovePlayerDisguise(client);
 				
-					duck = (GetEntData(i, FindSendPropInfo("CTFPlayer", "m_fFlags")) & 2);
+					duck = (GetEntData(client, FindSendPropInfo("CTFPlayer", "m_fFlags")) & 2);
 			  
-					GetClientEyeAngles(i, ang);
+					GetClientEyeAngles(client, ang);
 					
 					if (ang[0] > min || duck == 0)
 					{
-						ForcePlayerSuicide(i);
-						SetStateClient(i, false, true);
-						// Explain to the client what he should've done so he isn't left clueless.
-						// We should probably add a translation file but I have no clue how those work D:
-#if 0
-						if (g_Country[i] == 1)
+						ForcePlayerSuicide(client);
+						SetStateClient(client, false, true);
+
+						/**
+						 * Explain to the client what he should've done so he isn't left clueless.
+						 */
+						if (ang[0] > min && duck == 0)
 						{
-							if (ang[0] > min && duck == 0) CPrintToChat(i, "{default}Le spycrab {red}si abbassano {default}e {red}guardano su{default}!");
-							else if (ang[0] > min) CPrintToChat(i, "{default}Le spycrab {default}si abbassano e {red}guardano su{default}!");
-							else CPrintToChat(i, "{default}Le spycrab {red}si abbassano{default} e guardano su!");
+							CPrintToChat(client, "%T", "SpyCrab_NoAction", client);
+						}
+						else if (ang[0] > min)
+						{
+							CPrintToChat(client, "%T", "SpyCrab_NotLookingUp", client);
 						}
 						else
-#endif
 						{
-							if (ang[0] > min && duck == 0)
-							{
-								CPrintToChat(i, "{default}Spycrabs {red}crouch {default}and {red}look up{default}!");
-							}
-							else if (ang[0] > min)
-							{
-								CPrintToChat(i, "{default}Spycrabs {default}crouch and {red}look up{default}!");
-							}
-							else
-							{
-								CPrintToChat(i, "{default}Spycrabs {red}crouch{default} and look up!");
-							}
+							CPrintToChat(client, "%T", "SpyCrab_NotCrouching", client);
 						}
 					}
 				}

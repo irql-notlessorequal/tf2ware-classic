@@ -74,9 +74,9 @@ methodmap Ghostbusters < Microgame
 		SetConVarInt(FindConVar("mp_teams_unbalance_limit"), 0);
 		SetConVarInt(FindConVar("mp_autoteambalance"), 0);
 	
-		for (int i = 1; i <= MaxClients; i++)
+		for (int client = 1; client <= MaxClients; client++)
 		{
-			g_Mission[i] = GHOSTBUSTERS_SPY;
+			g_Mission[client] = GHOSTBUSTERS_SPY;
 		}
 
 		int AllPlayers = GetClientCount(true);
@@ -145,28 +145,28 @@ methodmap Ghostbusters < Microgame
 		 * have voicelines generated, discard any other
 		 * type of player.
 		 */
-		for (int i = 1; i <= MaxClients; i++)
+		for (int client = 1; client <= MaxClients; client++)
 		{
-			if (IsValidClient(i) && IsClientParticipating(i))
+			if (IsValidClient(client) && IsClientParticipating(client))
 			{
 				/**
 				 * Medics need to kill all ghosts to win,
 				 * undead and spies win by default.
 				 */
-				SetStateClient(i, (g_Mission[i] != GHOSTBUSTERS_MEDIC));
+				SetStateClient(client, (g_Mission[client] != GHOSTBUSTERS_MEDIC));
 
-				if (g_Mission[i] == GHOSTBUSTERS_SPY)
+				if (g_Mission[client] == GHOSTBUSTERS_SPY)
 				{
-					SpyClients[i - 1] = i;
+					SpyClients[client - 1] = client;
 				}    
 			}
 		}
 	
-		for (int i = 1; i <= MaxClients; i++)
+		for (int client = 1; client <= MaxClients; client++)
 		{
-			if (IsValidClient(i) && IsPlayerAlive(i))
+			if (IsValidClient(client) && IsPlayerAlive(client))
 			{
-				SetEntProp(i, Prop_Send, "m_bGlowEnabled", 1);
+				SetEntProp(client, Prop_Send, "m_bGlowEnabled", 1);
 			}
 		}
 	
@@ -182,23 +182,23 @@ methodmap Ghostbusters < Microgame
 		SetConVarInt(FindConVar("mp_teams_unbalance_limit"), 1);
 		SetConVarInt(FindConVar("mp_autoteambalance"), 1);
 	
-		for (int i = 1; i <= MaxClients; i++)
+		for (int client = 1; client <= MaxClients; client++)
 		{
-			SDKUnhook(i, SDKHook_OnTakeDamage, Ghostbusters_Damage);
+			SDKUnhook(client, SDKHook_OnTakeDamage, Ghostbusters_Damage);
 
-			if (IsValidClient(i) && IsClientParticipating(i))
+			if (IsValidClient(client) && IsClientParticipating(client))
 			{
-				StopSound(i, SND_CHANNEL_SPECIFIC, MUSIC_GHOSTB);
+				StopSound(client, SND_CHANNEL_SPECIFIC, MUSIC_GHOSTB);
 
-				if (IsPlayerAlive(i))
+				if (IsPlayerAlive(client))
 				{
-					Ghostbusters_FixSlap(i);
+					Ghostbusters_FixSlap(client);
 
-					SetEntityRenderMode(i, RENDER_NORMAL);
-					SetEntityRenderColor(i, 255, 255, 255, 255);
+					SetEntityRenderMode(client, RENDER_NORMAL);
+					SetEntityRenderColor(client, 255, 255, 255, 255);
 				
-					int default_fov = GetEntProp(i, Prop_Send, "m_iDefaultFOV"); 
-					SetEntProp(i, Prop_Send, "m_iFOV", default_fov);
+					int default_fov = GetEntProp(client, Prop_Send, "m_iDefaultFOV"); 
+					SetEntProp(client, Prop_Send, "m_iFOV", default_fov);
 				}
 			}
 		}
@@ -436,14 +436,14 @@ Action Ghostbusters_Check(Handle timer)
 
 	int winner = 0;
 
-	for (int i = 1; i <= MaxClients; i++)
+	for (int client = 1; client <= MaxClients; client++)
 	{
-		if (IsValidClient(i) && IsClientParticipating(i) && (g_Mission[i] == GHOSTBUSTERS_SPY) && IsPlayerAlive(i))
+		if (IsValidClient(client) && IsClientParticipating(client) && (g_Mission[client] == GHOSTBUSTERS_SPY) && IsPlayerAlive(client))
 		{
 			complete_medic = false;
 		}
 
-		if (IsValidClient(i) && IsClientParticipating(i) && (g_Mission[i] == GHOSTBUSTERS_MEDIC) && IsPlayerAlive(i))
+		if (IsValidClient(client) && IsClientParticipating(client) && (g_Mission[client] == GHOSTBUSTERS_MEDIC) && IsPlayerAlive(client))
 		{
 			complete_spy = false;
 		}
@@ -473,40 +473,40 @@ Action Ghostbusters_Check(Handle timer)
 			CPrintToChatAll("{lightgreen}All medics are dead... {green}surviving undead win!");
 		}
 
-		for (int i = 1; i <= MaxClients; i++)
+		for (int client = 1; client <= MaxClients; client++)
 		{
 			if (winner == 1)
 			{
-				if (IsValidClient(i) && IsClientParticipating(i) && (g_Mission[i] == GHOSTBUSTERS_MEDIC) && IsPlayerAlive(i))
+				if (IsValidClient(client) && IsClientParticipating(client) && (g_Mission[client] == GHOSTBUSTERS_MEDIC) && IsPlayerAlive(client))
 				{
-					SetStateClient(i, true, true);
+					SetStateClient(client, true, true);
 				}
 
-				if (IsValidClient(i) && IsClientParticipating(i) && (g_Mission[i] != GHOSTBUSTERS_MEDIC))
+				if (IsValidClient(client) && IsClientParticipating(client) && (g_Mission[client] != GHOSTBUSTERS_MEDIC))
 				{
-					SetStateClient(i, false, true);
+					SetStateClient(client, false, true);
 
-					if (IsPlayerAlive(i))
+					if (IsPlayerAlive(client))
 					{
-						ForcePlayerSuicide(i);
+						ForcePlayerSuicide(client);
 					}
 				}
 			}
 
 			if (winner == 2)
 			{
-				if (IsValidClient(i) && IsClientParticipating(i) && (g_Mission[i] != GHOSTBUSTERS_MEDIC) && IsPlayerAlive(i))
+				if (IsValidClient(client) && IsClientParticipating(client) && (g_Mission[client] != GHOSTBUSTERS_MEDIC) && IsPlayerAlive(client))
 				{
-					SetStateClient(i, true, true);
+					SetStateClient(client, true, true);
 				}
 
-				if (IsValidClient(i) && IsClientParticipating(i) && (g_Mission[i] == GHOSTBUSTERS_MEDIC))
+				if (IsValidClient(client) && IsClientParticipating(client) && (g_Mission[client] == GHOSTBUSTERS_MEDIC))
 				{
-					SetStateClient(i, false, true);
+					SetStateClient(client, false, true);
 					
-					if (IsPlayerAlive(i))
+					if (IsPlayerAlive(client))
 					{
-						ForcePlayerSuicide(i);
+						ForcePlayerSuicide(client);
 					}
 				}
 			}

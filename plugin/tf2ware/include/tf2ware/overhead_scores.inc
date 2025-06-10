@@ -158,18 +158,18 @@ stock void DestroySprite(int client)
 
 stock void OverheadScoresUpdate()
 {
-	for (int i = 1; i <= MaxClients; i++)
+	for (int client = 1; client <= MaxClients; client++)
 	{
-		int ent = g_Sprites[i];
-		if (ent > 0 && IsClientInGame(i))
+		int ent = g_Sprites[client];
+		if (ent > 0 && IsClientInGame(client))
 		{
 			float vOrigin[3];
-			GetClientAbsOrigin(i, vOrigin);
+			GetClientAbsOrigin(client, vOrigin);
 
 			vOrigin[2] += OVERHEAD_SCORE_OFFSET;
 
 			float vVelocity[3];
-			GetEntDataVector(i, gVelocityOffset, vVelocity);
+			GetEntDataVector(client, gVelocityOffset, vVelocity);
 
 			TeleportEntity(ent, vOrigin, NULL_VECTOR, vVelocity);
 		}

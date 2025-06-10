@@ -97,4 +97,19 @@
 	{
 		"en"	"The boss will end in {red}10 seconds{default}!"
 	}
+
+	"SpyCrab_NoAction"
+	{
+		"en"	"{default}Spycrabs {red}crouch {default}and {red}look up{default}!"
+	}
+
+	"SpyCrab_NotLookingUp"
+	{
+		"en"	"{default}Spycrabs {default}crouch and {red}look up{default}!"
+	}
+
+	"SpyCrab_NotCrouching"
+	{
+		"en"	"{default}Spycrabs {red}crouch{default} and look up!"
+	}
 }

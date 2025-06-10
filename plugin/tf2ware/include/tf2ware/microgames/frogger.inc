@@ -31,9 +31,9 @@ methodmap Frogger < Microgame
 		g_Frogger_Timer = 11;
 		g_Frogger_Goal = false;
 	
-		for (int i = 1; i <= MaxClients; i++)
+		for (int client = 1; client <= MaxClients; client++)
 		{
-			g_Frogger_Pos[i] = 0;
+			g_Frogger_Pos[client] = 0;
 		}
 	}
 
@@ -104,49 +104,49 @@ methodmap Frogger < Microgame
 			return;
 		}
 		
-		for (int i = 1; i <= MaxClients; i++)
+		for (int client = 1; client <= MaxClients; client++)
 		{
-			if (IsValidClient(i) && IsPlayerAlive(i))
+			if (IsValidClient(client) && IsPlayerAlive(client))
 			{
 				float pos[3];
-				GetClientAbsOrigin(i, pos);
+				GetClientAbsOrigin(client, pos);
 			
 				// checkpoints
-				if (pos[1] >= -1566.0 && g_Frogger_Pos[i] < 1)
+				if (pos[1] >= -1566.0 && g_Frogger_Pos[client] < 1)
 				{
-					g_Frogger_Pos[i] = 1;
+					g_Frogger_Pos[client] = 1;
 				}
-				else if (pos[1] >= -209.0 && g_Frogger_Pos[i] < 2)
+				else if (pos[1] >= -209.0 && g_Frogger_Pos[client] < 2)
 				{
-					g_Frogger_Pos[i] = 2;
+					g_Frogger_Pos[client] = 2;
 				}
-				else if (pos[1] >= 603.0 && g_Frogger_Pos[i] < 3)
+				else if (pos[1] >= 603.0 && g_Frogger_Pos[client] < 3)
 				{
-					g_Frogger_Pos[i] = 3;
+					g_Frogger_Pos[client] = 3;
 				}
-				else if (pos[1] >= 1322.0 && g_Frogger_Pos[i] < 4)
+				else if (pos[1] >= 1322.0 && g_Frogger_Pos[client] < 4)
 				{
-					g_Frogger_Pos[i] = 4;
+					g_Frogger_Pos[client] = 4;
 				}
-				else if (pos[1] >= 1873.0 && g_Frogger_Pos[i] < 5)
+				else if (pos[1] >= 1873.0 && g_Frogger_Pos[client] < 5)
 				{
-					g_Frogger_Pos[i] = 5;
+					g_Frogger_Pos[client] = 5;
 				}
-				else if (pos[1] >= 2831.0 && pos[0] >= 8020.0 && g_Frogger_Pos[i] < 6)
+				else if (pos[1] >= 2831.0 && pos[0] >= 8020.0 && g_Frogger_Pos[client] < 6)
 				{
-					g_Frogger_Pos[i] = 6;
+					g_Frogger_Pos[client] = 6;
 				}
-				else if (pos[1] >= 2831.0 && pos[0] >= 8932.0 && g_Frogger_Pos[i] < 7)
+				else if (pos[1] >= 2831.0 && pos[0] >= 8932.0 && g_Frogger_Pos[client] < 7)
 				{
-					g_Frogger_Pos[i] = 7;
+					g_Frogger_Pos[client] = 7;
 				}
-				else if (pos[1] >= 2935.0 && pos[0] >= 9468.0 && g_Frogger_Pos[i] < 8)
+				else if (pos[1] >= 2935.0 && pos[0] >= 9468.0 && g_Frogger_Pos[client] < 8)
 				{
-					g_Frogger_Pos[i] = 8;
+					g_Frogger_Pos[client] = 8;
 				}
 			
 				// goal
-				if (pos[1] > 3751.0 && g_Complete[i] == false )
+				if (pos[1] > 3751.0 && g_Complete[client] == false )
 				{
 					bool bWin = true;
 
@@ -157,10 +157,10 @@ methodmap Frogger < Microgame
 				
 					if (bWin)
 					{
-						SetStateClient(i, true, true);
+						SetStateClient(client, true, true);
 					
-						CPrintToChatAllEx(i, "{teamcolor}%N{default} made it to the goal first!", i);
-						g_Frogger_Pos[i] = 99;
+						CPrintToChatAllEx(client, "{teamcolor}%N{default} made it to the goal first!", client);
+						g_Frogger_Pos[client] = 99;
 
 						if (!g_Frogger_Goal)
 						{

@@ -17,25 +17,25 @@ methodmap Barrel < Microgame
 
 		DestroyAllBarrels();
 	
-		for (int i = 1; i <= MaxClients; i++)
+		for (int client = 1; client <= MaxClients; client++)
 		{
-			if (IsValidClient(i) && IsClientParticipating(i))
+			if (IsValidClient(client) && IsClientParticipating(client))
 			{
-				GetClientAbsOrigin(i, pos);
-				g_Barrels[i] = CreateEntityByName("prop_physics");
+				GetClientAbsOrigin(client, pos);
+				g_Barrels[client] = CreateEntityByName("prop_physics");
 			
-				if (IsValidEdict(g_Barrels[i]))
+				if (IsValidEdict(g_Barrels[client]))
 				{
-					DispatchKeyValue(g_Barrels[i], "model", "models/props_farm/wooden_barrel.mdl");
-					DispatchSpawn(g_Barrels[i]);
+					DispatchKeyValue(g_Barrels[client], "model", "models/props_farm/wooden_barrel.mdl");
+					DispatchSpawn(g_Barrels[client]);
 
 					vel[0] = GetRandomFloat(-300.0, 300.0);
 					vel[1] = GetRandomFloat(-300.0, 300.0);
 					vel[2] = GetRandomFloat(100.0, 300.0);
 					pos[2] += 150;
 
-					TeleportEntity(g_Barrels[i], pos, NULL_VECTOR, vel);
-					SDKHook(g_Barrels[i], SDKHook_OnTakeDamage, Barrel_OnTakeDamage);
+					TeleportEntity(g_Barrels[client], pos, NULL_VECTOR, vel);
+					SDKHook(g_Barrels[client], SDKHook_OnTakeDamage, Barrel_OnTakeDamage);
 				}    
 			}
 		}
@@ -59,24 +59,25 @@ methodmap Barrel < Microgame
 
 void DestroyAllBarrels()
 {
-	for (int i = 1; i <= MaxClients; i++)
+	for (int client = 1; client <= MaxClients; client++)
 	{
-		if (g_Barrels[i] > 0 && IsValidEntity(g_Barrels[i]))
+		if (g_Barrels[client] > 0 && IsValidEntity(g_Barrels[client]))
 		{
-				DestroyBarrel(g_Barrels[i]);
+			DestroyBarrel(g_Barrels[client]);
 		}
-		g_Barrels[i] = -1;
+
+		g_Barrels[client] = -1;
 	}    
 }
 
 public Action Barrel_OnTakeDamage(int victim, int &attacker, int &inflictor, float &damage, int &damagetype)
 {
-	for (int i = 1; i <= MaxClients; i++)
+	for (int client = 1; client <= MaxClients; client++)
 	{
-		if (g_Barrels[i] > 0 && IsValidEntity(g_Barrels[i]) && (g_Barrels[i] == victim))
+		if (g_Barrels[client] > 0 && IsValidEntity(g_Barrels[client]) && (g_Barrels[client] == victim))
 		{
 			DestroyBarrel(victim);
-			g_Barrels[i] = -1;
+			g_Barrels[client] = -1;
 			
 			if (IsValidClient(attacker))
 			{
@@ -94,6 +95,7 @@ void DestroyBarrel(int ent)
 	{
 		char strClassname[64];
 		GetEdictClassname(ent, strClassname, sizeof(strClassname));
+		
 		if (StrEqual(strClassname, "prop_physics", false))
 		{
 			AcceptEntityInput(ent, "Kill" );

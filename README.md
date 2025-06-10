@@ -14,7 +14,7 @@ The original TF2Ware from 2011, fixed up and working!
 - [ ] Move to a different map with additional fixes. (tf2ware_classic)
 - [ ] Mitigate player collisions with more than 24 players.
 - [ ] Fix the gamemode misbehaving when loading in the map.
-- [ ] Fix the flood microgame killing you twice at higher speeds.
+- [x] Fix the flood microgame killing you twice at higher speeds.
 
 # Installation.
 

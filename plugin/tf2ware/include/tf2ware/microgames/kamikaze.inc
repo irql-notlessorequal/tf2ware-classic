@@ -47,11 +47,11 @@ methodmap Kamikaze < Microgame
 
 	public void OnMicrogameEnd()
 	{
-		for (int i = 1; i <= MaxClients; i++)
+		for (int client = 1; client <= MaxClients; client++)
 		{
-			if (IsValidClient(i) && (g_Mission[i] == 1) && (g_result >= 2))
+			if (IsValidClient(client) && (g_Mission[client] == 1) && g_result >= 2)
 			{
-				SetStateClient(i, true);
+				SetStateClient(client, true);
 			}
 		}		
 	}
@@ -77,21 +77,21 @@ methodmap Kamikaze < Microgame
 
 	public void OnMicrogameTimer(int timeLeft)
 	{
-		for (int i = 1; i <= MaxClients; i++)
+		for (int client = 1; client <= MaxClients; client++)
 		{
-			if (IsValidClient(i) && IsPlayerAlive(i) && (g_Mission[i] == 1))
+			if (IsValidClient(client) && IsPlayerAlive(client) && (g_Mission[client] == 1))
 			{
 				if (timeLeft > 2)
 				{
-					ClientParticle(i, PARTICLE_BOMB, 2.0);
+					ClientParticle(client, PARTICLE_BOMB, 2.0);
 				}
 			
 				if (timeLeft == 2)
 				{
-					ClientParticle(i, PARTICLE_EXPLODE, 8.0);
+					ClientParticle(client, PARTICLE_EXPLODE, 8.0);
 
 					float pos[3];
-					GetClientAbsOrigin(i, pos);
+					GetClientAbsOrigin(client, pos);
 						
 					PyroExplode(pos);
 					ExplosionDamage(pos);

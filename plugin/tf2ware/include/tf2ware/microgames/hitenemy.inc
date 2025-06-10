@@ -20,9 +20,9 @@ methodmap HitEnemy < Microgame
 
 	public void OnMicrogameEnd()
 	{
-		for (int i = 1; i <= MaxClients; i++)
+		for (int client = 1; client <= MaxClients; client++)
 		{
-			SDKUnhook(i, SDKHook_OnTakeDamage, HitEnemy_OnTakeDamageClient);
+			SDKUnhook(client, SDKHook_OnTakeDamage, HitEnemy_OnTakeDamageClient);
 		}
 	}
 

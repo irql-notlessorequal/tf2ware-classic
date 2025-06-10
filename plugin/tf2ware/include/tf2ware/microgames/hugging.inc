@@ -122,19 +122,19 @@ methodmap Hugging < Microgame
 			heavies--;
 		} while (heavies != 0);
 
-		for (int i = 1; i <= MaxClients; i++)
+		for (int client = 1; client <= MaxClients; client++)
 		{
-			if (IsValidClient(i) && IsClientParticipating(i))
+			if (IsValidClient(client) && IsClientParticipating(client))
 			{
-				if (g_Mission[i] == 0)
+				if (g_Mission[client] == 0)
 				{
-					SetStateClient(i, true);
-					scoutClients[i-1] = i;
+					SetStateClient(client, true);
+					scoutClients[client - 1] = client;
 				}
 				else
 				{
-					SetStateClient(i, false);
-					heavyClients[i-1] = i;
+					SetStateClient(client, false);
+					heavyClients[client - 1] = client;
 				}
 			}
 		}
@@ -147,10 +147,10 @@ methodmap Hugging < Microgame
 
 	public void OnMicrogameEnd()
 	{
-		for (int i = 1; i <= MaxClients; i++)
+		for (int client = 1; client <= MaxClients; client++)
 		{
-			SDKUnhook(i, SDKHook_OnTakeDamage, Hugging_OnTakeDamageClient);
-			SDKUnhook(i, SDKHook_Touch, Hugging_OnPlayerTouch);
+			SDKUnhook(client, SDKHook_OnTakeDamage, Hugging_OnTakeDamageClient);
+			SDKUnhook(client, SDKHook_Touch, Hugging_OnPlayerTouch);
 		}
 	}
 
@@ -238,9 +238,9 @@ Action Hugging_Check(Handle timer)
 	}
 
 	bool complete = true;
-	for (int i = 1; i <= MaxClients; i++)
+	for (int client = 1; client <= MaxClients; client++)
 	{
-		if (IsValidClient(i) && (g_Mission[i] == 0) && IsClientParticipating(i) && IsPlayerAlive(i))
+		if (IsValidClient(client) && (g_Mission[client] == 0) && IsClientParticipating(client) && IsPlayerAlive(client))
 		{
 			complete = false;
 		}
@@ -248,11 +248,11 @@ Action Hugging_Check(Handle timer)
 
 	if (complete)
 	{
-		for (int i = 1; i <= MaxClients; i++)
+		for (int client = 1; client <= MaxClients; client++)
 		{
-			if (IsValidClient(i) && (g_Mission[i] == 1) && IsClientParticipating(i))
+			if (IsValidClient(client) && (g_Mission[client] == 1) && IsClientParticipating(client))
 			{
-				SetStateClient(i, true, true);
+				SetStateClient(client, true, true);
 			}
 		}
 	}

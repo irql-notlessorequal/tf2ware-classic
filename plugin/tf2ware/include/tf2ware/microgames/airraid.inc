@@ -13,11 +13,11 @@ methodmap AirRaid < Microgame
 
 	public void OnMicrogameStart()
 	{
-		for (int i = 1; i <= MaxClients; i++)
+		for (int client = 1; client <= MaxClients; client++)
 		{
-			if (IsValidClient(i))
+			if (IsValidClient(client))
 			{
-				SDKHook(i, SDKHook_PreThink, Airblast_RemoveLeftClick);
+				SDKHook(client, SDKHook_PreThink, Airblast_RemoveLeftClick);
 			}
 		}
 	
@@ -44,21 +44,22 @@ methodmap AirRaid < Microgame
 
 	public void OnMicrogamePostEnd()
 	{
-		for (int i = 1; i <= MaxClients; i++)
+		for (int client = 1; client <= MaxClients; client++)
 		{
-			SDKUnhook(i, SDKHook_PreThink, Airblast_RemoveLeftClick);
+			SDKUnhook(client, SDKHook_PreThink, Airblast_RemoveLeftClick);
 		}
 	}
 }
 
-Action FireZeeMissiles(Handle hndl, any data)
+Action FireZeeMissiles(Handle handle, any data)
 {
 	float pos[3];
+	
 	float ang[3];
-
 	ang[0] = 90.0;
 
 	float rand;
+
 	for (int i = -2; i <= 2; i++)
 	{
 		for (int j = -2; j <= 2; j++)

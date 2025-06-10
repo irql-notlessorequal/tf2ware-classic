@@ -11,21 +11,26 @@ methodmap Flood < Microgame
 	{
 		SetStateAll(true);
 	
-		// Change the clients that are Scout into Demomen
-		for (int i = 1; i <= MaxClients; i++)
+		/**
+		 * Change the clients that are Scout into Demoman
+		 */
+		for (int client = 1; client <= MaxClients; client++)
 		{
-			if (IsValidClient(i))
+			if (IsValidClient(client))
 			{
-				TFClassType class = TF2_GetPlayerClass(i);
+				TFClassType class = TF2_GetPlayerClass(client);
+
 				if (class == TFClass_Scout)
 				{
-					SetClientClass(i, "demoman");
-					DisableClientWeapons(i);
+					SetClientClass(client, "demoman");
+					DisableClientWeapons(client);
 				}
 			}
 		}
 
-		// Spawns a barrel over a trigger to create the floor of death? xD
+		/**
+		 * Spawns a barrel over a trigger to create the floor of death? xD
+		 */
 		float pos[3];
 		int prop = CreateEntityByName("prop_physics");
 	

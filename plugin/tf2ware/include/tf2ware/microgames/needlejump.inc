@@ -19,13 +19,13 @@ methodmap NeedleJump < Microgame
 
 	public void OnMicrogameFrame()
 	{
-		for (int i = 1; i <= MaxClients; i++)
+		for (int client = 1; client <= MaxClients; client++)
 		{
-			if (IsValidClient(i) && IsPlayerAlive(i) && IsClientParticipating(i))
+			if (IsValidClient(client) && IsPlayerAlive(client) && IsClientParticipating(client))
 			{
-				if (g_Mission[i] == 0)
+				if (g_Mission[client] == 0)
 				{
-					PerformNeedleJump(i);
+					PerformNeedleJump(client);
 				}
 			}
 		}
@@ -35,14 +35,14 @@ methodmap NeedleJump < Microgame
 	{
 		if ((g_Needle_Type != 1 && timer == 3) || (g_Needle_Type == 1 && timer == 5))
 		{
-			for (int i = 1; i <= MaxClients; i++)
+			for (int client = 1; client <= MaxClients; client++)
 			{
-				if (IsValidClient(i) && IsPlayerAlive(i) && IsClientParticipating(i))
+				if (IsValidClient(client) && IsPlayerAlive(client) && IsClientParticipating(client))
 				{
 					float pos[3];
 					float fOrigin[3];
 
-					GetClientAbsOrigin(i, pos);
+					GetClientAbsOrigin(client, pos);
 
 					fOrigin[0] = pos[0];
 					fOrigin[1] = pos[1];
@@ -52,8 +52,8 @@ methodmap NeedleJump < Microgame
 				
 					if (pos[2] <= -55.0)
 					{
-						ForcePlayerSuicide(i);
-						SetStateClient(i, false, true);
+						ForcePlayerSuicide(client);
+						SetStateClient(client, false, true);
 					}
 				}
 			}
@@ -91,9 +91,9 @@ methodmap NeedleJump < Microgame
 
 	public void OnMicrogameEnd()
 	{
-		for (int i = 1; i <= MaxClients; i++)
+		for (int client = 1; client <= MaxClients; client++)
 		{
-			SDKUnhook(i, SDKHook_OnTakeDamage, NeedleJump_OnTakeDamageClient);
+			SDKUnhook(client, SDKHook_OnTakeDamage, NeedleJump_OnTakeDamageClient);
 		}
 	}
 }

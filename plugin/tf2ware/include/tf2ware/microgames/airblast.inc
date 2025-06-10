@@ -62,20 +62,20 @@ methodmap Airblast < Microgame
 
 	public void OnMicrogameEnd()
 	{
-		for (int i = 1; i <= MaxClients; i++)
+		for (int client = 1; client <= MaxClients; client++)
 		{
-			if (IsValidClient(i) && (!(IsPlayerAlive(i))) && IsClientParticipating(i))
+			if (IsValidClient(client) && !IsPlayerAlive(client) && IsClientParticipating(client))
 			{
-				SetStateClient(i, false, true);
+				SetStateClient(client, false, true);
 			}
 		}
 	}
 
 	public void OnMicrogamePostEnd()
 	{
-		for (int i = 1; i <= MaxClients; i++)
+		for (int client = 1; client <= MaxClients; client++)
 		{
-			SDKUnhook(i, SDKHook_PreThink, Airblast_RemoveLeftClick);
+			SDKUnhook(client, SDKHook_PreThink, Airblast_RemoveLeftClick);
 		}
 	}
 }

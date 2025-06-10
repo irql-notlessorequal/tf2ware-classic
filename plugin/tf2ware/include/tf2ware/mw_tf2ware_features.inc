@@ -57,17 +57,17 @@ stock bool IsValidClient(int iClient)
 
 stock void NoCollision(bool input)
 {
-	for (int i = 1; i <= MaxClients; i++)
+	for (int client = 1; client <= MaxClients; client++)
 	{
-		if (IsValidEntity(i) && IsValidClient(i))
+		if (IsValidEntity(client) && IsValidClient(client))
 		{
 			if (input)
 			{
-				SetEntData(i, g_offsCollisionGroup, 2, 4, true); // NO COLLISION
+				SetEntData(client, g_offsCollisionGroup, 2, 4, true); // NO COLLISION
 			}
 			else
 			{
-				SetEntData(i, g_offsCollisionGroup, 5, 4, true); // BRING BACK COLLISION
+				SetEntData(client, g_offsCollisionGroup, 5, 4, true); // BRING BACK COLLISION
 			}
 		}
 	}
@@ -89,14 +89,14 @@ void ExplosionDamage(float origin[3])
 	float PlayerVec[3];
 	float distance;
 
-	for (int i = 1; i <= MaxClients; i++)
+	for (int client = 1; client <= MaxClients; client++)
 	{
-		if (!IsClientInGame(i) || !IsPlayerAlive(i) )
+		if (!IsClientInGame(client) || !IsPlayerAlive(client))
 		{
 			continue;
 		}
 
-		GetClientAbsOrigin(i, PlayerVec);
+		GetClientAbsOrigin(client, PlayerVec);
 		
 		distance = GetVectorDistance(origin, PlayerVec, true);
 		if (distance > 100000.0)
@@ -105,15 +105,15 @@ void ExplosionDamage(float origin[3])
 		}
 		
 		int dmg = RoundFloat(100000.0 - distance) / 50;
-		int health = GetClientHealth(i) - dmg;
+		int health = GetClientHealth(client) - dmg;
 		
 		if (health > 0)
 		{
-			SetEntityHealth(i, health);
+			SetEntityHealth(client, health);
 		}
-		else if (health <= 0)
+		else
 		{
-			ForcePlayerSuicide(i);
+			ForcePlayerSuicide(client);
 		}
 	}
 }
@@ -362,27 +362,37 @@ stock void SetWeaponState(int client, bool input)
 	}
 }
 
+/**
+ * Future work:
+ * 
+ * Migrate everything over to GiveClientWeapon2()
+ */
 public void GiveClientWeapon(int client, char weapon[128], int slot, bool input)
+{
+	int weaponIdx = -1;
+	if (!MalletGetWeaponIndex(sizeof (weapon), weapon, weaponIdx))
+	{
+		PrintToServer("[tf2ware::GiveClientWeapon] [WARNING] MalletGetWeaponIndex(%s) returned FALSE!", weapon);
+		return;
+	}
+
+	GiveClientWeapon2(client, weaponIdx, weapon, slot, input);
+}
+
+public void GiveClientWeapon2(int client, int weaponIdx, char weapon[128], int slot, bool input)
 {
 	if (IsValidClient(client) && IsPlayerAlive(client))
 	{
-		int weaponIdx = -1;
-		if (!MalletGetWeaponIndex(sizeof (weapon), weapon, weaponIdx))
-		{
-			PrintToServer("[tf2ware::GiveClientWeapon] [WARNING] MalletGetWeaponIndex(%s) returned FALSE!", weapon);
-			return;
-		}
-
 		int wpn = MalletCreateWeapon(client, weaponIdx, weapon, 0, 0, slot);
 		if (wpn <= 0)
 		{
-			PrintToServer("[tf2ware::GiveClientWeapon] [WARNING] MalletCreateWeapon(%i, %i, %s) returned %i!", client, weaponIdx, weapon, wpn);
+			PrintToServer("[tf2ware::GiveClientWeapon2] [WARNING] MalletCreateWeapon(%i, %i, %s) returned %i!", client, weaponIdx, weapon, wpn);
 			return;
 		}
 
 		if (!MalletSwapWeaponAndPurge(client, wpn, slot))
 		{
-			PrintToServer("[tf2ware::GiveClientWeapon] [WARNING] MalletSwapWeaponAndPurge returned FALSE!");
+			PrintToServer("[tf2ware::GiveClientWeapon2] [WARNING] MalletSwapWeaponAndPurge returned FALSE!");
 			return;
 		}
 		
@@ -423,10 +433,11 @@ public void GiveClientWeapon(int client, char weapon[128], int slot, bool input)
 		if (StrEqual(weapon, "tf_weapon_pipebomblauncher")) Format(strModel, sizeof(strModel), "models/weapons/w_models/w_stickybomb_launcher.mdl");
 		if (StrEqual(weapon, "tf_weapon_medigun")) Format(strModel, sizeof(strModel), "models/weapons/w_models/w_medigun.mdl");
 		
-		if (!StrEqual(strModel, "")) {
-			new iEntity = Attachable_CreateAttachable(client);
-			if (iEntity > 0 && IsValidEdict(iEntity)) {
-				
+		if (!StrEqual(strModel, ""))
+		{
+			int iEntity = Attachable_CreateAttachable(client);
+			if (iEntity > 0 && IsValidEdict(iEntity))
+			{
 				SetEntityModel(iEntity, strModel);
 				g_PlayerVisibleWeapon[client] = iEntity;
 			}
@@ -455,11 +466,11 @@ stock void RemoveAllWeapons()
 	LogMessage("[TF2Ware::RemoveAllWeapons] Removing all weapons");
 #endif
 
-	for (int i = 1; i <= MaxClients; i++)
+	for (int client = 1; client <= MaxClients; client++)
 	{
-		if (IsValidClient(i) && (IsPlayerAlive(i)))
+		if (IsValidClient(client) && IsPlayerAlive(client))
 		{
-			RemoveClientWeapons(i);
+			RemoveClientWeapons(client);
 		}
 	}
 }

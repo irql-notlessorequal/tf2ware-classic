@@ -2,9 +2,10 @@
 
 #define HOPSCOTCH_ARENA_HEAVY_PLATFORM 0
 #define HOPSCOTCH_ARENA_ROCKET_JUMPING 1
+#define HOPSCOTCH_ARENA_STICKY_JUMPING 2
 
-int g_Hopscotch_arena = 0;
-bool g_Hopscotch_weapon = false;
+int g_Hopscotch_Arena = 0;
+bool g_Hopscotch_Weapon = false;
 
 methodmap Hopscotch < Microgame
 {
@@ -15,10 +16,11 @@ methodmap Hopscotch < Microgame
 
 	public void OnMicrogameStart()
 	{
-		g_Hopscotch_arena = GetRandomInt(0, 1);
-		g_Hopscotch_weapon = false;
+		g_Hopscotch_Arena = GetRandomInt(0, 2);
+		g_Hopscotch_Weapon = false;
 	
-		if (g_Hopscotch_arena == HOPSCOTCH_ARENA_ROCKET_JUMPING)
+		if (g_Hopscotch_Arena == HOPSCOTCH_ARENA_ROCKET_JUMPING
+			|| g_Hopscotch_Arena == HOPSCOTCH_ARENA_STICKY_JUMPING)
 		{
 			g_attack = true;
 			CreateTimer(4.9, Hopscotch_Weapon);
@@ -27,9 +29,9 @@ methodmap Hopscotch < Microgame
 
 	public void OnMicrogameEnd()
 	{
-		for (int i = 1; i <= MaxClients; i++)
+		for (int client = 1; client <= MaxClients; client++)
 		{
-			SDKUnhook(i, SDKHook_OnTakeDamage, Hopscotch_OnTakeDamageClient);
+			SDKUnhook(client, SDKHook_OnTakeDamage, Hopscotch_OnTakeDamageClient);
 		}
 	}
 
@@ -39,9 +41,13 @@ methodmap Hopscotch < Microgame
 		{
 			SDKHook(client, SDKHook_OnTakeDamage, Hopscotch_OnTakeDamageClient);
 	
-			if (g_Hopscotch_arena == HOPSCOTCH_ARENA_ROCKET_JUMPING)
+			if (g_Hopscotch_Arena == HOPSCOTCH_ARENA_ROCKET_JUMPING)
 			{
 				SetClientClass(client, "soldier");
+			}
+			else if (g_Hopscotch_Arena == HOPSCOTCH_ARENA_STICKY_JUMPING)
+			{
+				SetClientClass(client, "demoman");
 			}
 			else
 			{
@@ -50,51 +56,61 @@ methodmap Hopscotch < Microgame
 
 			DisableClientWeapons(client);
 
-			if (g_Hopscotch_weapon && g_Hopscotch_arena == HOPSCOTCH_ARENA_ROCKET_JUMPING)
+			if (g_Hopscotch_Weapon && g_Hopscotch_Arena == HOPSCOTCH_ARENA_ROCKET_JUMPING)
 			{
 				RemoveClientWeapons(client);
 				GiveClientWeapon(client, "tf_weapon_rocketlauncher", 0, true);
+			}
+			else if (g_Hopscotch_Weapon && g_Hopscotch_Arena == HOPSCOTCH_ARENA_STICKY_JUMPING)
+			{
+				RemoveClientWeapons(client);
+				GiveClientWeapon2(client, TF2_WEAPON_STICKY_JUMPER, "tf_weapon_pipebomblauncher", 0, true);
 			}
 		
 			/**
 			 * TODO(irql):
 			 * 
-			 * For the rocket jumping minigame, we should be able to
-			 * use the same logic from airblast to spread everyone out
-			 * in a circle instead of columns and rows.
+			 * Verify that the change worked and also make sure
+			 * that Alpine also works correctly.
+			 * 
+			 * "setpos 2800 3800 -2400"
 			 */
 
-			float vel[3];
-			vel[0] = 0.0;
-			vel[1] = 0.0;
-			vel[2] = 0.0;
-		
-			int column = client;
-			int row = 0;
-			while (column > 10)
-			{
-				column = column - 10;
-				row = row + 1;
-			}
-		
 			float pos[3];
-			if (g_Hopscotch_arena == HOPSCOTCH_ARENA_ROCKET_JUMPING)
+		
+			if (g_Hopscotch_Arena == HOPSCOTCH_ARENA_ROCKET_JUMPING
+			 || g_Hopscotch_Arena == HOPSCOTCH_ARENA_STICKY_JUMPING)
 			{
+				/**
+				 * Spawn players in a circle instead since we have the room.
+				 */
+				int total = GetActivePlayers();
+				int posa = 360 / total * client;
+
 				if (IsAlpineVariant())
 				{
-					pos[0] = 2800.0 + float(column * 55);
-					pos[1] = 2706.0 - float(row * 55);
+					pos[0] = 2800.0 + (Cosine(DegToRad(float(posa))) * 220.0);
+					pos[1] = 2706.0 - (Sine(DegToRad(float(posa))) * 220.0);
 					pos[2] = -1000.0;
 				}
 				else
 				{
-					pos[0] = 2460.0 + float(column * 55);
-					pos[1] = 3395.0 - float(row * 55);
+					pos[0] = 2460.0 + (Cosine(DegToRad(float(posa))) * 220.0);
+					pos[1] = 3395.0 - (Sine(DegToRad(float(posa))) * 220.0);
 					pos[2] = -2688.0;
 				}
 			}
 			else
 			{
+				int column = client;
+				int row = 0;		
+
+				while (column > 10)
+				{
+					column = column - 10;
+					row = row + 1;
+				}
+
 				pos[0] = -2453.0  - float(column * 55);
 				pos[1] = -1833.0 - float(row * 55);
 				pos[2] = 17.6;
@@ -105,32 +121,34 @@ methodmap Hopscotch < Microgame
 			ang[1] = 270.0;
 			ang[2] = 0.0;
 
-			TeleportEntity(client, pos, ang, vel);
+			TeleportEntity(client, pos, ang, NULL_VECTOR);
 			NoCollision(true);
 		}	
 	}
 
 	public void OnMicrogameFrame()
 	{
-		for (int i = 1; i <= MaxClients; i++)
+		for (int client = 1; client <= MaxClients; client++)
 		{
-			if (IsValidClient(i) && IsPlayerAlive(i) && IsClientParticipating(i))
+			if (IsValidClient(client) && IsPlayerAlive(client) && IsClientParticipating(client))
 			{
 				float pos[3];
-				GetClientAbsOrigin(i, pos);
-				if (g_Hopscotch_arena == HOPSCOTCH_ARENA_HEAVY_PLATFORM && pos[1] > 2235.0 && g_Complete[i] == false)
+				GetClientAbsOrigin(client, pos);
+
+				if (g_Hopscotch_Arena == HOPSCOTCH_ARENA_HEAVY_PLATFORM && pos[1] > 2235.0 && g_Complete[client] == false)
 				{
-					SetStateClient(i, true, true);
+					SetStateClient(client, true, true);
 				}
-				else if (g_Hopscotch_arena == HOPSCOTCH_ARENA_ROCKET_JUMPING &&
-						pos[2] > -80.0 && pos[1] > 4270.0 && g_Complete[i] == false)
+				else if ((g_Hopscotch_Arena == HOPSCOTCH_ARENA_ROCKET_JUMPING
+					|| g_Hopscotch_Arena == HOPSCOTCH_ARENA_STICKY_JUMPING)
+					&& pos[2] > -80.0 && pos[1] > 4270.0 && g_Complete[client] == false)
 				{
-					SetStateClient(i, true, true);
+					SetStateClient(client, true, true);
 				}
 
-				if (g_Hopscotch_arena == HOPSCOTCH_ARENA_ROCKET_JUMPING)
+				if (g_Hopscotch_Arena == HOPSCOTCH_ARENA_ROCKET_JUMPING)
 				{
-					SetEntityHealth(i, 200);
+					SetEntityHealth(client, 200);
 				}
 			}
 		}
@@ -139,15 +157,30 @@ methodmap Hopscotch < Microgame
 
 public Action Hopscotch_Weapon(Handle hTimer)
 {
-	if (status == 2 && g_Hopscotch_arena == HOPSCOTCH_ARENA_ROCKET_JUMPING)
+	if (status == 2 && g_Hopscotch_Arena == HOPSCOTCH_ARENA_ROCKET_JUMPING)
 	{
-		g_Hopscotch_weapon = true;
-		for (int i = 1; i <= MaxClients; i++)
+		g_Hopscotch_Weapon = true;
+
+		for (int client = 1; client <= MaxClients; client++)
 		{
-			if (IsValidClient(i) && IsClientParticipating(i))
+			if (IsValidClient(client) && IsClientParticipating(client))
 			{
-				RemoveClientWeapons(i);
-				GiveClientWeapon(i, "tf_weapon_rocketlauncher", 0, true);
+				RemoveClientWeapons(client);
+				GiveClientWeapon(client, "tf_weapon_rocketlauncher", 0, true);
+			}
+		}
+	}
+
+	if (status == 2 && g_Hopscotch_Arena == HOPSCOTCH_ARENA_STICKY_JUMPING)
+	{
+		g_Hopscotch_Weapon = true;
+		
+		for (int client = 1; client <= MaxClients; client++)
+		{
+			if (IsValidClient(client) && IsClientParticipating(client))
+			{
+				RemoveClientWeapons(client);
+				GiveClientWeapon2(client, TF2_WEAPON_STICKY_JUMPER, "tf_weapon_pipebomblauncher", 0, true);
 			}
 		}
 	}

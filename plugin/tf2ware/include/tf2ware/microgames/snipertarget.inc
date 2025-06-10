@@ -63,9 +63,9 @@ methodmap SniperTarget < Microgame
 			var_sniper_target = -1;
 		}
 
-		for (int i = 1; i <= MaxClients; i++)
+		for (int client = 1; client <= MaxClients; client++)
 		{
-			SDKUnhook(i, SDKHook_OnTakeDamage, SniperTarget_Hurt);
+			SDKUnhook(client, SDKHook_OnTakeDamage, SniperTarget_Hurt);
 		}
 	}
 

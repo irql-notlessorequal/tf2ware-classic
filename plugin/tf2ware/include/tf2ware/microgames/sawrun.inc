@@ -7,18 +7,27 @@ methodmap Sawrun < Microgame
 		return view_as<Sawrun>(MG_SAW_RUN);
 	}
 
+	public void OnMicrogameStart()
+	{
+		/**
+		 * The arena is tiny and I'm not going to make
+		 * it any larger. Leaving us with this option only.
+		 */
+		NoCollision((GetClientCount() >= 24));
+	}
+
 	public void OnMicrogameFrame()
 	{
-		for (int i = 1; i <= MaxClients; i++)
+		for (int client = 1; client <= MaxClients; client++)
 		{
-			if (IsValidClient(i) && IsPlayerAlive(i) && IsClientParticipating(i))
+			if (IsValidClient(client) && IsPlayerAlive(client) && IsClientParticipating(client))
 			{
 				float pos[3];
-				GetClientAbsOrigin(i, pos);
+				GetClientAbsOrigin(client, pos);
 
 				if (pos[1] > 1000.0)
 				{
-					SetStateClient(i, true, true);
+					SetStateClient(client, true, true);
 				}
 			}
 		}
@@ -36,8 +45,15 @@ methodmap Sawrun < Microgame
 			vel[1] = 0.0;
 			vel[2] = 0.0;
 		
+			/**
+			 * TODO(irql):
+			 * 
+			 * Past 24 players will cause them to spawn in a wall...
+			 */
+
 			int column = client;
 			int row = 0;
+			
 			while (column > 9)
 			{
 				column = column - 9;

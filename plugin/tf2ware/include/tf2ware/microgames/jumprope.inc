@@ -86,9 +86,9 @@ public Action JumpRope_NewRound(Handle timer)
 	CreateTimer((5.0 / timescale), JumpRope_NewRound);
 
 	int ActivePlayers = 0;
-	for (int i = 1; i <= MaxClients; i++)
+	for (int client = 1; client <= MaxClients; client++)
 	{
-		if (IsValidClient(i) && g_Complete[i] && IsClientParticipating(i))
+		if (IsValidClient(client) && g_Complete[client] && IsClientParticipating(client))
 		{
 			ActivePlayers += 1;
 		}
@@ -114,9 +114,9 @@ public Action JumpRope_Drain(Handle timer)
 		return Plugin_Continue;
 	}
 
-	for (int i = 1; i <= MaxClients; i++)
+	for (int client = 1; client <= MaxClients; client++)
 	{
-		if (IsValidClient(i) && IsPlayerAlive(i) && IsClientParticipating(i))
+		if (IsValidClient(client) && IsPlayerAlive(client) && IsClientParticipating(client))
 		{
 			/** 
 			 * DMG_GENERIC:
@@ -126,7 +126,7 @@ public Action JumpRope_Drain(Handle timer)
 			 * 
 			 * Leave it as is.
 			 */
-			HurtEntity(i, float(JumpRope_DrainHP));
+			HurtEntity(client, float(JumpRope_DrainHP));
 		}
 	}
 	

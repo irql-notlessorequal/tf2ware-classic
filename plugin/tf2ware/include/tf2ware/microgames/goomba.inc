@@ -16,7 +16,7 @@ methodmap Goomba < Microgame
 
 	public void OnMicrogameStart()
 	{
-		g_JumpManTeam = GetRandomInt(2,3);
+		g_JumpManTeam = GetRandomInt(2, 3);
 	}
 
 	public void OnClientJustEntered(int client)
@@ -25,7 +25,8 @@ methodmap Goomba < Microgame
 		{
 			SDKHook(client, SDKHook_Touch, Goomba_Touch);
 		
-			if (g_JumpManTeam == GetClientTeam(client)) {
+			if (g_JumpManTeam == GetClientTeam(client))
+			{
 				SetClientClass(client, "scout");
 				g_Mission[client] = 0;
 			}
@@ -43,12 +44,12 @@ methodmap Goomba < Microgame
 
 	public void OnMicrogameEnd()
 	{
-		for (int i = 1; i <= MaxClients; i++)
+		for (int client = 1; client <= MaxClients; client++)
 		{
-			if (IsValidClient(i))
+			if (IsValidClient(client))
 			{
-				SDKUnhook(i, SDKHook_Touch, Goomba_Touch);
-				SDKUnhook(i, SDKHook_PreThink, Goomba_RemoveJump);
+				SDKUnhook(client, SDKHook_Touch, Goomba_Touch);
+				SDKUnhook(client, SDKHook_PreThink, Goomba_RemoveJump);
 			}
 		}
 	}

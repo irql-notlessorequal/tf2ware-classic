@@ -9,11 +9,11 @@ methodmap BBall < Microgame
 
 	public void OnMicrogameStart()
 	{
-		for (int i = 1; i <= MaxClients; i++)
+		for (int client = 1; client <= MaxClients; client++)
 		{
-			if (IsValidClient(i))
+			if (IsValidClient(client))
 			{
-				SDKHook(i, SDKHook_OnTakeDamage, BBall_OnTakeDamageClient);
+				SDKHook(client, SDKHook_OnTakeDamage, BBall_OnTakeDamageClient);
 			}
 		}
 
@@ -22,9 +22,9 @@ methodmap BBall < Microgame
 
 	public void OnMicrogameEnd()
 	{
-		for (int i = 1; i <= MaxClients; i++)
+		for (int client = 1; client <= MaxClients; client++)
 		{
-			SDKUnhook(i, SDKHook_OnTakeDamage, BBall_OnTakeDamageClient);
+			SDKUnhook(client, SDKHook_OnTakeDamage, BBall_OnTakeDamageClient);
 		}
 	}
 
@@ -50,8 +50,8 @@ methodmap BBall < Microgame
 			}
 		
 			float pos[3];
-			pos[0] = 3076.0  + float(column*55);
-			pos[1] = -1930.0 + float(row*55);
+			pos[0] = 3076.0  + float(column * 55);
+			pos[1] = -1930.0 + float(row * 55);
 			pos[2] = -260.0;
 
 			float ang[3];
@@ -99,10 +99,12 @@ Action Hook_StartTouch_Pipe(int entity, int other)
 			);
 			
 			g_Minipoints[owner] += 1;
+
 			if (g_Minipoints[owner] >= 7)
 			{
 				SetStateClient(owner, true, true);
 			}
+			
 			AcceptEntityInput(entity, "Kill");
 		}
 	}

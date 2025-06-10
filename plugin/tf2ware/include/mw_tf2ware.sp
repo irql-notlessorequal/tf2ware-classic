@@ -1811,12 +1811,14 @@ public void OnGameFrame()
 
 		if (SpecialRound == WIPEOUT && status == 1)
 		{
-			for (int i = 1; i <= MaxClients; i++)
+			for (int client = 1; client <= MaxClients; client++)
 			{
-				if (IsValidClient(i) && IsPlayerAlive(i) && IsClientParticipating(i))
+				if (IsValidClient(client) && IsPlayerAlive(client) && IsClientParticipating(client))
 				{
 					float pos[3];
-					GetClientAbsOrigin(i, pos);
+
+					GetClientAbsOrigin(client, pos);
+
 					pos[2] -= 25.0;
 
 					if (pos[2] < GAMEMODE_WIPEOUT_HEIGHT)
@@ -1824,7 +1826,7 @@ public void OnGameFrame()
 						pos[2] = GAMEMODE_WIPEOUT_HEIGHT;
 					}
 
-					TeleportEntity(i, pos, NULL_VECTOR, NULL_VECTOR);
+					TeleportEntity(client, pos, NULL_VECTOR, NULL_VECTOR);
 				}
 			}
 		}
@@ -2010,11 +2012,16 @@ stock void PrintWipeoutMessage(int candidatePlayers[MAX_WIPEOUT_PLAYERS], int po
 
 stock int GetWipeoutLimit()
 {
-	/**
-	 * TODO(irql): Add a dynamic limit.
-	 */
+	int left = GetLeftWipeoutPlayers();
 
-	return MAX_WIPEOUT_PLAYERS;
+	if (left >= MAX_WIPEOUT_PLAYERS)
+	{
+		return MAX_WIPEOUT_PLAYERS;
+	}
+	else
+	{
+		return left;
+	}
 }
 
 int PopulateWipeoutPlayers(int candidatePlayers[MAX_WIPEOUT_PLAYERS])
@@ -2141,12 +2148,12 @@ void StartMinigame()
 			EmitSoundToAll(MUSIC_INFO, SOUND_FROM_PLAYER, SNDCHAN_AUTO, SNDLEVEL_NORMAL, SND_NOFLAGS, SNDVOL_NORMAL, GetSoundMultiplier());
 		}
 
-		for (int i = 1; i <= MaxClients; i++)
+		for (int client = 1; client <= MaxClients; client++)
 		{
-			if (IsValidClient(i) && (!(IsFakeClient(i))))
+			if (IsValidClient(client) && !IsFakeClient(client))
 			{
-				SetOverlay(i, "");
-				g_Minipoints[i] = 0;
+				SetOverlay(client, "");
+				g_Minipoints[client] = 0;
 			}
 		}
 
@@ -2281,14 +2288,14 @@ void PrintMissionText()
 	LogMessage("[TF2Ware::PrintMissionText] Printing mission text");
 #endif
 
-	for (int i = 1; i <= MaxClients; i++)
+	for (int client = 1; client <= MaxClients; client++)
 	{
-		if (IsValidClient(i))
+		if (IsValidClient(client))
 		{
 			char input[512];
-			Format(input, sizeof(input), "tf2ware_minigame_%d_%d", iMinigame, g_Mission[i] + 1);
-			SetOverlay(i, input);
-			g_ModifiedOverlay[i] = false;
+			Format(input, sizeof(input), "tf2ware_minigame_%d_%d", iMinigame, g_Mission[client] + 1);
+			SetOverlay(client, input);
+			g_ModifiedOverlay[client] = false;
 		}
 	}
 }
@@ -2307,11 +2314,11 @@ public Action CountDown_Timer(Handle hTimer)
 
 		if (g_TimeLeft == 2)
 		{
-			for (int i = 1; i <= MaxClients; i++)
+			for (int client = 1; client <= MaxClients; client++)
 			{
-				if (IsValidClient(i) && !IsFakeClient(i) && g_ModifiedOverlay[i] == false)
+				if (IsValidClient(client) && !IsFakeClient(client) && g_ModifiedOverlay[client] == false)
 				{
-					SetOverlay(i, "");
+					SetOverlay(client, "");
 				}
 			}
 		}
@@ -2371,30 +2378,30 @@ public Action EndGame(Handle hTimer)
 		ServerCommand("phys_timescale %f", GetHostMultiplier(1.0));
 
 		char sound[512];
-		for (int i = 1; i <= MaxClients; i++)
+		for (int client = 1; client <= MaxClients; client++)
 		{
-			if (IsValidClient(i))
+			if (IsValidClient(client))
 			{
-				if (IsClientParticipating(i))
+				if (IsClientParticipating(client))
 				{
 					// heal everyone
-					// TF2_RegeneratePlayer(i);
+					// TF2_RegeneratePlayer(client);
 
 					// Kill their weapons
-					DisableClientWeapons(i);
-					HealClient(i);
+					DisableClientWeapons(client);
+					HealClient(client);
 
 					// Cancel taunts.
-					ClearAllTaunts(i);
+					ClearAllTaunts(client);
 
 					// if client won
-					if (g_Complete[i])
+					if (g_Complete[client])
 					{
 						Format(sound, sizeof(sound), MUSIC_INFO_WIN);
 					}
 
 					// if client lost
-					if (g_Complete[i] == false)
+					if (g_Complete[client] == false)
 					{
 						Format(sound, sizeof(sound), MUSIC_INFO_FAIL);
 					}
@@ -2409,24 +2416,25 @@ public Action EndGame(Handle hTimer)
 
 				if (GetMinigameConfNum(minigame, "dynamic", 0))
 				{
-					StopSound(i, SND_CHANNEL_SPECIFIC, oldSound);
+					StopSound(client, SND_CHANNEL_SPECIFIC, oldSound);
 				}
 				
-				EmitSoundToClient(i, sound, SOUND_FROM_PLAYER, SNDCHAN_AUTO, SNDLEVEL_NORMAL, SND_NOFLAGS, SNDVOL_NORMAL, GetSoundMultiplier());
+				EmitSoundToClient(client, sound, SOUND_FROM_PLAYER, SNDCHAN_AUTO, SNDLEVEL_NORMAL, SND_NOFLAGS, SNDVOL_NORMAL, GetSoundMultiplier());
 			}
 		}
 
-		for (int i = 1; i <= MaxClients; i++)
+		for (int client = 1; client <= MaxClients; client++)
 		{
-			if (IsValidClient(i) && !IsFakeClient(i) && IsClientParticipating(i))
+			if (IsValidClient(client) && !IsFakeClient(client) && IsClientParticipating(client))
 			{
-				if (g_Complete[i])
+				if (g_Complete[client])
 				{
-					SetOverlay(i, "tf2ware_minigame_win");
+					SetOverlay(client, "tf2ware_minigame_win");
 				}
-				if (g_Complete[i] == false)
+
+				if (g_Complete[client] == false)
 				{
-					SetOverlay(i, "tf2ware_minigame_fail");
+					SetOverlay(client, "tf2ware_minigame_fail");
 				}
 			}
 		}
@@ -2439,9 +2447,9 @@ public Action EndGame(Handle hTimer)
 		{
 			bool bSomeoneWon = false;
 
-			for (int i = 1; i <= MaxClients; i++)
+			for (int client = 1; client <= MaxClients; client++)
 			{
-				if (IsValidClient(i) && IsClientParticipating(i) && g_Complete[i] == true)
+				if (IsValidClient(client) && IsClientParticipating(client) && g_Complete[client] == true)
 				{
 					bSomeoneWon = true;
 				}
@@ -2459,14 +2467,12 @@ public Action EndGame(Handle hTimer)
 			HandOutPoints();
 		}
 
-		// RESPAWN START
-		if (GetMinigameConfNum(minigame, "endrespawn", 0) > 0)
+		/**
+		 * Muddy water tends to take longer to drain...
+		 */
+		if (view_as<Microgames>(currentMicrogame) != MG_FLOOD)
 		{
 			RespawnAll(true, false);
-		}
-		else
-		{
-			RespawnAll();
 		}
 		
 		if (SpecialRound == WIPEOUT)
@@ -3278,6 +3284,7 @@ void RespawnClient(int i, bool force = false, bool savepos = true)
 		if (force2)
 		{
 			alive = false;
+			
 			if (savepos)
 			{
 				GetClientAbsOrigin(i, pos);
@@ -3503,7 +3510,7 @@ public Action OnCheatCommand(int client, int args)
 
 void SetOverlay(int client, char overlay[512])
 {
-	if (IsValidClient(client) && (!(IsFakeClient(client))))
+	if (IsValidClient(client) && !IsFakeClient(client))
 	{
 		char language[512];
 		char input[512];
@@ -3512,9 +3519,13 @@ void SetOverlay(int client, char overlay[512])
 
 		if (StrEqual(overlay, ""))
 		{
-			Format(input, sizeof(input), "r_screenoverlay \"\"");
+			/**
+			 * This is supported by the game, and will call
+			 * `view->SetScreenOverlayMaterial( NULL );`
+			 */
+			Format(input, sizeof(input), "r_screenoverlay \"off\"");
 		}
-		if (!(StrEqual(overlay, "")))
+		else
 		{
 			Format(input, sizeof(input), "r_screenoverlay \"%s%s%s\"", materialpath, language, overlay);
 		}

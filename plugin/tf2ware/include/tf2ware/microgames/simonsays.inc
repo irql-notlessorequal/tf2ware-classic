@@ -14,8 +14,8 @@
 
 // NEED TO ALLOW BUILDINGS
 
-new simon_action;
-new simon_or_someone;
+int simon_action;
+int simon_or_someone;
 
 methodmap SimonSays < Microgame
 {
@@ -29,16 +29,18 @@ methodmap SimonSays < Microgame
 		simon_action = GetRandomInt(0,2);
 		simon_or_someone = GetRandomInt(0,1);
 
-		for (int i = 1; i <= MaxClients; i++)
+		for (int client = 1; client <= MaxClients; client++)
 		{
-			if (IsValidClient(i))
+			if (IsValidClient(client))
 			{
-				g_Mission[i] = simon_action * 2 + simon_or_someone;
+				g_Mission[client] = simon_action * 2 + simon_or_someone;
 			}
 		}
 
-		// If simon says it (simon_or_someone == 0) set state to false until proven true
-		// Otherwise, set to true until proven false
+		/**
+		 * If simon says it (simon_or_someone == 0) set state to false until proven true
+		 * Otherwise, set to true until proven false
+		 */
 		SetStateAll(simon_or_someone == 1);
 	}
 
@@ -46,26 +48,34 @@ methodmap SimonSays < Microgame
 	{
 		if (g_TimeLeft <= 6)
 		{
-			for (int i = 1; i <= MaxClients; i++)
+			for (int client = 1; client <= MaxClients; client++)
 			{
-				// If the player is valid and taunting
-				if (IsValidClient(i) && IsPlayerAlive(i) && IsClientParticipating(i))
+				/**
+				 * If the player is valid and taunting
+				 */
+				if (IsValidClient(client) && IsPlayerAlive(client) && IsClientParticipating(client))
 				{
-					if (SimonSays_IsPlayerDoing(i))
+					if (SimonSays_IsPlayerDoing(client))
 					{
 						if (simon_or_someone == 0)
 						{
-							// If simon says it
-							SetStateClient(i, true, true);
+							/**
+							 * If simon said it
+							 */
+							SetStateClient(client, true, true);
 						}
-						else if (g_Complete[i])
+						else if (g_Complete[client])
 						{
-							// Otherwise, simon didn't say it and if we still haven't lost
+							/**
+							 * Otherwise, simon didn't say it and if we still haven't lost
+							 */
 							char input[512];
-							// Display "Simon didn't say it!"
+							/**
+							 * Display "Simon didn't say it!"
+							 */
 							Format(input, sizeof(input), "tf2ware_minigame_%d_11", GetMinigameConfNum("SimonSays", "id"));
-							SetOverlay(i, input);
-							SetStateClient(i, false, true);
+							SetOverlay(client, input);
+							SetStateClient(client, false, true);
 						}
 					}
 				}
