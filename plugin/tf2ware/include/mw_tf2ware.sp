@@ -49,9 +49,7 @@
 #include "tf2ware/tf2ware_core.inc"
 
 /**
- * Gamemode names.
- * 
- * Planned for future removal.
+ * Microgame names.
  */
 char g_name[MAX_MINIGAMES][24];
 
@@ -63,7 +61,6 @@ Handle ww_speed = INVALID_HANDLE;
 Handle ww_music = INVALID_HANDLE;
 Handle ww_force = INVALID_HANDLE;
 Handle ww_special = INVALID_HANDLE;
-Handle ww_gamemode = INVALID_HANDLE;
 Handle ww_force_special = INVALID_HANDLE;
 Handle ww_overhead_scores = INVALID_HANDLE;
 Handle ww_kamikaze_style = INVALID_HANDLE;
@@ -72,6 +69,8 @@ Handle ww_score_style = INVALID_HANDLE;
 /**
  * TF2 ConVar handles
  */
+Handle ConVar_HostTimescale = INVALID_HANDLE;
+Handle ConVar_PhysTimescale = INVALID_HANDLE;
 Handle ConVar_MPFriendlyFire = INVALID_HANDLE;
 Handle ConVar_TFPlayerMovementRestartFreeze = INVALID_HANDLE;
 Handle ConVar_TFTournamentHideDominationIcons = INVALID_HANDLE;
@@ -126,13 +125,8 @@ int gVelocityOffset = -1;
 char materialpath[512]			   = "tf2ware/";
 /**
  * Name of current minigame being played
- * 
- * TODO:
- * I want to remove this but there's some config
- * related things preventing me from removing it.
  */
 char minigame[24];
-// VALID iMinigame FORWARD HANDLERS //////////////
 
 /** We need to define it hear since we only just have imported the enum. */
 SpecialRounds SpecialRound = NONE;
@@ -183,11 +177,16 @@ public Plugin myinfo =
 	url			= "https://github.com/irql-notlessorequal/tf2ware-classic"
 };
 
-static const char ALLOWED_CHEAT_COMMANDS[][] =
-{
-	"host_timescale",
-	"r_screenoverlay",
-	"sv_cheats"
+static const char FAKE_SPECIAL_ROUNDS[][] = { 
+	"FAT LARD RUN",
+	"MOUSTACHIO",
+	"LOVE STORY",
+	"SIZE MATTERS",
+	"ENGINEERD",
+	"IDLE FOR HATS",
+	"TF2 BROS: BRAWL",
+	"HOT SPY ON ICE",
+	"SV_CHEATS 1"
 };
 
 public void OnPluginStart()
@@ -230,6 +229,8 @@ public void OnPluginStart()
 		PrintToServer("* FATAL ERROR: Failed to get offset for CBaseEntity::m_vecVelocity[0]");
 	}
 
+	ConVar_HostTimescale = FindConVar("host_timescale");
+	ConVar_PhysTimescale = FindConVar("phys_timescale");
 	ConVar_MPFriendlyFire = FindConVar("mp_friendlyfire");
 	ConVar_TFPlayerMovementRestartFreeze = FindConVar("tf_player_movement_restart_freeze");
 	ConVar_TFTournamentHideDominationIcons = FindConVar("tf_tournament_hide_domination_icons");
@@ -242,7 +243,6 @@ public void OnPluginStart()
 	ww_speed			= CreateConVar("ww_speed", "1.0", "Speed level.", FCVAR_PLUGIN);
 	ww_music			= CreateConVar("ww_music_fix", "0", "Apply music fix? Should only be on for localhost during testing", FCVAR_PLUGIN);
 	ww_special			= CreateConVar("ww_special", "0", "Next round is Special Round?", FCVAR_PLUGIN);
-	ww_gamemode			= CreateConVar("ww_gamemode", "-1", "Gamemode", FCVAR_PLUGIN);
 	ww_force_special 	= CreateConVar("ww_force_special", "0", "Forces a specific Special Round on Special Round", FCVAR_PLUGIN);
 	/**
 	 * TODO(irql):
@@ -363,11 +363,10 @@ public void OnMapStart()
 		ResetWinners();
 		SetMissionAll(0);
 
-		// CHEATS
-		HookConVarChange(FindConVar("sv_cheats"), OnConVarChanged_SvCheats);
-
-		UpdateClientCheatValue();
-		HookAllCheatCommands();
+		/**
+		 * Required in order to avoid giving clients sv_cheats.
+		 */
+		SetCommandFlags("r_screenoverlay", GetCommandFlags("r_screenoverlay") & (~FCVAR_CHEAT));
 
 #if 0
 		DestroyAllBarrels();
@@ -520,6 +519,14 @@ public void OnMapStart()
 	}
 	else
 	{
+		if (g_enabled)
+		{
+			/**
+			 * Undo us allowing r_screenoverlay to be used by clients.
+			 */
+			SetCommandFlags("r_screenoverlay", GetCommandFlags("r_screenoverlay") & FCVAR_CHEAT);
+		}
+
 		InternalSetAlpineVariant(false);
 		g_enabled = false;
 	}
@@ -1588,8 +1595,6 @@ public void OnClientPostAdminCheck(int client)
 {
 	if (!g_enabled) return;
 
-	UpdateClientCheatValue();
-
 	if (SpecialRound == WIPEOUT)
 	{
 		g_Points[client] = -1;
@@ -1773,13 +1778,15 @@ public void StartMinigame_cvar(Handle cvar, const char[] oldVal, const char[] ne
 	if (GetConVarBool(ww_enable) && g_enabled)
 	{
 		StartMinigame();
+
 		SetConVarInt(FindConVar("mp_respawnwavetime"), 9999);
 		SetConVarInt(FindConVar("mp_forcecamera"), 0);
 	}
 	else
 	{
-		ServerCommand("host_timescale %f", 1.0);
-		ServerCommand("phys_timescale %f", 1.0);
+		SetConVarFloat(ConVar_HostTimescale, 1.0);
+		SetConVarFloat(ConVar_PhysTimescale, 1.0);
+
 		ResetConVar(FindConVar("mp_respawnwavetime"));
 		ResetConVar(FindConVar("mp_forcecamera"));
 		status = 0;
@@ -1847,6 +1854,7 @@ public Action StartMinigame_timer(Handle hTimer)
 	{
 		StartMinigame();
 	}
+
 	return Plugin_Stop;
 }
 
@@ -1863,73 +1871,71 @@ public Action StartMinigame_timer2(Handle hTimer)
 
 int RollMinigame()
 {
-	/**
-	 * Rewrite the entire boss logic since it's a clusterfuck at the moment.
-	 * 
-	 * Remaining logic TODO:
-	 * - Handle disablement of microgames (probably won't be a feature anymore)
-	 * - Do we still handle the "chance" value?
-	 * - Use "g_LastBoss" to prevent repeating the boss during double boss battle.
-	 */
-	Microgame candidate;
-	int candidateIndex = GetConVarInt(ww_force);
+	Handle candidates = CreateArray();
+	int players = GetActivePlayers();
+	int forcedMinigame = GetConVarInt(ww_force);
 
 	/**
-	 * Allow overriding the microgame, but be warned:
-	 * Invalid values will crash the plugin!
+	 * If the host has set ww_force, return _that_ instead.
 	 */
-	if (candidateIndex)
+	if (forcedMinigame)
 	{
-		currentMicrogame = GetMicrogame(candidateIndex);
-		return candidateIndex;
+		return forcedMinigame;
 	}
 
-	int players = GetClientCount();
-	static int lastPlayedIndex = -1;
-
-	do
+	for (int i = 1; i <= sizeof(g_name); i++)
 	{
-		candidate = GetRandomMicrogame(candidateIndex);
-
-		/**
-		 * Don't play the same thing.
-		 */
-		if (lastPlayedIndex == candidateIndex)
-		{
-			continue;
-		}
-		
-		/**
-		 * Don't play boss microgames if we're not at the boss.
-		 */
-		if (bossBattle == 0 && IsBossMicrogame(candidate))
+		if (StrEqual(g_name[i - 1], ""))
 		{
 			continue;
 		}
 
-		/**
-		 * However, if we are at a boss then we need only
-		 * boss microgames.
-		 */
-		if (bossBattle != 0 && !IsBossMicrogame(candidate))
+		bool IsBoss = IsBossMicrogame(view_as<Microgame>(i));
+
+		if (bossBattle == 1 && !IsBoss)
+		{
+			continue;
+		}
+	
+		if (bossBattle != 1 && IsBoss)
 		{
 			continue;
 		}
 
 		/**
-		 * If we don't have enough players, try another microgame.
+		 * We've already played this.
 		 */
-		if (!DispatchIsMicrogamePlayable(candidate, players))
+		if (i == g_LastBoss)
 		{
 			continue;
 		}
 
-		currentMicrogame = candidate;
-		lastPlayedIndex = candidateIndex;
-		break;
-	} while (true);
+		/**
+		 * Check if the microgame was disabled by the server.
+		 */
+		if (!GetMinigameConfNum(g_name[i - 1], "enable", 1))
+		{
+			continue;
+		}
 
-	return candidateIndex;
+		/**
+		 * Check if we have enough players for this.
+		 */
+		if (!DispatchIsMicrogamePlayable(view_as<Microgame>(i), players))
+		{
+			continue;
+		}
+
+		PushArrayCell(candidates, i);
+	}
+
+	/**
+	 * Roll for the microgame now.
+	 */
+	int out = GetArrayCell(candidates, MalletGetRandomInt(0, GetArraySize(candidates) - 1));
+
+	CloseHandle(candidates);
+	return out;
 }
 
 public Action Player_Team(Handle event, const char[] name, bool dontBroadcast)
@@ -2107,8 +2113,8 @@ void StartMinigame()
 
 		currentSpeed = GetConVarFloat(ww_speed);
 		
-		ServerCommand("host_timescale %f", GetHostMultiplier(1.0));
-		ServerCommand("phys_timescale %f", GetHostMultiplier(1.0));
+		SetConVarFloat(ConVar_HostTimescale, GetHostMultiplier(1.0));
+		SetConVarFloat(ConVar_PhysTimescale, GetHostMultiplier(1.0));
 
 		if (SpecialRound == WIPEOUT)
 		{
@@ -2159,6 +2165,7 @@ void StartMinigame()
 
 		status	  = 1;
 		iMinigame = RollMinigame();
+		currentMicrogame = view_as<Microgame>(iMinigame);
 		minigame  = g_name[iMinigame - 1];
 
 		if (bossBattle == 1)
@@ -2374,8 +2381,9 @@ public Action EndGame(Handle hTimer)
 		CleanupAllVocalizations();
 
 		currentSpeed = GetConVarFloat(ww_speed);
-		ServerCommand("host_timescale %f", GetHostMultiplier(1.0));
-		ServerCommand("phys_timescale %f", GetHostMultiplier(1.0));
+
+		SetConVarFloat(ConVar_HostTimescale, GetHostMultiplier(1.0));
+		SetConVarFloat(ConVar_PhysTimescale, GetHostMultiplier(1.0));
 
 		char sound[512];
 		for (int client = 1; client <= MaxClients; client++)
@@ -2472,7 +2480,14 @@ public Action EndGame(Handle hTimer)
 		 */
 		if (view_as<Microgames>(currentMicrogame) != MG_FLOOD)
 		{
-			RespawnAll(true, false);
+			if (GetMinigameConfNum(minigame, "endrespawn", 0) > 0)
+			{
+				RespawnAll(true, false);
+			}
+			else
+			{
+				RespawnAll();
+			}
 		}
 		
 		if (SpecialRound == WIPEOUT)
@@ -2626,8 +2641,9 @@ public Action SpeedUp_Timer(Handle hTimer)
 #endif
 
 			currentSpeed = GetConVarFloat(ww_speed);
-			ServerCommand("host_timescale %f", GetHostMultiplier(1.0));
-			ServerCommand("phys_timescale %f", GetHostMultiplier(1.0));
+
+			SetConVarFloat(ConVar_HostTimescale, GetHostMultiplier(1.0));
+			SetConVarFloat(ConVar_PhysTimescale, GetHostMultiplier(1.0));
 
 #if defined(DEBUG)
 			LogMessage("[TF2Ware::SpeedUp_Timer] Creating timer to start minigame.");
@@ -2919,8 +2935,8 @@ public Action Classic_EndMap(Handle hTimer)
 	RoundStarts = 0;
 	g_MinigamesTotal = 0;
 
-	ServerCommand("host_timescale %f", 1.0);
-	ServerCommand("phys_timescale %f", 1.0);
+	SetConVarFloat(ConVar_HostTimescale, 1.0);
+	SetConVarFloat(ConVar_PhysTimescale, 1.0);
 
 	ResetConVar(FindConVar("mp_respawnwavetime"));
 	ResetConVar(FindConVar("mp_forcecamera"));
@@ -3105,20 +3121,19 @@ public Action SpecialRound_Timer(Handle hTimer)
 		var_SpecialRoundCount -= 1;
 		var_SpecialRoundRoll += 1;
 
-		if (var_SpecialRoundRoll > sizeof(var_special_name) + 1)
+		if (var_SpecialRoundRoll > sizeof(FAKE_SPECIAL_ROUNDS) + 1)
 		{
 			var_SpecialRoundRoll = 0;
 		}
 		
 		char Name[128];
-		if (var_SpecialRoundRoll < sizeof(var_special_name))
+		if (var_SpecialRoundRoll < sizeof(FAKE_SPECIAL_ROUNDS))
 		{
-			Format(Name, sizeof(Name), var_special_name[var_SpecialRoundRoll]);
+			Format(Name, sizeof(Name), FAKE_SPECIAL_ROUNDS[var_SpecialRoundRoll]);
 		}
 		else
 		{
-			static char var_funny_names[][] = { "FAT LARD RUN", "MOUSTACHIO", "LOVE STORY", "SIZE MATTERS", "ENGINERD", "IDLE FOR HATS", "TF2 BROS: BRAWL", "HOT SPY ON ICE" };
-			Format(Name, sizeof(Name), var_funny_names[GetRandomInt(0, sizeof(var_funny_names) - 1)]);
+			Format(Name, sizeof(Name), FAKE_SPECIAL_ROUNDS[MalletGetRandomInt(0, sizeof(FAKE_SPECIAL_ROUNDS) - 1)]);
 		}
 
 		if (var_SpecialRoundCount > 0)
@@ -3428,84 +3443,6 @@ int GetSoundMultiplier()
 {
 	int speed = SNDPITCH_NORMAL + RoundFloat((currentSpeed - 1.0) * 10.0);
 	return speed;
-}
-
-void HookAllCheatCommands()
-{
-	char name[64];
-	Handle cvar;
-	bool isCommand;
-	int flags;
-
-	cvar = FindFirstConCommand(name, sizeof(name), isCommand, flags);
-	if (cvar == INVALID_HANDLE)
-	{
-		SetFailState("Could not load cvar list");
-	}
-
-	do
-	{
-		if (!isCommand || !(flags & FCVAR_CHEAT))
-		{
-			continue;
-		}
-
-		RegConsoleCmd(name, OnCheatCommand);
-	}
-	while (FindNextConCommand(cvar, name, sizeof(name), isCommand, flags));
-
-	CloseHandle(cvar);
-}
-
-void UpdateClientCheatValue()
-{
-#if defined(DEBUG)
-	LogMessage("[TF2Ware::UpdateClientCheatValue] Updating client cheat value");
-#endif
-
-	for (int client = 1; client <= MaxClients; client++)
-	{
-		if (IsValidClient(client) && !IsFakeClient(client))
-		{
-			SendConVarValue(client, FindConVar("sv_cheats"), "1");
-		}
-	}
-}
-
-public void OnConVarChanged_SvCheats(Handle convar, const char[] oldValue, const char[] newValue)
-{
-	UpdateClientCheatValue();
-}
-
-public Action OnCheatCommand(int client, int args)
-{
-#if defined(DEBUG)
-	LogMessage("[TF2Ware::OnCheatCommand] Client (%d) issued cheat command", client);
-#endif
-
-	if (GetConVarBool(ww_enable) && g_enabled)
-	{
-		char command[32];
-		GetCmdArg(0, command, sizeof(command));
-
-		char buf[64];
-
-		for (int i = 0; i < sizeof(ALLOWED_CHEAT_COMMANDS); ++i)
-		{
-			strcopy(buf, 0, ALLOWED_CHEAT_COMMANDS[i]);
-
-			if (StrEqual(buf, command, false) || GetConVarInt(FindConVar("sv_cheats")) == 1)
-			{
-				return Plugin_Continue;
-			}
-		}
-
-		KickClient(client, "%T", "Kicked_CheatCommand");
-
-		return Plugin_Handled;
-	}
-
-	return Plugin_Continue;
 }
 
 void SetOverlay(int client, char overlay[512])

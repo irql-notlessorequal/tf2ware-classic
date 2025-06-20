@@ -172,7 +172,7 @@ methodmap Frogger < Microgame
 							else
 							{
 								CreateTimer(0.0, Frogger_Timer);
-								CPrintToChatAll("The boss will end in {red}10 seconds{default}!");
+								CPrintToChatAll("%T", "Frogger_10SecLeft", LANG_SERVER);
 							}
 						}
 
@@ -189,6 +189,13 @@ public Action Frogger_Respawn(Handle hTimer, any client)
 	if (status == 2)
 	{
 		RespawnClient(client, true, false);
+
+		/**
+		 * Us avoiding doing thirdperson via a
+		 * client command means we need to
+		 * reissue third-person if the player dies.
+		 */
+		ToggleThirdperson(client, true);
 	}
 
 	return Plugin_Stop;

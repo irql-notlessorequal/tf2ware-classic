@@ -16,7 +16,7 @@ methodmap Hopscotch < Microgame
 
 	public void OnMicrogameStart()
 	{
-		g_Hopscotch_Arena = GetRandomInt(0, 2);
+		g_Hopscotch_Arena = MalletGetRandomInt(0, 2);
 		g_Hopscotch_Weapon = false;
 	
 		if (g_Hopscotch_Arena == HOPSCOTCH_ARENA_ROCKET_JUMPING
@@ -64,18 +64,14 @@ methodmap Hopscotch < Microgame
 			else if (g_Hopscotch_Weapon && g_Hopscotch_Arena == HOPSCOTCH_ARENA_STICKY_JUMPING)
 			{
 				RemoveClientWeapons(client);
+				/**
+				 * TODO(irql):
+				 * 
+				 * The Sticky Jumper might be _too easy_.
+				 */
 				GiveClientWeapon2(client, TF2_WEAPON_STICKY_JUMPER, "tf_weapon_pipebomblauncher", 0, true);
 			}
 		
-			/**
-			 * TODO(irql):
-			 * 
-			 * Verify that the change worked and also make sure
-			 * that Alpine also works correctly.
-			 * 
-			 * "setpos 2800 3800 -2400"
-			 */
-
 			float pos[3];
 		
 			if (g_Hopscotch_Arena == HOPSCOTCH_ARENA_ROCKET_JUMPING
@@ -89,14 +85,14 @@ methodmap Hopscotch < Microgame
 
 				if (IsAlpineVariant())
 				{
-					pos[0] = 2800.0 + (Cosine(DegToRad(float(posa))) * 220.0);
-					pos[1] = 2706.0 - (Sine(DegToRad(float(posa))) * 220.0);
+					pos[0] = 2815.0 + (Cosine(DegToRad(float(posa))) * 220.0);
+					pos[1] = 2681.0 - (Sine(DegToRad(float(posa))) * 220.0);
 					pos[2] = -1000.0;
 				}
 				else
 				{
-					pos[0] = 2460.0 + (Cosine(DegToRad(float(posa))) * 220.0);
-					pos[1] = 3395.0 - (Sine(DegToRad(float(posa))) * 220.0);
+					pos[0] = 2830.0 + (Cosine(DegToRad(float(posa))) * 220.0);
+					pos[1] = 3730.0 - (Sine(DegToRad(float(posa))) * 220.0);
 					pos[2] = -2688.0;
 				}
 			}

@@ -363,8 +363,9 @@ stock void SetWeaponState(int client, bool input)
 }
 
 /**
- * Future work:
+ * TODO(iqrl):
  * 
+ * Future work:
  * Migrate everything over to GiveClientWeapon2()
  */
 public void GiveClientWeapon(int client, char weapon[128], int slot, bool input)

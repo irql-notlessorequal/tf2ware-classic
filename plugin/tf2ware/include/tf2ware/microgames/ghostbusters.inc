@@ -84,17 +84,26 @@ methodmap Ghostbusters < Microgame
 		int attempts = 0;
 
 		/**
-		 * TODO(irql): Make this scale properly since it wasn't
-		 * fun with 40 players at all.
+		 * TODO(irql): 
+		 * Test the new scaling.
 		 */
 		float medicCountRaw = float(GetActivePlayers()) / 3.5;
 		int medics = RoundToCeil(medicCountRaw);
-		int heavies = GetActivePlayers() / 6;
+		int heavies = RoundToFloor(GetActivePlayers() / 6);
 
-		if (medics <= 1) medics = 2;
-		if (medics >= 8) medics = 7;
-		if (heavies <= 0) heavies = 1;
-		if (heavies >= 4) heavies = 3;
+		/**
+		 * Sanity checks, we now allow larger
+		 * amounts of medics and heavies.
+		 */
+		if (medics <= 1)
+		{
+			medics = 2;
+		}
+
+		if (heavies <= 0)
+		{
+			heavies = 1;
+		}
 
 		int SpyClients[MAXPLAYERS + 1];
 	
@@ -162,6 +171,12 @@ methodmap Ghostbusters < Microgame
 			}
 		}
 	
+		/**
+		 * TODO(irql):
+		 * 
+		 * If we have overhead scores, should we not
+		 * put a glow outline on players?
+		 */
 		for (int client = 1; client <= MaxClients; client++)
 		{
 			if (IsValidClient(client) && IsPlayerAlive(client))

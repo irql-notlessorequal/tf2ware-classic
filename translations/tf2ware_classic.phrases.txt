@@ -1,10 +1,5 @@
 "Phrases"
 {
-	"Kicked_CheatCommand"
-	{
-		"en"	"TF2Ware Classic: Attempted to use a cheat command."
-	}
-
 	"LateJoin_Wipeout"
 	{
 		"en"	"You have been given an average of the current player points to even out the playing field."
