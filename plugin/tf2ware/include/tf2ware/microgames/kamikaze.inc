@@ -1,5 +1,7 @@
 #include "../microgame.inc"
 
+static int g_bomb = 0;
+
 methodmap Kamikaze < Microgame
 {
 	public Kamikaze()
@@ -20,9 +22,7 @@ methodmap Kamikaze < Microgame
 	}
 
 	public void OnMicrogameStart()
-	{
-		randommini = GetRandomInt(0, 2);
-	
+	{	
 		int AllPlayers = GetClientCount(true);
 		int target = GetRandomInt(1, AllPlayers);
 

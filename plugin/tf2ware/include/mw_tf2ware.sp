@@ -71,7 +71,9 @@ Handle ww_score_style = INVALID_HANDLE;
  */
 Handle ConVar_HostTimescale = INVALID_HANDLE;
 Handle ConVar_PhysTimescale = INVALID_HANDLE;
+Handle ConVar_MPForceCamera = INVALID_HANDLE;
 Handle ConVar_MPFriendlyFire = INVALID_HANDLE;
+Handle ConVar_MPRespawnWaveTime = INVALID_HANDLE;
 Handle ConVar_TFPlayerMovementRestartFreeze = INVALID_HANDLE;
 Handle ConVar_TFTournamentHideDominationIcons = INVALID_HANDLE;
 Handle ConVar_TFAirblastCray = INVALID_HANDLE;
@@ -105,20 +107,22 @@ int g_Sprites[MAXPLAYERS+1];
 float currentSpeed;
 int iMinigame;
 int status;
-int randommini;
 int g_offsCollisionGroup;
 int g_TimeLeft = 8;
 int white;
 int g_HaloSprite;
 int g_ExplosionSprite;
 int g_result = 0;
-int g_bomb								= 0;
-int RoundStarts							= 0;
+static int RoundStarts					= 0;
+/**
+ * Make sure that at least one normal round
+ * has been played before trying to roll for
+ * a special round.
+ */
 static int SpecialRoundCooldown			= 1;
-int g_LastBoss							= 0;
-int g_MinigamesTotal					= 0;
-int bossBattle							= 0;
-bool g_Participating[MAXPLAYERS + 1]	= false;
+static int g_MiniGamesPlayed			= 0;
+static int bossBattle					= 0;
+bool g_Participating[MAXPLAYERS + 1]	= { false, ... };
 int gVelocityOffset = -1;
 
 // Strings
@@ -231,7 +235,9 @@ public void OnPluginStart()
 
 	ConVar_HostTimescale = FindConVar("host_timescale");
 	ConVar_PhysTimescale = FindConVar("phys_timescale");
+	ConVar_MPForceCamera = FindConVar("mp_forcecamera");
 	ConVar_MPFriendlyFire = FindConVar("mp_friendlyfire");
+	ConVar_MPRespawnWaveTime = FindConVar("mp_respawnwavetime");
 	ConVar_TFPlayerMovementRestartFreeze = FindConVar("tf_player_movement_restart_freeze");
 	ConVar_TFTournamentHideDominationIcons = FindConVar("tf_tournament_hide_domination_icons");
 	ConVar_TFAirblastCray = FindConVar("tf_airblast_cray");
@@ -252,9 +258,42 @@ public void OnPluginStart()
 	 * 1 = Always enabled
 	 * 2 = Only display between microgames and at the end (legacy behaviour)
 	 */
-	ww_overhead_scores	= CreateConVar("ww_overhead_scores", "0", "Re-enables overhead scores, a feature that was long removed.", FCVAR_PLUGIN, true, 0.0, true, 1.0);
+	ww_overhead_scores	= CreateConVar("ww_overhead_scores", "0",
+		"Enables overhead scores. (0 = disabled [default], 1 = Always Enabled, 2 = Intermission Only)",
+		FCVAR_PLUGIN, true, 0.0, true, 2.0);
 	ww_kamikaze_style	= CreateConVar("ww_kamikaze_style", "0", "Picks the bomb model logic for Kamikaze. (0 = Use the Payload cart [default], 1 = Use the old Bo-Bomb model)", FCVAR_PLUGIN, true, 0.0, true, 1.0);
 	ww_score_style		= CreateConVar("ww_score_style", "1", "Picks the player score HUD style. (0 = original, 1 = TF2Ware Classic [default])", FCVAR_PLUGIN, true, 0.0, true, 1.0);
+
+	/**
+	 * Load minigames.cfg now,
+	 * as we'll need it to avoid adding
+	 * disabled microgames.
+	 */
+	char imFile[PLATFORM_MAX_PATH];
+	BuildPath(Path_SM, imFile, sizeof(imFile), "configs/minigames.cfg");
+
+	MinigameConf = CreateKeyValues("Minigames");
+		
+	if (FileToKeyValues(MinigameConf, imFile))
+	{
+		PrintToServer("Loaded minigames from minigames.cfg");
+
+		KvGotoFirstSubKey(MinigameConf);
+		int i = 0;
+		do
+		{
+			KvGetSectionName(MinigameConf, g_name[KvGetNum(MinigameConf, "id") - 1], 32);
+			i++;
+		}
+		while (KvGotoNextKey(MinigameConf));
+
+		KvRewind(MinigameConf);
+	}
+	else
+	{
+		SetFailState("Failed to load minigames.cfg!");
+		return;
+	}
 
 	/**
 	 * MINIGAME REGISTRATION
@@ -310,32 +349,6 @@ public void OnMapStart()
 		// Add server tag
 		AddServerTag("TF2Ware");
 
-		// Load minigames
-		char imFile[PLATFORM_MAX_PATH];
-		BuildPath(Path_SM, imFile, sizeof(imFile), "configs/minigames.cfg");
-
-		MinigameConf = CreateKeyValues("Minigames");
-		
-		if (FileToKeyValues(MinigameConf, imFile))
-		{
-			PrintToServer("Loaded minigames from minigames.cfg");
-
-			KvGotoFirstSubKey(MinigameConf);
-			int i = 0;
-			do
-			{
-				KvGetSectionName(MinigameConf, g_name[KvGetNum(MinigameConf, "id") - 1], 32);
-				i++;
-			}
-			while (KvGotoNextKey(MinigameConf));
-
-			KvRewind(MinigameConf);
-		}
-		else
-		{
-			PrintToServer("Failed to load minigames.cfg!");
-		}
-
 		// Hooks
 		HookConVarChange(ww_enable, StartMinigame_cvar);
 		HookConVarChange(ww_overhead_scores, OverheadScoresChanged);
@@ -357,7 +370,6 @@ public void OnMapStart()
 		currentSpeed = GetConVarFloat(ww_speed);
 		iMinigame	 = 1;
 		status		 = 0;
-		randommini	 = 0;
 		RoundStarts	 = 0;
 		SetStateAll(false);
 		ResetWinners();
@@ -1473,7 +1485,7 @@ bool DispatchIsMicrogamePlayable(Microgame mg, int players)
 	}
 }
 
-public Action DispatchOnPlayerChatSay(int client, const char message[256])
+public Action DispatchOnPlayerChatSay(int client, const char message[255])
 {
 	switch (view_as<Microgames>(currentMicrogame))
 	{
@@ -1631,7 +1643,7 @@ public void OnClientDisconnect(int client)
 	LogMessage("[TF2Ware::OnClientDisconnect] Client (%d) disconnected", client);
 #endif
 
-	if (GetConVarBool(ww_overhead_scores))
+	if (GetConVarInt(ww_overhead_scores))
 	{
 		DestroySprite(client);
 	}
@@ -1684,13 +1696,18 @@ public void OnPreThink(int client)
 
 public Action EventInventoryApplication(Handle event, const char[] name, bool dontBroadcast)
 {
+	if (!g_enabled)
+	{
+		return Plugin_Continue;
+	}
+
 	int client = GetClientOfUserId(GetEventInt(event, "userid"));
 
 #if defined(DEBUG)
 	LogMessage("[TF2Ware::EventInventoryApplication] Client (%d) post inventory", client);
 #endif
 
-	if (g_Spawned[client] == false && g_waiting && GetConVarBool(ww_enable) && g_enabled && !IsFakeClient(client))
+	if (g_Spawned[client] == false && g_waiting && !IsFakeClient(client))
 	{
 		EmitSoundToClient(client, MUSIC_WAITING, SOUND_FROM_PLAYER, SND_CHANNEL_SPECIFIC);
 		SetOverlay(client, "tf2ware_welcome");
@@ -1699,7 +1716,7 @@ public Action EventInventoryApplication(Handle event, const char[] name, bool do
 
 	g_Spawned[client] = true;
 
-	if (GetConVarBool(ww_enable) && g_enabled)
+	if (GetConVarBool(ww_enable))
 	{
 		SetEntityRenderMode(client, RENDER_NORMAL);
 		SetEntityRenderColor(client, 255, 255, 255, 255);
@@ -1709,7 +1726,7 @@ public Action EventInventoryApplication(Handle event, const char[] name, bool do
 		{
 			DisableClientWeapons(client);
 
-			if (status != 5 && GetConVarBool(ww_overhead_scores)) 
+			if (status != 5 && view_as<OverheadScoreMode>(GetConVarInt(ww_overhead_scores)) == ENABLED) 
 			{
 				CreateSprite(client);
 			}
@@ -1719,13 +1736,13 @@ public Action EventInventoryApplication(Handle event, const char[] name, bool do
 		{
 			DispatchOnClientJustEntered(client);
 
-			if (GetConVarBool(ww_overhead_scores))
+			if (view_as<OverheadScoreMode>(GetConVarInt(ww_overhead_scores)) == ENABLED)
 			{
 				CreateSprite(client);
 			}
 		}
 
-		if (status == 5 && g_Winner[client] > 0 && GetConVarBool(ww_overhead_scores)) 
+		if (status == 5 && g_Winner[client] > 0 && GetConVarInt(ww_overhead_scores)) 
 		{
 			CreateSprite(client);
 		}
@@ -1779,23 +1796,26 @@ public void StartMinigame_cvar(Handle cvar, const char[] oldVal, const char[] ne
 	{
 		StartMinigame();
 
-		SetConVarInt(FindConVar("mp_respawnwavetime"), 9999);
-		SetConVarInt(FindConVar("mp_forcecamera"), 0);
+		SetConVarInt(ConVar_MPRespawnWaveTime, 9999);
+		SetConVarInt(ConVar_MPForceCamera, 0);
 	}
 	else
 	{
 		SetConVarFloat(ConVar_HostTimescale, 1.0);
 		SetConVarFloat(ConVar_PhysTimescale, 1.0);
 
-		ResetConVar(FindConVar("mp_respawnwavetime"));
-		ResetConVar(FindConVar("mp_forcecamera"));
+		ResetConVar(ConVar_MPRespawnWaveTime);
+		ResetConVar(ConVar_MPForceCamera);
 		status = 0;
 	}
 }
 
 public void OverheadScoresChanged(Handle cvar, const char[] oldVal, const char[] newVal)
 {
-	if (GetConVarBool(ww_overhead_scores) && g_enabled)
+	/**
+	 * Only create sprites if we're in always enabled mode.
+	 */
+	if (view_as<OverheadScoreMode>(GetConVarInt(ww_overhead_scores)) == ENABLED && g_enabled)
 	{
 		CreateAllSprites();
 	}
@@ -1839,7 +1859,7 @@ public void OnGameFrame()
 		}
 	}
 
-	if (GetConVarBool(ww_overhead_scores))
+	if (GetConVarInt(ww_overhead_scores))
 	{
 		/**
 		 * Enjoy the tickrate dip.
@@ -1871,71 +1891,65 @@ public Action StartMinigame_timer2(Handle hTimer)
 
 int RollMinigame()
 {
-	Handle candidates = CreateArray();
-	int players = GetActivePlayers();
-	int forcedMinigame = GetConVarInt(ww_force);
+	Microgame candidate;
+	int candidateIndex = GetConVarInt(ww_force);
 
 	/**
-	 * If the host has set ww_force, return _that_ instead.
+	 * Allow overriding the microgame, but be warned:
+	 * Invalid values will crash the plugin!
 	 */
-	if (forcedMinigame)
+	if (candidateIndex)
 	{
-		return forcedMinigame;
+		currentMicrogame = GetMicrogame(candidateIndex);
+		return candidateIndex;
 	}
 
-	for (int i = 1; i <= sizeof(g_name); i++)
+	int players = GetClientCount();
+	static int lastPlayedIndex = -1;
+
+	do
 	{
-		if (StrEqual(g_name[i - 1], ""))
+		candidate = GetRandomMicrogame(candidateIndex);
+
+		/**
+		 * Don't play the same thing.
+		 */
+		if (lastPlayedIndex == candidateIndex)
 		{
 			continue;
 		}
-
-		bool IsBoss = IsBossMicrogame(view_as<Microgame>(i));
-
-		if (bossBattle == 1 && !IsBoss)
-		{
-			continue;
-		}
-	
-		if (bossBattle != 1 && IsBoss)
+		
+		/**
+		 * Don't play boss microgames if we're not at the boss.
+		 */
+		if (bossBattle == 0 && IsBossMicrogame(candidate))
 		{
 			continue;
 		}
 
 		/**
-		 * We've already played this.
+		 * However, if we are at a boss then we need only
+		 * boss microgames.
 		 */
-		if (i == g_LastBoss)
+		if (bossBattle != 0 && !IsBossMicrogame(candidate))
 		{
 			continue;
 		}
 
 		/**
-		 * Check if the microgame was disabled by the server.
+		 * If we don't have enough players, try another microgame.
 		 */
-		if (!GetMinigameConfNum(g_name[i - 1], "enable", 1))
+		if (!DispatchIsMicrogamePlayable(candidate, players))
 		{
 			continue;
 		}
 
-		/**
-		 * Check if we have enough players for this.
-		 */
-		if (!DispatchIsMicrogamePlayable(view_as<Microgame>(i), players))
-		{
-			continue;
-		}
+		currentMicrogame = candidate;
+		lastPlayedIndex = candidateIndex;
+		break;
+	} while (true);
 
-		PushArrayCell(candidates, i);
-	}
-
-	/**
-	 * Roll for the microgame now.
-	 */
-	int out = GetArrayCell(candidates, MalletGetRandomInt(0, GetArraySize(candidates) - 1));
-
-	CloseHandle(candidates);
-	return out;
+	return candidateIndex;
 }
 
 public Action Player_Team(Handle event, const char[] name, bool dontBroadcast)
@@ -2006,14 +2020,22 @@ void HandOutPoints()
 
 stock void PrintWipeoutMessage(int candidatePlayers[MAX_WIPEOUT_PLAYERS], int populated)
 {
-	char formatString[512];
+	char output[256];
+	char temporary[32];
 
-	for (int i = 0; i < populated; i++)
+	for (int idx = 0; idx < MAX_VISIBLE_WIPEOUT_ENTRIES; idx++)
 	{
-		StrCat(formatString, sizeof (formatString), "%N");
+		Format(temporary, sizeof (temporary), "%N\n", candidatePlayers[idx]);
+		StrCat(output, sizeof (output), temporary);
 	}
 
-	PrintCenterTextAll(formatString, candidatePlayers);
+	if (populated > MAX_VISIBLE_WIPEOUT_ENTRIES)
+	{
+		Format(temporary, sizeof (temporary), "and %d more...", (populated - MAX_VISIBLE_WIPEOUT_ENTRIES - 1));
+		StrCat(output, sizeof (output), temporary);
+	}
+	
+	PrintCenterTextAll(output);
 }
 
 stock int GetWipeoutLimit()
@@ -2035,14 +2057,13 @@ int PopulateWipeoutPlayers(int candidatePlayers[MAX_WIPEOUT_PLAYERS])
 	int playersAdded = 0;
 	int dynamicLimit = GetWipeoutLimit();
 
+	/**
+	 * This is a bit crap, maybe it's worth the extra
+	 * code to have two passes which randomize between calls.
+	 */
 	for (int client = MaxClients; client >= 1; client--)
 	{
 		if (!IsValidClient(client))
-		{
-			continue;
-		}
-
-		if (!IsClientParticipating(client))
 		{
 			continue;
 		}
@@ -2069,6 +2090,10 @@ int PopulateWipeoutPlayers(int candidatePlayers[MAX_WIPEOUT_PLAYERS])
 		g_Participating[client] = true;
 	}
 
+#if defined(DEBUG)
+	PrintToServer("[DEBUG] (PopulateWipeoutPlayers) Total wipeout players for this round: %d", playersAdded);
+#endif
+
 	return playersAdded;
 }
 
@@ -2080,7 +2105,7 @@ void StartMinigame()
 		LogMessage("[TF2Ware::StartMinigame] Starting microgame %s! (status=0)", minigame);
 #endif
 		
-		SetConVarInt(FindConVar("mp_respawnwavetime"), 9999);
+		SetConVarInt(ConVar_MPRespawnWaveTime, 9999);
 		SetConVarInt(ConVar_MPFriendlyFire, 1);
 
 		float MUSIC_INFO_LEN;
@@ -2122,10 +2147,16 @@ void StartMinigame()
 			int populated = PopulateWipeoutPlayers(candidatePlayers);
 
 			/**
-			 * Everyone lost, lol.
+			 * If there's one or less person, we're basically done.
 			 */
-			if (populated == 0)
+			if (populated <= 1)
 			{
+				/**
+				 * We need to reset the speed if we're ending wipeout this way.
+				 */
+				SetConVarFloat(ConVar_HostTimescale, 1.0);
+				SetConVarFloat(ConVar_PhysTimescale, 1.0);				
+
 				status	   = 4;
 				bossBattle = 2;
 				CreateTimer(GetSpeedMultiplier(MUSIC_INFO_LEN), Victory_Timer);
@@ -2133,6 +2164,11 @@ void StartMinigame()
 			}
 
 			PrintWipeoutMessage(candidatePlayers, populated);
+
+			/**
+			 * TODO(irql):
+			 * We should play a sound to the player when it's their turn.
+			 */
 		}
 		else
 		{
@@ -2168,16 +2204,11 @@ void StartMinigame()
 		currentMicrogame = view_as<Microgame>(iMinigame);
 		minigame  = g_name[iMinigame - 1];
 
-		if (bossBattle == 1)
-		{
-			g_LastBoss = iMinigame;
-		}
-
 		CreateTimer(GetSpeedMultiplier(MUSIC_INFO_LEN), Game_Start);
 
 		g_attack = (SpecialRound == BONK);
 
-		if (GetConVarBool(ww_overhead_scores))
+		if (view_as<OverheadScoreMode>(GetConVarInt(ww_overhead_scores)) == ENABLED)
 		{
 			CreateAllSprites();
 		}
@@ -2198,16 +2229,6 @@ public Action Game_Start(Handle hTimer)
 		if (SpecialRound == SINGLEPLAYER) 
 		{
 			NoCollision(true);
-		}
-		else if (SpecialRound == NO_TOUCHING)
-		{
-			for (int client = 1; client <= MaxClients; client++)
-			{
-				if (IsValidClient(client) && !IsFakeClient(client)) 
-				{
-					ToggleThirdperson(client, true);
-				}
-			}
 		}
 		else if (SpecialRound == WIPEOUT)
 		{
@@ -2278,7 +2299,9 @@ public Action Game_Start(Handle hTimer)
 			CreateTimer(GetSpeedMultiplier(1.0), CountDown_Timer);
 		}
 
-		// get the lasting time from the cfg
+		/**
+		 * Get the minigame duration from the config file.
+		 */
 		MicrogameTimer = CreateTimer(GetSpeedMultiplier(GetMinigameConfFloat(minigame, "duration")), EndGame);
 
 #if defined(DEBUG)
@@ -2517,7 +2540,7 @@ public Action EndGame(Handle hTimer)
 		// RESPAWN END
 
 		bool speedup = false;
-		g_MinigamesTotal += 1;
+		g_MiniGamesPlayed += 1;
 
 		if (bossBattle == 1) bossBattle = 2;
 
@@ -2537,17 +2560,17 @@ public Action EndGame(Handle hTimer)
 		}
 		else
 		{
-			if ((g_MinigamesTotal == 4) && (bossBattle == 0)) speedup = true;
-			if ((g_MinigamesTotal == 8) && (bossBattle == 0)) speedup = true;
-			if ((g_MinigamesTotal == 12) && (bossBattle == 0)) speedup = true;
-			if ((g_MinigamesTotal == 16) && (bossBattle == 0)) speedup = true;
-			if ((g_MinigamesTotal == 19) && (bossBattle == 0))
+			if ((g_MiniGamesPlayed == 4) && (bossBattle == 0)) speedup = true;
+			if ((g_MiniGamesPlayed == 8) && (bossBattle == 0)) speedup = true;
+			if ((g_MiniGamesPlayed == 12) && (bossBattle == 0)) speedup = true;
+			if ((g_MiniGamesPlayed == 16) && (bossBattle == 0)) speedup = true;
+			if ((g_MiniGamesPlayed == 19) && (bossBattle == 0))
 			{
 				speedup	   = true;
 				bossBattle = 1;
 			}
 
-			if ((g_MinigamesTotal >= 19) && bossBattle == 2 && SpecialRound == DOUBLE_BOSS_BATTLE && Special_TwoBosses == false)
+			if ((g_MiniGamesPlayed >= 19) && bossBattle == 2 && SpecialRound == DOUBLE_BOSS_BATTLE && Special_TwoBosses == false)
 			{
 				speedup			  = true;
 				bossBattle		  = 1;
@@ -2844,7 +2867,7 @@ public Action Victory_Timer(Handle hTimer)
 				{
 					g_Winner[i] = 1;
 
-					if (GetConVarBool(ww_overhead_scores))
+					if (GetConVarInt(ww_overhead_scores))
 					{
 						CreateSprite(i);
 					}
@@ -2890,22 +2913,30 @@ public Action Victory_Timer(Handle hTimer)
 			ReplaceStringEx(winnerstring_names, sizeof(winnerstring_names), ", ", "");
 		}
 
-		/**
-		 * TODO(irql):
-		 * 
-		 * - Migrate to the localized version
-		 * - Reword the string to "The winners [is/are] %s with %i %s!"
-		 */
-		if (winnernumber == 1)
+		if (winnernumber != 0)
 		{
-			Format(winnerstring_prefix, sizeof(winnerstring_prefix), "{green}The winner is");
+			/**
+			 * TODO(irql):
+			 * 
+			 * - Migrate to the localized version
+			 * - Reword the string to "The winners [is/are] %s with %i %s!"
+			 */
+			if (winnernumber == 1)
+			{
+				Format(winnerstring_prefix, sizeof(winnerstring_prefix), "{green}The winner is");
+			}
+			else
+			{
+				Format(winnerstring_prefix, sizeof(winnerstring_prefix), "{green}The winners are");
+			}
+
+			CPrintToChatAll("%s %s (%i %s)!", winnerstring_prefix, winnerstring_names, targetscore, pointsname);
 		}
 		else
 		{
-			Format(winnerstring_prefix, sizeof(winnerstring_prefix), "{green}The winners are");
+			CPrintToChatAll("%T", "NobodyWon", LANG_SERVER);
 		}
 
-		CPrintToChatAll("%s %s (%i %s)!", winnerstring_prefix, winnerstring_names, targetscore, pointsname);
 		CloseHandle(ArrayWinners);
 
 		if (SpecialRound != NONE)
@@ -2933,13 +2964,13 @@ public Action Classic_EndMap(Handle hTimer)
 	ResetWinners();
 	g_waiting = true;
 	RoundStarts = 0;
-	g_MinigamesTotal = 0;
+	g_MiniGamesPlayed = 0;
 
-	SetConVarFloat(ConVar_HostTimescale, 1.0);
-	SetConVarFloat(ConVar_PhysTimescale, 1.0);
+	ResetConVar(ConVar_HostTimescale);
+	ResetConVar(ConVar_PhysTimescale);
 
-	ResetConVar(FindConVar("mp_respawnwavetime"));
-	ResetConVar(FindConVar("mp_forcecamera"));
+	ResetConVar(ConVar_MPRespawnWaveTime);
+	ResetConVar(ConVar_MPForceCamera);
 
 	ResetConVar(ConVar_MPFriendlyFire);
 	ResetConVar(ConVar_TFAirblastCray);
@@ -3021,7 +3052,8 @@ public Action RestartAll_Timer(Handle hTimer)
 		ResetScores();
 		SetStateAll(false);
 		ResetWinners();
-		g_MinigamesTotal = 0;
+
+		g_MiniGamesPlayed = 0;
 
 		for (int i = 1; i <= MaxClients; i++)
 		{
@@ -3079,7 +3111,7 @@ public void StartSpecialRound()
 					break;
 				}
 			}
-			while (true);
+			while (status == 6);
 		}
 		else
 		{
@@ -3193,7 +3225,7 @@ void GiveSpecialRoundInfo(int client)
 					char desc[64];
 					Format(desc, sizeof (desc), "%T", var_special_phrases[view_as<int>(SpecialRound) - 1], i);
 
-					CPrintToChat(i, "{olive}%T{default}", "SpecialRound", i, var_special_name[view_as<int>(SpecialRound) - 1], desc);
+					CPrintToChat(i, "%T", "SpecialRound", i, var_special_name[view_as<int>(SpecialRound) - 1], desc);
 				}
 			}
 		}
@@ -3206,7 +3238,7 @@ void GiveSpecialRoundInfo(int client)
 			char desc[64];
 			Format(desc, sizeof (desc), "%T", var_special_phrases[view_as<int>(SpecialRound) - 1], client);
 
-			CPrintToChat(client, "{olive}%T{default}", "SpecialRound", client, var_special_name[view_as<int>(SpecialRound) - 1], desc);
+			CPrintToChat(client, "%T", "SpecialRound", client, var_special_name[view_as<int>(SpecialRound) - 1], desc);
 		}
 	}
 }
@@ -3660,8 +3692,6 @@ public Action Command_Points(int client, int args)
 	CPrintToChatAll("%T", "CheatCommandGive", LANG_SERVER, clientName);
 
 	g_Points[client] += 20;
-	g_Points[0] += 20;
-	g_Points[1] += 20;
 
 	return Plugin_Handled;
 }
@@ -3723,7 +3753,7 @@ public Action Player_Say(Handle event, const char[] name, bool dontBroadcast)
 		return Plugin_Continue;
 	}
 
-	char message[256];
+	char message[255];
 	int client = GetClientOfUserId(GetEventInt(event, "userid"));
 	GetEventString(event, "text", message, sizeof (message));
 
@@ -3741,6 +3771,16 @@ public void Player_Spawn(Handle event, const char[] name, bool dontBroadcast)
 	 * Not needed in this gamemode.
 	 */
 	TF2_RemoveCondition(client, TFCond_SpawnOutline);
+
+	/**
+	 * Since we do thirdperson differently,
+	 * we need to reset the taunt cam if the
+	 * player dies.
+	 */
+	if (SpecialRound == NO_TOUCHING)
+	{
+		ToggleThirdperson(client, true);
+	}
 }
 
 public void Player_Death(Handle event, const char[] name, bool dontBroadcast)

@@ -1,5 +1,7 @@
 #include "../microgame.inc"
 
+static int MicrogameVariation = 0;
+
 methodmap HitEnemy < Microgame
 {
 	public HitEnemy()
@@ -14,7 +16,7 @@ methodmap HitEnemy < Microgame
 
 	public void OnMicrogameStart()
 	{
-		randommini = GetRandomInt(0, 2);
+		MicrogameVariation = GetRandomInt(0, 2);
 		g_attack = true;
 	}
 
@@ -34,17 +36,17 @@ methodmap HitEnemy < Microgame
 
 			RemoveClientWeapons(client);
 
-			if (randommini <= 0)
+			if (MicrogameVariation <= 0)
 			{
 				SetClientClass(client, "spy");
 				GiveClientWeapon(client, "tf_weapon_revolver", 0, true);
 			}
-			else if (randommini == 1)
+			else if (MicrogameVariation == 1)
 			{
 				SetClientClass(client, "demoman");
 				GiveClientWeapon(client, "tf_weapon_bottle", 2, true);
 			}
-			else if (randommini >= 2)
+			else if (MicrogameVariation >= 2)
 			{
 				SetClientClass(client, "engineer");
 				GiveClientWeapon(client, "tf_weapon_shotgun_primary", 0, true);

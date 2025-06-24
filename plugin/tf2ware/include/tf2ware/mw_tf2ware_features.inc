@@ -34,7 +34,7 @@
 #include "attachments.inc"
 #endif
 
-int g_PlayerVisibleWeapon[MAXPLAYERS+1] = -1;
+static int g_PlayerVisibleWeapon[MAXPLAYERS + 1] = { -1, ... };
 
 stock bool IsValidClient(int iClient)
 {

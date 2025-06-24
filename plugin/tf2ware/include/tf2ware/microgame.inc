@@ -98,10 +98,21 @@ public void AddMiniGame(int identifier, Microgame mg)
 		ThrowError("Cannot add a NULL microgame!");
 	}
 
-	PrintToServer("[AddMiniGame] Adding a microgame with the identifier: %d", identifier);
-	if (!MICROGAMES.SetValue(identifier, mg, false))
+	/**
+	 * Check if the microgame was disabled by the server.
+	 */
+	if (!GetMinigameConfNum(g_name[identifier - 1], "enable", 1))
 	{
-		ThrowError("Failed to add microgame!");
+		PrintToServer("[AddMiniGame] Not adding microgame with identifier %d as the user has disabled it.", identifier);
+		return;
+	}
+	else
+	{
+		PrintToServer("[AddMiniGame] Adding a microgame with the identifier: %d", identifier);
+		if (!MICROGAMES.SetValue(identifier, mg, false))
+		{
+			ThrowError("Failed to add microgame!");
+		}		
 	}
 }
 

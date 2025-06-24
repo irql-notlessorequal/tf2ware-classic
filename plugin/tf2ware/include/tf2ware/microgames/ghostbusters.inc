@@ -6,11 +6,11 @@
 
 #define MUSIC_GHOSTB "imgay/tf2ware/minigame_25_alt.mp3"
 
-bool Ghostbusters_pp[MAXPLAYERS + 1] = false;
-int Ghostbusters_target[MAXPLAYERS + 1] = 0;
-int Ghostbusters_hurt[MAXPLAYERS+  1] = 0;
-int Ghostbusters_hp[MAXPLAYERS + 1] = 0;
-bool Ghostbusters_ended = false;
+static bool Ghostbusters_pp[MAXPLAYERS + 1] 	= { false, ... };
+static int Ghostbusters_target[MAXPLAYERS + 1]	= { 0, ... };
+static int Ghostbusters_hurt[MAXPLAYERS+  1]	= { 0, ... };
+static int Ghostbusters_hp[MAXPLAYERS + 1]		= { 0, ... };
+static bool Ghostbusters_ended = false;
 
 static const char VAR_GHOSTS_LAUGH[][] =
 {
@@ -87,9 +87,9 @@ methodmap Ghostbusters < Microgame
 		 * TODO(irql): 
 		 * Test the new scaling.
 		 */
-		float medicCountRaw = float(GetActivePlayers()) / 3.5;
+		float medicCountRaw = GetActivePlayers() / 3.5;
 		int medics = RoundToCeil(medicCountRaw);
-		int heavies = RoundToFloor(GetActivePlayers() / 6);
+		int heavies = RoundToFloor(GetActivePlayers() / 6.0);
 
 		/**
 		 * Sanity checks, we now allow larger
@@ -314,10 +314,13 @@ methodmap Ghostbusters < Microgame
 
 			SDKHook(client, SDKHook_OnTakeDamage, Ghostbusters_Damage);
 
-			/**
-			 * We need to update player sprites.
-			 */
-			CreateSprite(client);
+			if (view_as<OverheadScoreMode>(GetConVarInt(ww_overhead_scores)) == ENABLED)
+			{
+				/**
+				 * We need to update player sprites.
+				 */
+				CreateSprite(client);
+			}
 		}
 	}
 

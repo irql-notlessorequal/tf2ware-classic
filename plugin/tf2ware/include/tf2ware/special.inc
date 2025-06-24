@@ -87,11 +87,11 @@ public void Special_NoTouch(int entity, int other)
 		ForcePlayerSuicide(entity);
 		ForcePlayerSuicide(other);
 
-		CPrintToChatEx(entity, other, "You touched: {teamcolor}%N{default}", other);
-		CPrintToChat(entity, "In this SPECIAL ROUND, you are {red}not allowed to touch anyone{default}!");
+		CPrintToChat(entity, "%T", "NoTouching_PlayerTouched", other);
+		CPrintToChat(entity, "%T", "NoTouching_Explainer");
 
-		CPrintToChatEx(other, entity, "You touched: {teamcolor}%N{default}", entity);
-		CPrintToChat(other, "In this SPECIAL ROUND, you are {red}not allowed to touch anyone{default}!");
+		CPrintToChat(other, "%T", "NoTouching_PlayerTouched", entity);
+		CPrintToChat(other, "%T", "NoTouching_Explainer");
 	}
 }
 
@@ -134,6 +134,14 @@ void ResetSpecialRoundEffect(int specialRound)
 					SDKUnhook(client, SDKHook_Touch, Special_NoTouch);
 				}
 			}
+
+			for (int client = 1; client <= MaxClients; client++)
+			{
+				if (IsValidClient(client) && !IsFakeClient(client))
+				{
+					ToggleThirdperson(client, false);
+				}
+			}
 		}
 
 		case SINGLEPLAYER:
@@ -146,7 +154,7 @@ void ResetSpecialRoundEffect(int specialRound)
 					SetEntityRenderColor(client, 255, 255, 255, 255);
 					SetEntityRenderMode(client, RENDER_NORMAL);
 				}
-			}			
+			}
 		}
 
 		case BONK:
@@ -157,7 +165,7 @@ void ResetSpecialRoundEffect(int specialRound)
 				{
 					SDKUnhook(client, SDKHook_OnTakeDamage, Special_DamagePush);
 				}
-			}			
+			}
 		}
 
 		case THIRDPERSON:
@@ -168,7 +176,7 @@ void ResetSpecialRoundEffect(int specialRound)
 				{
 					ToggleThirdperson(client, false);
 				}
-			}		
+			}
 		}
 	}
 }
@@ -185,7 +193,15 @@ void AddSpecialRoundEffect(int specialRound)
 				{
 					SDKHook(client, SDKHook_Touch, Special_NoTouch);
 				}
-			}			
+			}
+
+			for (int client = 1; client <= MaxClients; client++)
+			{
+				if (IsValidClient(client) && !IsFakeClient(client))
+				{
+					ToggleThirdperson(client, true);
+				}
+			}
 		}
 
 		case DOUBLE_BOSS_BATTLE:
@@ -204,7 +220,7 @@ void AddSpecialRoundEffect(int specialRound)
 					SetEntityRenderColor(client, 255, 255, 255, 0);
 					SetEntityRenderMode(client, RENDER_NONE);
 				}
-			}			
+			}
 		}
 
 		case BONK:
@@ -226,7 +242,7 @@ void AddSpecialRoundEffect(int specialRound)
 				{
 					ToggleThirdperson(client, true);
 				}
-			}			
+			}
 		}
 	}
 }

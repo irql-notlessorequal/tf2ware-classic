@@ -11,6 +11,11 @@
 		"en"	"{strange}{1} gave themselves 20 points.{default}"
 	}
 
+	"NobodyWon"
+	{
+		"en"	"{green}Nobody won!?{default}"
+	}
+
 	"WinnerStringPrefix_Single"
 	{
 		"en"	"{green}The winner is"
@@ -34,7 +39,7 @@
 	"SpecialRound"
 	{
 		"#format" "{1:s}{2:s}"
-		"en"	"SPECIAL ROUND: {1} ({2})"
+		"en"	"{green}SPECIAL ROUND{default}: {red}{1}{default} ({2})"
 	}
 
 	"SpecialRoundEnded"
@@ -106,5 +111,15 @@
 	"SpyCrab_NotCrouching"
 	{
 		"en"	"{default}Spycrabs {red}crouch{default} and look up!"
+	}
+
+	"NoTouching_PlayerTouched"
+	{
+		"en"	"You touched {teamcolor}%N{default}."
+	}
+
+	"NoTouching_Explainer"
+	{
+		"en"	"In this {green}SPECIAL ROUND{default}, you are {red}not allowed to touch anyone{default}!"
 	}
 }

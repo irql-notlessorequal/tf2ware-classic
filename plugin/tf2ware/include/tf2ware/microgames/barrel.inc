@@ -1,6 +1,6 @@
 #include "../microgame.inc"
 
-static int g_Barrels[MAXPLAYERS] = -1;
+static int g_Barrels[MAXPLAYERS] = { -1, ... };
 methodmap Barrel < Microgame
 {
 	public Barrel()

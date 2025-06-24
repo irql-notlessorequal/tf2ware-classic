@@ -21,7 +21,7 @@
 
 #define MAX_MINIGAMES		 40
 
-#define PLUGIN_VERSION		 "0.0.57"
+#define PLUGIN_VERSION		 "0.0.63"
 
 #define MUSIC_SPECIAL_START			"imgay/tf2ware/special_intro.mp3"
 #define MUSIC_SPECIAL_START_LEN 	2.111429
@@ -74,7 +74,8 @@
  * With one additional player being added
  * for every seven players.
  */
-#define MAX_WIPEOUT_PLAYERS		12
+#define MAX_WIPEOUT_PLAYERS			12
+#define MAX_VISIBLE_WIPEOUT_ENTRIES	5
 
 #define PARTICLE_WIN_BLUE		"teleportedin_blue"
 #define PARTICLE_WIN_RED		"teleportedin_red"
@@ -125,6 +126,13 @@ enum TF2WareStatus
 	END_OF_ROUND = 4,
 	_UNKNOWN = 5,
 	SPECIAL_ROUND_ROLL = 6,
+}
+
+enum OverheadScoreMode
+{
+	DISABLED			= 0,
+	ENABLED				= 1,
+	INTERMISSION_ONLY	= 2
 }
 
 enum SpecialRounds

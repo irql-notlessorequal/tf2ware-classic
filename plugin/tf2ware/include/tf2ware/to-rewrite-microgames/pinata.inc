@@ -10,8 +10,6 @@ public Pinata_OnMinigame() {
     
     //The below function needs to be there if you're planning on giving clients a weapon!
     RemoveAllWeapons();
-
-    randommini = GetRandomInt(0, 2);
     
     new AllPlayers = GetClientCount(true);
     new target = GetRandomInt(1, AllPlayers);
