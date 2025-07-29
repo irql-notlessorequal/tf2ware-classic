@@ -246,8 +246,6 @@ stock void ClientParticle(int client, char effect[128], float time)
 		DispatchSpawn(strIParticle);
 		SetVariantString(strName);
 		AcceptEntityInput(strIParticle, "SetParent", strIParticle, strIParticle, 0);
-		//SetVariantString("head");
-		//AcceptEntityInput(strIParticle, "SetParentAttachment", strIParticle, strIParticle, 0);
 		ActivateEntity(strIParticle);
 		AcceptEntityInput(strIParticle, "start");
 		
@@ -316,18 +314,18 @@ public void RemoveClientWeapons(int client)
 
 stock void SetWeaponAmmo(int client, int slot1, int slot2)
 {
-	int ActiveWeapon = GetEntDataEnt2(client, FindSendPropOffs("CTFPlayer", "m_hActiveWeapon"));
+	int ActiveWeapon = GetEntDataEnt2(client, FindSendPropInfo("CTFPlayer", "m_hActiveWeapon"));
 	if (IsValidEntity(ActiveWeapon))
 	{
-		SetEntData(ActiveWeapon, FindSendPropOffs("CBaseCombatWeapon", "m_iClip1"), slot1, 4);
-		SetEntData(client, 		 FindSendPropOffs("CTFPlayer", "m_iAmmo") + 4, slot2, 4);
-		SetEntData(client,		 FindSendPropOffs("CTFPlayer", "m_iAmmo") + 8, slot2, 4);
+		SetEntData(ActiveWeapon, FindSendPropInfo("CBaseCombatWeapon", "m_iClip1"), slot1, 4);
+		SetEntData(client, 		 FindSendPropInfo("CTFPlayer", "m_iAmmo") + 4, slot2, 4);
+		SetEntData(client,		 FindSendPropInfo("CTFPlayer", "m_iAmmo") + 8, slot2, 4);
 	}
 }
 
 stock void SetWeaponState(int client, bool input)
 {
-	int ActiveWeapon = GetEntDataEnt2(client, FindSendPropOffs("CTFPlayer", "m_hActiveWeapon"));
+	int ActiveWeapon = GetEntDataEnt2(client, FindSendPropInfo("CTFPlayer", "m_hActiveWeapon"));
 	int iEntity = g_PlayerVisibleWeapon[client];
 
 	if (IsValidEntity(ActiveWeapon))
@@ -484,7 +482,7 @@ stock void DisableClientWeapons(int client)
 		
 		if (SpecialRound == BONK)
 		{
-			GiveClientWeapon(client, "tf_weapon_bat", 2, true);
+			GiveClientWeapon2(client, view_as<int>(TF2WARE_WEAPON_BAT), "tf_weapon_bat", 2, true);
 			SetClientSlot(client, 2);
 		}
 		else
@@ -497,39 +495,39 @@ stock void DisableClientWeapons(int client)
 			{
 				case TFClass_Scout:
 				{
-					GiveClientWeapon(client, "tf_weapon_bat", 2, false);
+					GiveClientWeapon2(client, view_as<int>(TF2WARE_WEAPON_BAT), "tf_weapon_bat", 2, false);
 				}
 				case TFClass_Soldier:
 				{
-					GiveClientWeapon(client, "tf_weapon_shovel", 2, false);
+					GiveClientWeapon2(client, view_as<int>(TF2WARE_WEAPON_SHOVEL), "tf_weapon_shovel", 2, false);
 				}
 				case TFClass_Pyro:
 				{
-					GiveClientWeapon(client, "tf_weapon_fireaxe", 2, false);
+					GiveClientWeapon2(client, view_as<int>(TF2WARE_WEAPON_FIREAXE), "tf_weapon_fireaxe", 2, false);
 				}
 				case TFClass_DemoMan:
 				{
-					GiveClientWeapon(client, "tf_weapon_bottle", 2, false);
+					GiveClientWeapon2(client, view_as<int>(TF2WARE_WEAPON_BOTTLE), "tf_weapon_bottle", 2, false);
 				}
 				case TFClass_Heavy:
 				{
-					GiveClientWeapon(client, "tf_weapon_fists", 2, false);
+					GiveClientWeapon2(client, view_as<int>(TF2WARE_WEAPON_FISTS), "tf_weapon_fists", 2, false);
 				}
 				case TFClass_Engineer:
 				{
-					GiveClientWeapon(client, "tf_weapon_wrench", 2, false);
+					GiveClientWeapon2(client, view_as<int>(TF2WARE_WEAPON_WRENCH), "tf_weapon_wrench", 2, false);
 				}
 				case TFClass_Medic:
 				{
-					GiveClientWeapon(client, "tf_weapon_bonesaw", 2, false);
+					GiveClientWeapon2(client, view_as<int>(TF2WARE_WEAPON_BONESAW), "tf_weapon_bonesaw", 2, false);
 				}
 				case TFClass_Sniper:
 				{
-					GiveClientWeapon(client, "tf_weapon_club", 2, false);
+					GiveClientWeapon2(client, view_as<int>(TF2WARE_WEAPON_CLUB), "tf_weapon_club", 2, false);
 				}
 				case TFClass_Spy:
 				{
-					GiveClientWeapon(client, "tf_weapon_knife", 2, false);
+					GiveClientWeapon2(client, view_as<int>(TF2WARE_WEAPON_KNIFE), "tf_weapon_knife", 2, false);
 				}
 			}
 
@@ -638,7 +636,7 @@ public int GetHealTarget(int client)
 
 stock int GetClientMaxHealth(int iClient)
 {
-	return TF2_GetPlayerResourceData(iClient, TFResource_MaxHealth);
+	return GetEntProp(iClient, Prop_Data, "m_iMaxHealth");
 }
 
 stock int FindEntityByClassname2(int startEnt, const char[] classname)

@@ -21,7 +21,7 @@
 
 #define MAX_MINIGAMES		 40
 
-#define PLUGIN_VERSION		 "0.0.63"
+#define PLUGIN_VERSION		 "0.0.65"
 
 #define MUSIC_SPECIAL_START			"imgay/tf2ware/special_intro.mp3"
 #define MUSIC_SPECIAL_START_LEN 	2.111429
@@ -44,6 +44,7 @@
 #define MUSIC_WIPEOUT_BOSS_LEN		3.9
 #define MUSIC_WIPEOUT_GAMEOVER		"imgay/tf2ware/warioman_gameover.mp3"
 #define MUSIC_WIPEOUT_GAMEOVER_LEN	8.17
+#define MUSIC_WIPEOUT_GET_READY		"sound/coach/coach_attack_here.wav"
 
 #define MUSIC_START			 "imgay/tf2ware/warioman_intro.mp3"
 #define MUSIC_START_LEN		 2.17
@@ -80,8 +81,6 @@
 #define PARTICLE_WIN_BLUE		"teleportedin_blue"
 #define PARTICLE_WIN_RED		"teleportedin_red"
 
-#define TF2_WEAPON_STICKY_JUMPER	265
-#define TF2_WEARABLE_RAZORBACK		57
 #define TF2_PLAYER_TAUNTING			(1 << 7)	 // 128 = Taunting
 
 #define GAMEMODE_WIPEOUT_HEIGHT 1190.0
@@ -183,3 +182,24 @@ enum Microgames
 	MG_PINATA = 24,
 	MG_GHOSTBUSTERS = 25,
 }
+
+enum TF2WareItemIndexes
+{
+	TF2WARE_WEAPON_BAT = 0,
+	TF2WARE_WEAPON_BOTTLE = 1,
+	TF2WARE_WEAPON_FIREAXE = 2,
+	TF2WARE_WEAPON_CLUB = 3,
+	TF2WARE_WEAPON_KNIFE = 4,
+	TF2WARE_WEAPON_FISTS = 5,
+	TF2WARE_WEAPON_SHOVEL = 6,
+	TF2WARE_WEAPON_WRENCH = 7,
+	TF2WARE_WEAPON_BONESAW = 8,
+
+	/* ... */
+
+	TF2WARE_WEARABLE_RAZORBACK = 57,
+
+	/* ... */
+
+	TF2WARE_WEAPON_STICKY_JUMPER = 265
+};

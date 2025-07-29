@@ -91,7 +91,7 @@ Handle MinigameConf = INVALID_HANDLE;
 // Bools
 bool g_Complete[MAXPLAYERS + 1];
 bool g_Spawned[MAXPLAYERS + 1];
-bool g_ModifiedOverlay[MAXPLAYERS + 1];
+static bool g_ModifiedOverlay[MAXPLAYERS + 1];
 bool g_attack	 = false;
 bool g_enabled = false;
 bool g_first	 = false;
@@ -99,10 +99,8 @@ bool g_waiting = true;
 
 // Ints
 int g_Mission[MAXPLAYERS + 1];
-int g_NeedleDelay[MAXPLAYERS + 1];
 int g_Points[MAXPLAYERS + 1];
 int g_Winner[MAXPLAYERS + 1];
-int g_Minipoints[MAXPLAYERS + 1];
 int g_Sprites[MAXPLAYERS+1];
 float currentSpeed;
 int iMinigame;
@@ -210,8 +208,6 @@ public void OnPluginStart()
 	}
 
 #if !defined(ENABLE_MALLET)
-	MimalletInitRand();
-
 	if (!MimalletInitWearables())
 	{
 		SetFailState("MimalletInitWearables returned FALSE.");
@@ -431,6 +427,7 @@ public void OnMapStart()
 		precacheSound(MUSIC_WIPEOUT_SPEEDUP);
 		precacheSound(MUSIC_WIPEOUT_BOSS);
 		precacheSound(MUSIC_WIPEOUT_GAMEOVER);
+		precacheSound(MUSIC_WIPEOUT_GET_READY);
 
 		/* Misc. */
 
@@ -1540,6 +1537,11 @@ public Action Timer_DisplayVersion(Handle timer, any client)
 
 public Action Event_RoundStart(Handle event, const char[] name, bool dontBroadcast)
 {
+#if !defined(ENABLE_MALLET)
+	/* Use a new seed. */
+	MimalletInitRand();
+#endif
+
 	if (g_enabled && GetConVarBool(ww_enable))
 	{
 		if (RoundStarts == 0)
@@ -2097,6 +2099,21 @@ int PopulateWipeoutPlayers(int candidatePlayers[MAX_WIPEOUT_PLAYERS])
 	return playersAdded;
 }
 
+void AlertPlayers(int candidatePlayers[MAX_WIPEOUT_PLAYERS], int size)
+{
+	for (int idx = 0; idx < size; idx++)
+	{
+		int client = candidatePlayers[idx];
+
+		if (IsFakeClient(client))
+		{
+			continue;
+		}
+
+		EmitSoundToClient(client, MUSIC_WIPEOUT_GET_READY);
+	}
+}
+
 void StartMinigame()
 {
 	if (GetConVarBool(ww_enable) && g_enabled && (status == 0) && g_waiting == false)
@@ -2164,11 +2181,7 @@ void StartMinigame()
 			}
 
 			PrintWipeoutMessage(candidatePlayers, populated);
-
-			/**
-			 * TODO(irql):
-			 * We should play a sound to the player when it's their turn.
-			 */
+			AlertPlayers(candidatePlayers, populated);
 		}
 		else
 		{
@@ -2195,7 +2208,6 @@ void StartMinigame()
 			if (IsValidClient(client) && !IsFakeClient(client))
 			{
 				SetOverlay(client, "");
-				g_Minipoints[client] = 0;
 			}
 		}
 
@@ -2584,18 +2596,12 @@ public Action EndGame(Handle hTimer)
 			CreateTimer(GetSpeedMultiplier(MUSIC_INFO_LEN), Victory_Timer);
 		}
 
-		/**
-		 * TODO(irql):
-		 * 
-		 * Mecha....WHY
-		 */
-		if (speedup == false)
+		if (!speedup)
 		{
 			status = 10;
 			CreateTimer(GetSpeedMultiplier(MUSIC_INFO_LEN), StartMinigame_timer2);
 		}
-
-		if (speedup == true)
+		else
 		{
 			status = 3;
 			CreateTimer(GetSpeedMultiplier(MUSIC_INFO_LEN), SpeedUp_Timer);
@@ -2818,20 +2824,20 @@ public Action Victory_Timer(Handle hTimer)
 			targetscore = GetHighestScore();
 		}
 
-		int winnernumber = 0;
+		int winnerCount = 0;
 		Handle ArrayWinners = CreateArray();
 
 		char winnerstring_prefix[128];
 		char winnerstring_names[512];
-		char pointsname[512];
+		char pointsName[512];
 
 		if (SpecialRound == WIPEOUT)
 		{
-			Format(pointsname, sizeof(pointsname), "lives");
+			Format(pointsName, sizeof(pointsName), "lives");
 		}
 		else
 		{
-			Format(pointsname, sizeof(pointsname), "points");
+			Format(pointsName, sizeof(pointsName), "points");
 		}
 
 		bool bAccepted = false;
@@ -2874,7 +2880,7 @@ public Action Victory_Timer(Handle hTimer)
 
 					RespawnClient(i, true, true);
 					SetWeaponState(i, true);
-					winnernumber += 1;
+					winnerCount += 1;
 					PushArrayCell(ArrayWinners, i);
 
 #if defined(ENABLE_SHILLINGS)
@@ -2891,7 +2897,7 @@ public Action Victory_Timer(Handle hTimer)
 		{
 			int client = GetArrayCell(ArrayWinners, i);
 
-			if (winnernumber > 1)
+			if (winnerCount > 1)
 			{
 				if (i >= (GetArraySize(ArrayWinners) - 1))
 				{
@@ -2908,12 +2914,12 @@ public Action Victory_Timer(Handle hTimer)
 			}
 		}
 
-		if (winnernumber > 1)
+		if (winnerCount > 1)
 		{
 			ReplaceStringEx(winnerstring_names, sizeof(winnerstring_names), ", ", "");
 		}
 
-		if (winnernumber != 0)
+		if (winnerCount != 0)
 		{
 			/**
 			 * TODO(irql):
@@ -2921,7 +2927,7 @@ public Action Victory_Timer(Handle hTimer)
 			 * - Migrate to the localized version
 			 * - Reword the string to "The winners [is/are] %s with %i %s!"
 			 */
-			if (winnernumber == 1)
+			if (winnerCount == 1)
 			{
 				Format(winnerstring_prefix, sizeof(winnerstring_prefix), "{green}The winner is");
 			}
@@ -2930,7 +2936,7 @@ public Action Victory_Timer(Handle hTimer)
 				Format(winnerstring_prefix, sizeof(winnerstring_prefix), "{green}The winners are");
 			}
 
-			CPrintToChatAll("%s %s (%i %s)!", winnerstring_prefix, winnerstring_names, targetscore, pointsname);
+			CPrintToChatAll("%s %s (%i %s)!", winnerstring_prefix, winnerstring_names, targetscore, pointsName);
 		}
 		else
 		{

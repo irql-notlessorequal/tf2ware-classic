@@ -1,5 +1,7 @@
 #include "../microgame.inc"
 
+static int g_MiniPoints[MAXPLAYERS + 1];
+
 methodmap BBall < Microgame
 {
 	public BBall()
@@ -11,6 +13,8 @@ methodmap BBall < Microgame
 	{
 		for (int client = 1; client <= MaxClients; client++)
 		{
+			g_MiniPoints[client] = 0;
+
 			if (IsValidClient(client))
 			{
 				SDKHook(client, SDKHook_OnTakeDamage, BBall_OnTakeDamageClient);
@@ -98,9 +102,9 @@ Action Hook_StartTouch_Pipe(int entity, int other)
 				.pitch = GetSoundMultiplier()
 			);
 			
-			g_Minipoints[owner] += 1;
+			g_MiniPoints[owner] += 1;
 
-			if (g_Minipoints[owner] >= 7)
+			if (g_MiniPoints[owner] >= 7)
 			{
 				SetStateClient(owner, true, true);
 			}

@@ -144,7 +144,7 @@ methodmap Kamikaze < Microgame
 						 * 
 						 * Fuck you Valve and your restrictions.
 						 */
-						SetEntProp(g_bomb, Prop_Send, "m_iItemDefinitionIndex", TF2_WEARABLE_RAZORBACK);
+						SetEntProp(g_bomb, Prop_Send, "m_iItemDefinitionIndex", view_as<int>(TF2WARE_WEARABLE_RAZORBACK));
 						SetEntProp(g_bomb, Prop_Send, "m_nModelIndexOverrides", PrecacheModel(WW_BOMB_MODEL));
 						SetEntProp(g_bomb, Prop_Send, "m_bValidatedAttachedEntity", true);
 						SetEntProp(g_bomb, Prop_Send, "m_hOwnerEntity", client);

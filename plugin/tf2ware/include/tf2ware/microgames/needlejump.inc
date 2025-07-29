@@ -1,6 +1,7 @@
 #include "../microgame.inc"
 
-int g_Needle_Type = 0;
+static int g_NeedleDelay[MAXPLAYERS + 1];
+static int g_Needle_Type = 0;
 
 methodmap NeedleJump < Microgame
 {

@@ -4,7 +4,7 @@
 
 static int g_Frogger_Timer = 0;
 static bool g_Frogger_Goal = false;
-static int g_Frogger_Pos[MAXPLAYERS + 1] = 0;
+static int g_Frogger_Pos[MAXPLAYERS + 1] = { 0, ... };
 
 methodmap Frogger < Microgame
 {

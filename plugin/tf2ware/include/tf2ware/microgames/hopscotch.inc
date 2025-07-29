@@ -69,7 +69,7 @@ methodmap Hopscotch < Microgame
 				 * 
 				 * The Sticky Jumper might be _too easy_.
 				 */
-				GiveClientWeapon2(client, TF2_WEAPON_STICKY_JUMPER, "tf_weapon_pipebomblauncher", 0, true);
+				GiveClientWeapon2(client, view_as<int>(TF2WARE_WEAPON_STICKY_JUMPER), "tf_weapon_pipebomblauncher", 0, true);
 			}
 		
 			float pos[3];
@@ -176,7 +176,7 @@ public Action Hopscotch_Weapon(Handle hTimer)
 			if (IsValidClient(client) && IsClientParticipating(client))
 			{
 				RemoveClientWeapons(client);
-				GiveClientWeapon2(client, TF2_WEAPON_STICKY_JUMPER, "tf_weapon_pipebomblauncher", 0, true);
+				GiveClientWeapon2(client, view_as<int>(TF2WARE_WEAPON_STICKY_JUMPER), "tf_weapon_pipebomblauncher", 0, true);
 			}
 		}
 	}

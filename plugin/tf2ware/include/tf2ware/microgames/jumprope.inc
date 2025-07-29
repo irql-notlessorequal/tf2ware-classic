@@ -82,7 +82,7 @@ public Action JumpRope_NewRound(Handle timer)
 	JumpRope_Speed++;
 	float timescale = (GetHostMultiplier(1.0) + float(JumpRope_Speed) * 0.05);
 
-	ServerCommand("host_timescale %f", timescale);
+	SetConVarFloat(ConVar_HostTimescale, timescale);
 	CreateTimer((5.0 / timescale), JumpRope_NewRound);
 
 	int ActivePlayers = 0;
