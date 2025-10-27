@@ -26,8 +26,8 @@ methodmap SimonSays < Microgame
 
 	public void OnMicrogameStart()
 	{
-		simon_action = GetRandomInt(0,2);
-		simon_or_someone = GetRandomInt(0,1);
+		simon_action = MalletGetRandomInt(0,2);
+		simon_or_someone = MalletGetRandomInt(0,1);
 
 		for (int client = 1; client <= MaxClients; client++)
 		{

@@ -56,10 +56,10 @@ methodmap ColorText < Microgame
 	{
 		ColorTextSync = CreateHudSynchronizer();
 
-		written_color = GetRandomInt(0, sizeof(g_sColors) - 1);
-		shown_color = GetRandomInt(0, sizeof(g_sColors) - 1);
+		written_color = MalletGetRandomInt(0, sizeof(g_sColors) - 1);
+		shown_color = MalletGetRandomInt(0, sizeof(g_sColors) - 1);
 
-		if (GetRandomInt(0, 1) == 1)
+		if (MalletGetRandomInt(0, 1) == 1)
 		{
 			color_target = written_color;
 			SetMissionAll(0);

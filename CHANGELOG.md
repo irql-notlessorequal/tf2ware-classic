@@ -57,3 +57,4 @@
 	This requires overhead scores to be enabled.
 
 - Math: Lowered the bounds for the math questions.
+- Added "Random Scores" as a special round.

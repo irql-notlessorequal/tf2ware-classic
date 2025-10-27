@@ -1,194 +1,192 @@
-/**
- * MIT License
- * 
- * Copyright (c) 2025 Daniel Cota
- * 
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- * 
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
- * 
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE.
- */
 #pragma newdecls required
 
 #define INT32_MAX	0x7FFFFFFF
 #define INT32_MIN  -0x7FFFFFFF
 
-#define x64_HIGH	0
-#define x64_LOW		1
+static int hi[2], lo[2];
 
-// Golden ratio constant for LoopMix128 - golden ratio fractional part * 2^64
-static const int GR[2] = { 0x9e3779b9, 0x7f4a7c15 };
-
-// For LoopMix128
-int fast_loop[2] = { 0xDEADBEEF, 0x12345678 };
-int slow_loop[2] = { 0xABCDEF01, 0x23456789 };
-int mix[2] = { 0x1234567, 0x89ABCDEF };
-
-static void add64(const int a[2], const int b[2], int result[2])
+int int64_ge(int a[2], int b[2])
 {
-    int low = a[x64_LOW] + b[x64_LOW];
-    int carry = (low < a[x64_LOW]);
-
-    result[x64_LOW] = low;
-    result[x64_HIGH] = a[x64_HIGH] + b[x64_HIGH] + carry;
+	if (a[1] != b[1])
+		return a[1] > b[1];
+	else
+		return a[0] >= b[0];
 }
 
-static void mul64(const int a[2], const int b[2], int result[2])
+void int64_sub(int r[2], int a[2], int b[2])
 {
-    int a_lo_lo = a[x64_LOW] & 0xFFFF;
-    int a_lo_hi = (a[x64_LOW] >> 16) & 0xFFFF;
-    int a_hi_lo = a[x64_HIGH] & 0xFFFF;
-    int a_hi_hi = (a[x64_HIGH] >> 16) & 0xFFFF;
+	int alo = a[0], ahi = a[1];
+	int blo = b[0], bhi = b[1];
+	int borrow = alo < blo ? 1 : 0;
 
-    int b_lo_lo = b[x64_LOW] & 0xFFFF;
-    int b_lo_hi = (b[x64_LOW]  >> 16) & 0xFFFF;
-    int b_hi_lo = b[x64_HIGH] & 0xFFFF;
-    int b_hi_hi = (b[x64_HIGH] >> 16) & 0xFFFF;
-
-    // Calculate low * low
-    int p0 = a_lo_lo * b_lo_lo;
-    int p1 = a_lo_lo * b_lo_hi;
-    int p2 = a_lo_hi * b_hi_lo;
-    int p3 = a_hi_hi * b_hi_hi;
-
-    // Combine for 32-bit low part
-    int temp = (p1 & 0xFFFF) + (p2 & 0xFFFF) + (p0 >> 16);
-    int low = (p0 & 0xFFFF) | ((temp & 0xFFFF) << 16);
-
-    // Carry from low to high
-    int carry = (temp >> 16) + (p1 >> 16) + (p2 >> 16) + p3;
-
-    // High part: cross terms (a_hi * b_lo) and (a_lo * b_hi) (low words only)
-    carry += a_hi_lo * b_lo_lo;
-    carry += a_lo_lo * b_hi_lo;
-
-    result[x64_LOW] = low;
-    result[x64_HIGH] = carry;
+	r[0] = alo - blo;
+	r[1] = ahi - bhi - borrow;
 }
 
-static void xor64(const int a[2], const int b[2], int result[2])
+int int64_mod32(int a[2], int m)
 {
-	result[x64_HIGH] = a[x64_HIGH] ^ b[x64_HIGH];
-    result[x64_LOW] = a[x64_LOW] ^ b[x64_LOW];
-}
+	int high = a[1] % m;
+	int low = a[0] % m;
+	int base = (1 << 32) % m;
+	int b = (65536 % m);
 
-static void rotl64(const int a[2], int n, int result[2])
-{
-	n &= 63;
+	base = (b * b) % m;
+
+	int result = (high * base) % m;
+	result = (result + (low % m)) % m;
+
+	if (result < 0)
+		result += m;	
 	
-	if (n == 0)
+	return result;
+}
+
+void int64_not(const int s[2], int out[2])
+{
+	out[0] = ~s[0];
+	out[1] = ~s[1];
+}
+
+void int64_shl(const int input[2], int shift, int out[2])
+{
+	if (shift == 0)
 	{
-		result[0] = a[0];
-		result[1] = a[1];
+		out[0] = input[0];
+		out[1] = input[1];
 	}
-	else if (n < 32)
+	else if (shift < 32)
 	{
-		result[0] = (a[0] << n) | (a[1] >> (32 - n));
-		result[1] = (a[1] << n) | (a[0] >> (32 - n));
+		out[0] = (input[0] << shift) | ((input[1] >> (32 - shift)) & ((1 << shift) - 1));
+		out[1] = input[1] << shift;
 	}
-	else if (n < 64)
+	else if (shift < 64)
 	{
-		result[0] = (a[1] << (n - 32)) | (a[0] >> (64 - n));
-		result[1] = (a[0] << (n - 32)) | (a[1] >> (64 - n));
+		out[0] = input[1] << (shift - 32);
+		out[1] = 0;
+	}
+	else
+	{
+		out[0] = 0;
+		out[1] = 0;
 	}
 }
 
-static void loopMix128(int output[2])
+void int64_shr(const int input[2], int shift, int out[2])
 {
-	int t1[2];
-
-	add64(mix, fast_loop, t1);
-	mul64(GR, t1, output);
-
-	/**
-	 * We need to check if we've overflowed the fast_loop,
-	 * and then treat the negative numbers as zero.
-	 */
-	if (fast_loop[x64_LOW] <= 0 || fast_loop[x64_HIGH] <= 0)
+	if (shift == 0)
 	{
-		add64(slow_loop, GR, slow_loop);
-		xor64(mix, slow_loop, mix);
+		out[0] = input[0];
+		out[1] = input[1];
 	}
-
-	rotl64(mix, 59, t1);
-	add64(t1, fast_loop, mix);
-
-	rotl64(fast_loop, 47, t1);
-	add64(t1, GR, fast_loop);
+	else if (shift < 32)
+	{
+		out[1] = (input[1] >> shift) | (input[0] << (32 - shift));
+		out[0] = input[0] >> shift;
+	}
+	else if (shift < 64)
+	{
+		out[1] = input[0] >> (shift - 32);
+		out[0] = input[0] < 0 ? -1 : 0;
+	}
+	else
+	{
+		out[1] = input[0] < 0 ? -1 : 0;
+		out[0] = input[0] < 0 ? -1 : 0;
+	}
 }
 
-static int abs(int x)
+void int64_add(const int a[2], const int b[2], int out[2])
 {
-	/**
-	 * We have no way of figuring out what
-	 * we're running on so be rude and assume
-	 * that we have only 32-bits to work with.
-	 */
-	int mask = x >> (4 * 8 - 1);
-	return (x ^ mask) - mask;
+	int low	  = a[1] + b[1];
+	int carry = ((a[1] >= 0 && b[1] >= 0 && low < 0) || (a[1] < 0 && b[1] < 0 && low >= 0)) ? 1 : 0;
+	out[1]	  = low;
+	out[0]	  = a[0] + b[0] + carry;
+}
+
+void ranrot_seed(const int s[2])
+{
+	int64_not(s, hi);
+	lo[0] = s[0];
+	lo[1] = s[1];
+}
+
+void ranrot(int out[2])
+{
+	int t1[2], t2[2];
+
+	// hi = (hi << 19) + (hi >> 23)
+	int64_shl(hi, 19, t1);
+	int64_shr(hi, 23, t2);
+	int64_add(t1, t2, hi);
+
+	// lo = (lo << 29) + (lo >> 31)
+	int64_shl(lo, 29, t1);
+	int64_shr(lo, 31, t2);
+	int64_add(t1, t2, lo);
+
+	// hi += lo
+	int64_add(hi, lo, hi);
+
+	// lo += hi
+	int64_add(lo, hi, lo);
+
+	// return hi
+	out[0] = hi[0];
+	out[1] = hi[1];
 }
 
 public void MimalletInitRand()
 {
-	/**
-	 * The algorithm sucks a bit and we need
-	 * to offset the mix on Mallet startup in
-	 * order to get actually reasonable values.
-	 */
 	int seed[2];
+	
+	/* Use the current system time as the
+	 * base seed, this'll change soon. */
+	GetTime(seed);
+	
+	/* Offset the seed with the Valve RNG(tm) */
+	seed[0] &= GetURandomInt();
+	seed[1] &= GetURandomInt();
 
-	seed[x64_HIGH] = GetURandomInt();
-	seed[x64_LOW] = GetURandomInt();
-
-	add64(mix, seed, mix);
+	/* Initialize the PRNG. */
+	ranrot_seed(seed);
 }
 
 public int MalletGetRand32()
 {
 	int array[2];
-	loopMix128(array);
+	ranrot(array);
 
-	/**
-	 * I'm so sorry.
-	 */
-	return array[x64_LOW] ^ array[x64_HIGH];
+	/* Ignore the upper 32-bits. */
+	return array[1] & 0xffffffff;
 }
 
-public void MalletGetRand64(any a[2])
+public void MalletGetRand64(int a[2])
 {
-	int array[2];
-	loopMix128(array);
-
-	a[0] = array[0];
-	a[1] = array[1];
+	ranrot(a);
 }
 
 public int MalletGetRandomInt(int min, int max)
 {
-	/**
-	 * MalletGetRand32() is signed, this causes a plethora of issues.
-	 * 
-	 * We need to do abs() if dealing with positive values.
-	 */
-    if (min >= 0)
-	{
-		return min + abs(MalletGetRand32()) / (INT32_MAX / (max - min + 1) + 1);
-	}
-	else
-	{
-		return min + MalletGetRand32() / (INT32_MAX / (max - min + 1) + 1);
-	}
+	int out[2], range64[2], limit[2], tmp[2];
+	int range = max - min + 1;
+	if (range <= 0)
+		return min; // handle bad input
+
+	// range64 = {range, 0}
+	range64[0] = range;
+	range64[1] = 0;
+
+	// limit = {0xFFFFFFFF, 0x7FFFFFFF} - (limit % range)
+	limit[0] = -1;
+	limit[1] = 0x7FFFFFFF;
+	tmp[0] = int64_mod32(limit, range);
+	tmp[1] = 0;
+	int64_sub(limit, limit, tmp);
+
+	do {
+		ranrot(out);
+	} while (int64_ge(out, limit));
+
+	int val = int64_mod32(out, range);
+	return min + val;
 }

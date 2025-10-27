@@ -16,7 +16,7 @@ methodmap Goomba < Microgame
 
 	public void OnMicrogameStart()
 	{
-		g_JumpManTeam = GetRandomInt(2, 3);
+		g_JumpManTeam = MalletGetRandomInt(2, 3);
 	}
 
 	public void OnClientJustEntered(int client)

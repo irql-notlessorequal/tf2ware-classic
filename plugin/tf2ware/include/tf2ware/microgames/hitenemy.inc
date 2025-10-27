@@ -16,7 +16,7 @@ methodmap HitEnemy < Microgame
 
 	public void OnMicrogameStart()
 	{
-		MicrogameVariation = GetRandomInt(0, 2);
+		MicrogameVariation = MalletGetRandomInt(0, 2);
 		g_attack = true;
 	}
 

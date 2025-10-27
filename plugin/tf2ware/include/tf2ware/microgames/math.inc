@@ -11,9 +11,9 @@ methodmap Math < Microgame
 
 	public void OnMicrogameStart()
 	{
-		int random1 = GetRandomInt(2, 16);
-		int random2 = GetRandomInt(2, 16);
-		int form = GetRandomInt(1, 3);
+		int random1 = MalletGetRandomInt(2, 16);
+		int random2 = MalletGetRandomInt(2, 16);
+		int form = MalletGetRandomInt(1, 3);
 		char formString[12];
 	
 		if (form == 1)
@@ -22,9 +22,9 @@ methodmap Math < Microgame
 			 * A guy one day kept saying 9001 to the math problems and was sad that it never was it.
 			 * Take this as a 1/50 chance joke :P
 			 */
-			if (GetRandomInt(1, 50) == 1)
+			if (MalletGetRandomInt(1, 50) == 1)
 			{
-				random1 = GetRandomInt(1, 9) * 1000;
+				random1 = MalletGetRandomInt(1, 9) * 1000;
 				random2 = 9001 - random1;
 			}
 
@@ -39,8 +39,8 @@ methodmap Math < Microgame
 		else if (form == 3)
 		{
 			Format(formString, sizeof(formString), "*");
-			random1 = GetRandomInt(2, 10);
-			random2 = GetRandomInt(2, 10);
+			random1 = MalletGetRandomInt(2, 10);
+			random2 = MalletGetRandomInt(2, 10);
 			g_result = random1 * random2;
 		}
 	

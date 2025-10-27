@@ -12,7 +12,7 @@ methodmap NeedleJump < Microgame
 
 	public void OnMicrogameStart()
 	{
-		g_Needle_Type = GetRandomInt(0,2);
+		g_Needle_Type = MalletGetRandomInt(0, 2);
 	
 		SetStateAll(true);
 		g_attack = true;

@@ -113,12 +113,12 @@ methodmap Ghostbusters < Microgame
 		for (int i = 1; i <= medics; i++)
 		{
 			attempts = 0;
-			target = GetRandomInt(1, AllPlayers);
+			target = MalletGetRandomInt(1, AllPlayers);
 
 			while (((!IsValidClient(target)) || IsClientParticipating(target) == false ||
 					IsFakeClient(target) || g_Mission[target] != GHOSTBUSTERS_SPY) && attempts <= 50)
 			{
-				target = GetRandomInt(1, AllPlayers);
+				target = MalletGetRandomInt(1, AllPlayers);
 				attempts += 1;
 			}
 
@@ -134,12 +134,12 @@ methodmap Ghostbusters < Microgame
 		for (int i = 1; i <= heavies; i++)
 		{
 			attempts = 0;
-			target = GetRandomInt(1, AllPlayers);
+			target = MalletGetRandomInt(1, AllPlayers);
 
 			while (((!IsValidClient(target)) || IsClientParticipating(target) == false ||
 					g_Mission[target] != GHOSTBUSTERS_SPY) && attempts <= 50)
 			{
-				target = GetRandomInt(1, AllPlayers);
+				target = MalletGetRandomInt(1, AllPlayers);
 				attempts += 1;
 			}
 

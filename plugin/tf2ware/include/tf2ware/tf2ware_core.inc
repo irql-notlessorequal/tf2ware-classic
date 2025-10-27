@@ -21,15 +21,15 @@
 
 #define MAX_MINIGAMES		 40
 
-#define PLUGIN_VERSION		 "0.0.65"
+#define PLUGIN_VERSION		 "0.0.70"
 
 #define MUSIC_SPECIAL_START			"imgay/tf2ware/special_intro.mp3"
-#define MUSIC_SPECIAL_START_LEN 	2.111429
+#define MUSIC_SPECIAL_START_LEN 	3.84
 #define MUSIC_SPECIAL_WIN			"imgay/tf2ware/special_win.mp3"
 #define MUSIC_SPECIAL_FAIL			"imgay/tf2ware/special_fail.mp3"
-#define MUSIC_SPECIAL_END_LEN		2.111429
+#define MUSIC_SPECIAL_END_LEN		2.1
 #define MUSIC_SPECIAL_SPEEDUP		"imgay/tf2ware/special_speedup.mp3"
-#define MUSIC_SPECIAL_SPEEDUP_LEN	3.835510
+#define MUSIC_SPECIAL_SPEEDUP_LEN	4.15
 #define MUSIC_SPECIAL_GAMEOVER		"imgay/tf2ware/special_gameover.mp3"
 #define MUSIC_SPECIAL_GAMEOVER_LEN	8.17
 
@@ -63,6 +63,10 @@
 #define SOUND_MINISCORE		 "items/pumpkin_drop.wav"
 #define SOUND_HEAVY_KISS	 "vo/heavy_generic01.mp3"
 #define MUSIC_WAITING		 "imgay/tf2ware/waitingforplayers.mp3"
+#define MUSIC_WAITING_ALT	  "imgay/tf2ware/break.mp3"
+#define MUSIC_WAITING_ALT_DURATION     39.967347
+#define MUSIC_WAITING_ALT_END "imgay/tf2ware/break_end.mp3"
+#define MUSIC_WAITING_ALT_END_DURATION 1.593469
 #define MUSIC_SPECIAL		 "imgay/tf2ware/specialround.mp3"
 #define MUSIC_SPECIAL_LEN	 13.5
 #define SOUND_SELECT		 "imgay/tf2ware/select.mp3"
@@ -147,7 +151,8 @@ enum SpecialRounds
 	LEAST_IS_BEST,
 	BONK,
 	THIRDPERSON,
-	WIPEOUT
+	WIPEOUT,
+	RANDOM_SCORE
 };
 
 enum Microgames

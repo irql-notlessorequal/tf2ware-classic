@@ -87,6 +87,17 @@
 		"en"	"Now It's Personal!"
 	}
 
+	"Special_RandomScore"
+	{
+		"en"	"Oh So Random!"
+	}
+
+	"RandomScore_Announcement"
+	{
+		"#format" "{1:d}"
+		"en"	"The next minigame will give you {selfmade}{1}{default} points!"
+	}
+
 	"Frogger_MadeItFirst"
 	{
 		"#format" "{1:s}"

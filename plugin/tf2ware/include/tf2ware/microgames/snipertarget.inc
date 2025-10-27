@@ -49,7 +49,7 @@ methodmap SniperTarget < Microgame
 	{
 		g_attack = true;
 	
-		g_Target_Random = GetRandomInt(0,4);
+		g_Target_Random = MalletGetRandomInt(0, 4);
 		g_Target_Pos = 0;
 		g_Target_Ready = false;
 	}
@@ -78,7 +78,7 @@ methodmap SniperTarget < Microgame
 			if (IsValidEdict(var_sniper_target))
 			{                      
 				char model[128];
-				switch (GetRandomInt(1, 9))
+				switch (MalletGetRandomInt(1, 9))
 				{
 					case 1:
 					{

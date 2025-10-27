@@ -159,7 +159,10 @@ methodmap Frogger < Microgame
 					{
 						SetStateClient(client, true, true);
 					
-						CPrintToChatAllEx(client, "{teamcolor}%N{default} made it to the goal first!", client);
+						char clientName[MAX_NAME_LENGTH];
+						GetClientName(client, clientName, MAX_NAME_LENGTH);
+						CPrintToChatAllEx(client, "%t", "Frogger_MadeItFirst", clientName);
+
 						g_Frogger_Pos[client] = 99;
 
 						if (!g_Frogger_Goal)

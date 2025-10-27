@@ -27,11 +27,12 @@
 	6:      Bonk            Everyone gets a bat to push people with    
 	7:      Thirdperson     Forced into thirdperson!
 
-	8:		Wipeout
+	8:      Wipeout
+	9:      Random Score
 */
 #pragma newdecls required
 
-#define SPECIAL_TOTAL	8
+#define SPECIAL_TOTAL	9
 
 bool Special_TwoBosses = false;
 
@@ -44,7 +45,8 @@ char var_special_name[][] =
 	"LEAST IS BEST",
 	"BONK",
 	"THIRDPERSON",
-	"WIPEOUT"
+	"WIPEOUT",
+	"RANDOM SCORE"
 };
 
 char var_special_phrases[][] =
@@ -56,7 +58,22 @@ char var_special_phrases[][] =
 	"Special_LeastIsBest",
 	"Special_Bonk",
 	"Special_ThirdPerson",
-	"Special_Wipeout"
+	"Special_Wipeout",
+	"Special_RandomScore"
+};
+
+char FAKE_SPECIAL_ROUNDS[][] =
+{ 
+	"FAT LARD RUN",
+	"MOUSTACHIO",
+	"LOVE STORY",
+	"SIZE MATTERS",
+	"ENGINEERD",
+	"IDLE FOR HATS",
+	"TF2 BROS: BRAWL",
+	"HOT SPY ON ICE",
+	"SV_CHEATS 1",
+	"STOP THAT SPYCRAB"
 };
 
 public void Special_NoTouch(int entity, int other)
@@ -66,7 +83,8 @@ public void Special_NoTouch(int entity, int other)
 		return;
 	}
 
-	if (view_as<Microgames>(currentMicrogame) == MG_HUGGING)
+	if (view_as<Microgames>(currentMicrogame) == MG_HUGGING ||
+	    view_as<Microgames>(currentMicrogame) == MG_GOOMBA)
 	{
 		return;
 	}
@@ -87,10 +105,10 @@ public void Special_NoTouch(int entity, int other)
 		ForcePlayerSuicide(entity);
 		ForcePlayerSuicide(other);
 
-		CPrintToChat(entity, "%T", "NoTouching_PlayerTouched", other);
+		CPrintToChat(entity, "%t", "NoTouching_PlayerTouched", other);
 		CPrintToChat(entity, "%T", "NoTouching_Explainer");
 
-		CPrintToChat(other, "%T", "NoTouching_PlayerTouched", entity);
+		CPrintToChat(other, "%t", "NoTouching_PlayerTouched", entity);
 		CPrintToChat(other, "%T", "NoTouching_Explainer");
 	}
 }

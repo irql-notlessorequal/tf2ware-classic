@@ -72,7 +72,7 @@ methodmap Hugging < Microgame
 		 * 
 		 * One problem, we can have more than 24 players nowadays.
 		 */
-		int heavies = RoundToFloor(activePlayers / 7.0);
+		int heavies = RoundToCeil(activePlayers / 7.0);
 		
 		/**
 		 * If we have less than seven players,
@@ -102,7 +102,7 @@ methodmap Hugging < Microgame
 				break;
 			}
 
-			target = GetRandomInt(1, AllPlayers);
+			target = MalletGetRandomInt(1, AllPlayers);
 			if (!IsValidClient(target))
 			{
 				continue;

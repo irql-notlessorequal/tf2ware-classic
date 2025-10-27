@@ -44,7 +44,7 @@ public Action Timer_Vocalize(Handle hTimer, DataPack data)
 		
 		if (sounds.Length != 0)
 		{
-			int idx = GetRandomInt(0, sounds.Length - 1);
+			int idx = MalletGetRandomInt(0, sounds.Length - 1);
 			if (!sounds.GetString(idx, buffer, sizeof (buffer)))
 			{
 				ThrowError("Failed to get a voiceline!");
@@ -79,7 +79,7 @@ int RollFromValid(int clients[MAXPLAYERS+1])
 	// Check to avoid "invalid index 0" if array size is <1
 	if (GetArraySize(list) > 0)
 	{
-		result = GetArrayCell(list, GetRandomInt(0, GetArraySize(list) - 1));
+		result = GetArrayCell(list, MalletGetRandomInt(0, GetArraySize(list) - 1));
 	}
 	else
 	{

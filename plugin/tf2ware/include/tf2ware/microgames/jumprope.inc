@@ -29,7 +29,7 @@ methodmap JumpRope < Microgame
 		JumpRope_Speed = 0;
 		
 		CreateTimer(5.0, JumpRope_NewRound);
-		CreateTimer(0.5, JumpRope_Drain);
+		CreateTimer(1.0, JumpRope_Drain);
 	}
 
 	public void OnClientJustEntered(int client)
@@ -106,27 +106,24 @@ public Action JumpRope_Drain(Handle timer)
 {
 	if (view_as<Microgames>(currentMicrogame) != MG_JUMP_ROPE)
 	{
-		return Plugin_Continue;
+		return Plugin_Stop;
 	}
 
 	if (status != 2)
 	{
-		return Plugin_Continue;
+		return Plugin_Stop;
 	}
 
 	for (int client = 1; client <= MaxClients; client++)
 	{
 		if (IsValidClient(client) && IsPlayerAlive(client) && IsClientParticipating(client))
 		{
-			/** 
-			 * DMG_GENERIC:
-			 * 
-			 * "Does not make any kind of visual or audible indication
-			 *  of incoming damage, unlike other damage types."
-			 * 
-			 * Leave it as is.
-			 */
-			HurtEntity(client, float(JumpRope_DrainHP));
+			int health = GetClientHealth(client);
+
+            if (health > JumpRope_DrainHP)
+				SetEntityHealth(client, health - JumpRope_DrainHP);
+            else
+				ForcePlayerSuicide(client);
 		}
 	}
 	

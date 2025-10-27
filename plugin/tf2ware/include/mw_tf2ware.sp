@@ -120,6 +120,7 @@ static int RoundStarts					= 0;
 static int SpecialRoundCooldown			= 1;
 static int g_MiniGamesPlayed			= 0;
 static int bossBattle					= 0;
+int NextMiniGameScore = 0;
 bool g_Participating[MAXPLAYERS + 1]	= { false, ... };
 int gVelocityOffset = -1;
 
@@ -177,18 +178,6 @@ public Plugin myinfo =
 	description = "Wario Ware in Team Fortress 2!",
 	version		= PLUGIN_VERSION,
 	url			= "https://github.com/irql-notlessorequal/tf2ware-classic"
-};
-
-static const char FAKE_SPECIAL_ROUNDS[][] = { 
-	"FAT LARD RUN",
-	"MOUSTACHIO",
-	"LOVE STORY",
-	"SIZE MATTERS",
-	"ENGINEERD",
-	"IDLE FOR HATS",
-	"TF2 BROS: BRAWL",
-	"HOT SPY ON ICE",
-	"SV_CHEATS 1"
 };
 
 public void OnPluginStart()
@@ -432,6 +421,8 @@ public void OnMapStart()
 		/* Misc. */
 
 		precacheSound(MUSIC_WAITING);
+		precacheSound(MUSIC_WAITING_ALT);
+		precacheSound(MUSIC_WAITING_ALT_END);
 		precacheSound(MUSIC_SPECIAL);
 
 		precacheSound(SOUND_COMPLETE);
@@ -1535,6 +1526,17 @@ public Action Timer_DisplayVersion(Handle timer, any client)
 	return Plugin_Handled;
 }
 
+public Action Timer_WaitingForPlayersEnd(Handle timer, any client)
+{
+	if (RoundStarts == 0)
+	{
+		return Plugin_Stop;
+	}
+
+	EmitSoundToClient(client, MUSIC_WAITING_ALT_END, SOUND_FROM_PLAYER, SND_CHANNEL_SPECIFIC);
+	return Plugin_Stop;
+}
+
 public Action Event_RoundStart(Handle event, const char[] name, bool dontBroadcast)
 {
 #if !defined(ENABLE_MALLET)
@@ -1568,6 +1570,8 @@ public Action Event_RoundStart(Handle event, const char[] name, bool dontBroadca
 					if (!IsFakeClient(client))
 					{
 						StopSound(client, SND_CHANNEL_SPECIFIC, MUSIC_WAITING);
+						StopSound(client, SND_CHANNEL_SPECIFIC, MUSIC_WAITING_ALT);
+						StopSound(client, SND_CHANNEL_SPECIFIC, MUSIC_WAITING_ALT_END);
 						SetOverlay(client, "");
 					}
 
@@ -1711,7 +1715,18 @@ public Action EventInventoryApplication(Handle event, const char[] name, bool do
 
 	if (g_Spawned[client] == false && g_waiting && !IsFakeClient(client))
 	{
-		EmitSoundToClient(client, MUSIC_WAITING, SOUND_FROM_PLAYER, SND_CHANNEL_SPECIFIC);
+		/* Play a different waiting for players audio cue if
+		 * the server has already played minimum one round. */
+		if (RoundStarts == 0)
+		{
+			EmitSoundToClient(client, MUSIC_WAITING, SOUND_FROM_PLAYER, SND_CHANNEL_SPECIFIC);
+		}
+		else
+		{
+			EmitSoundToClient(client, MUSIC_WAITING_ALT, SOUND_FROM_PLAYER, SND_CHANNEL_SPECIFIC);
+			CreateTimer(MUSIC_WAITING_ALT_DURATION, Timer_WaitingForPlayersEnd, client);
+		}
+
 		SetOverlay(client, "tf2ware_welcome");
 		CreateTimer(0.25, Timer_DisplayVersion, client);
 	}
@@ -1977,7 +1992,7 @@ public Action Player_Team(Handle event, const char[] name, bool dontBroadcast)
 	return Plugin_Continue;
 }
 
-void HandOutPoints()
+void HandOutPoints(int points)
 {
 #if defined(DEBUG)
 	LogMessage("[TF2Ware::HandOutPoints] Handing out points");
@@ -1985,12 +2000,6 @@ void HandOutPoints()
 
 	for (int client = 1; client <= MaxClients; client++)
 	{
-		int points = 1;
-		if (bossBattle == 1)
-		{
-			points = 5;
-		}
-
 		if ((IsValidClient(client)) && IsClientParticipating(client))
 		{
 			if (g_Complete[client])
@@ -2192,6 +2201,12 @@ void StartMinigame()
 					g_Participating[client] = true;
 				}
 			}
+		}
+
+		if (SpecialRound == RANDOM_SCORE)
+		{
+			NextMiniGameScore = MalletGetRandomInt(-10, 10);
+			CPrintToChatAll("%T", "RandomScore_Announcement", LANG_SERVER, NextMiniGameScore);
 		}
 
 		if (GetConVarBool(ww_music))
@@ -2507,7 +2522,22 @@ public Action EndGame(Handle hTimer)
 
 		if (bHandlePoints)
 		{
-			HandOutPoints();
+			int points;
+
+			if (SpecialRound == RANDOM_SCORE)
+			{
+				points = NextMiniGameScore;
+			}
+			else if (bossBattle == 1)
+			{
+				points = 5;
+			}
+			else
+			{
+				points = 1;
+			}
+
+			HandOutPoints(points);
 		}
 
 		/**
@@ -2968,8 +2998,10 @@ public Action Classic_EndMap(Handle hTimer)
 	ResetScores();
 	SetStateAll(false);
 	ResetWinners();
+	g_enabled = false;
 	g_waiting = true;
 	RoundStarts = 0;
+	SpecialRoundCooldown = 1;
 	g_MiniGamesPlayed = 0;
 
 	ResetConVar(ConVar_HostTimescale);
@@ -3463,18 +3495,21 @@ void SetStateClient(int client, bool value, bool complete = false)
 	}
 }
 
-stock float GetSpeedMultiplier(float count)
-{
-	float divide = ((currentSpeed - 1.0) / 7.5) + 1.0;
-	float speed  = count / divide;
-	return speed;
-}
-
 stock float GetHostMultiplier(float count)
 {
 	float divide = ((currentSpeed - 1.0) / 7.5) + 1.0;
-	float speed  = count* divide;
+	float speed  = count * divide;
 	return speed;
+}
+
+stock float GetSpeedMultiplier(float count)
+{
+	/**
+	 * Mecha decided to try and scale the audio speed here,
+	 * this was a god awful idea since the time was already
+	 * sped up by host_timescale leading to overlapping audio.
+	 */
+	return count;
 }
 
 int GetSoundMultiplier()

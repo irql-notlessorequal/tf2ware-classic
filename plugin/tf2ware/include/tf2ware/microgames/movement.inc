@@ -11,7 +11,7 @@ methodmap Movement < Microgame
 	{
 		SetStateAll(true);
 
-		int mission = GetRandomInt(0,1);
+		int mission = MalletGetRandomInt(0, 1);
 
 		for (int client = 1; client <= MaxClients; client++)
 		{

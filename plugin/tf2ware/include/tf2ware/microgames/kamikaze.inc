@@ -24,7 +24,7 @@ methodmap Kamikaze < Microgame
 	public void OnMicrogameStart()
 	{	
 		int AllPlayers = GetClientCount(true);
-		int target = GetRandomInt(1, AllPlayers);
+		int target = MalletGetRandomInt(1, AllPlayers);
 
 		/**
 		 * TODO: This should have a check if the player is
@@ -33,7 +33,7 @@ methodmap Kamikaze < Microgame
 		 */
 		while ((!IsValidClient(target)) || GetClientTeam(target) < 2 || g_Spawned[target] == false || !IsPlayerAlive(target))
 		{
-			target = GetRandomInt(1, AllPlayers);
+			target = MalletGetRandomInt(1, AllPlayers);
 		}
 	
 		EmitSoundToClient(target, WW_BOMB, SOUND_FROM_PLAYER, SNDCHAN_AUTO, SNDLEVEL_NORMAL, SND_NOFLAGS, SNDVOL_NORMAL, GetSoundMultiplier());

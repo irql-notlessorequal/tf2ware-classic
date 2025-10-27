@@ -218,7 +218,7 @@ public void DispatchOnMicrogameSetup()
 
 			case MG_GHOSTBUSTERS:
 			{
-				view_as<Goomba>(key).OnMicrogameSetup();
+				view_as<Ghostbusters>(key).OnMicrogameSetup();
 			}
 
 			case MG_GOOMBA:

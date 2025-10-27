@@ -35,9 +35,14 @@ stock void CreateAllSprites()
 	}
 }
 
+stock bool OverheadScoresAllowed()
+{
+	return SpecialRound != SINGLEPLAYER && SpecialRound != RANDOM_SCORE;
+}
+
 stock void CreateSprite(int client)
 {
-	if (IsValidClient(client) && (SpecialRound != SINGLEPLAYER))
+	if (IsValidClient(client) && OverheadScoresAllowed())
 	{
 		DestroySprite(client);
 
