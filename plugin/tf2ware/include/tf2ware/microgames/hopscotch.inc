@@ -64,12 +64,7 @@ methodmap Hopscotch < Microgame
 			else if (g_Hopscotch_Weapon && g_Hopscotch_Arena == HOPSCOTCH_ARENA_STICKY_JUMPING)
 			{
 				RemoveClientWeapons(client);
-				/**
-				 * TODO(irql):
-				 * 
-				 * The Sticky Jumper might be _too easy_.
-				 */
-				GiveClientWeapon2(client, view_as<int>(TF2WARE_WEAPON_STICKY_JUMPER), "tf_weapon_pipebomblauncher", 0, true);
+				GiveClientWeapon2(client, view_as<int>(TF2WARE_WEAPON_STICKY_BOMB), "tf_weapon_pipebomblauncher", 0, true);
 			}
 		
 			float pos[3];
@@ -176,7 +171,7 @@ public Action Hopscotch_Weapon(Handle hTimer)
 			if (IsValidClient(client) && IsClientParticipating(client))
 			{
 				RemoveClientWeapons(client);
-				GiveClientWeapon2(client, view_as<int>(TF2WARE_WEAPON_STICKY_JUMPER), "tf_weapon_pipebomblauncher", 0, true);
+				GiveClientWeapon2(client, view_as<int>(TF2WARE_WEAPON_STICKY_BOMB), "tf_weapon_pipebomblauncher", 0, true);
 			}
 		}
 	}
@@ -184,12 +179,26 @@ public Action Hopscotch_Weapon(Handle hTimer)
 	return Plugin_Stop;
 }
 
+Action Hopscotch_GiveHealth(Handle hTimer, int iClient)
+{
+	if (IsValidClient(iClient) && IsPlayerAlive(iClient))
+	{
+		int iMaxHealth = GetClientMaxHealth(iClient);
+		SetEntityHealth(iClient, iMaxHealth);  
+	}
+
+	return Plugin_Continue;
+}
+
 public Action Hopscotch_OnTakeDamageClient(int victim, int &attacker, int &inflictor, float &damage, int &damagetype)
 {
 	if (IsValidClient(attacker) && IsValidClient(victim) && victim != attacker && status == 2)
 	{
 		damage = 0.0;
+
+		CreateTimer(0.0, Hopscotch_GiveHealth, victim);
+		return Plugin_Changed;
 	}
 	
-	return Plugin_Changed;
+	return Plugin_Continue;
 }

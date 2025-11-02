@@ -28,8 +28,10 @@ methodmap SniperTarget < Microgame
 	{
 		/**
 		 * Not available on Alpine.
+		 * 
+		 * Also silence the warning in a lazy way.
 		 */
-		return !IsAlpineVariant();
+		return players && !IsAlpineVariant();
 	}
 
 	public void OnMicrogameSetup()
@@ -52,6 +54,9 @@ methodmap SniperTarget < Microgame
 		g_Target_Random = MalletGetRandomInt(0, 4);
 		g_Target_Pos = 0;
 		g_Target_Ready = false;
+
+		/* Epic collisions fix. */
+		NoCollision(true);
 	}
 
 	public void OnMicrogameEnd()

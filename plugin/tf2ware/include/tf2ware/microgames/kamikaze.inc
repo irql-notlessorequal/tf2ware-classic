@@ -24,17 +24,24 @@ methodmap Kamikaze < Microgame
 	public void OnMicrogameStart()
 	{	
 		int AllPlayers = GetClientCount(true);
-		int target = MalletGetRandomInt(1, AllPlayers);
+		int target;
 
-		/**
-		 * TODO: This should have a check if the player is
-		 * participating since Wipeout can roll players that
-		 * aren't in the round.
-		 */
-		while ((!IsValidClient(target)) || GetClientTeam(target) < 2 || g_Spawned[target] == false || !IsPlayerAlive(target))
+		do
 		{
 			target = MalletGetRandomInt(1, AllPlayers);
-		}
+
+			if (!IsValidClient(target))
+				continue;
+
+			if (!IsPlayerAlive(target))
+				continue;
+
+			if (!IsClientParticipating(target))
+				continue;
+
+			/* We've found a valid candidate, break. */
+			break;
+		} while (true);
 	
 		EmitSoundToClient(target, WW_BOMB, SOUND_FROM_PLAYER, SNDCHAN_AUTO, SNDLEVEL_NORMAL, SND_NOFLAGS, SNDVOL_NORMAL, GetSoundMultiplier());
 		ClientParticle(target, PARTICLE_BOMB, 2.0);

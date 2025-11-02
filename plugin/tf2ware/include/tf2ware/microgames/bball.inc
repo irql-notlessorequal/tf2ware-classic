@@ -131,18 +131,7 @@ Action BBall_OnTakeDamageClient(int victim, int &attacker, int &inflictor, float
 {
 	if (status == 2 && IsValidClient(victim))
 	{
-		int iMaxHealth = GetClientMaxHealth(victim);
-		SetEntityHealth(victim, iMaxHealth);
-		
-		if (damage >= float(iMaxHealth - 5))
-		{
-			damage = float(iMaxHealth - 10);
-		}
-
-		if (damage > 150.0)
-		{
-			damage = 150.0;
-		}
+		damage = 0.0;
 
 		CreateTimer(0.0, BBall_GiveHealth, victim);
 		return Plugin_Changed;

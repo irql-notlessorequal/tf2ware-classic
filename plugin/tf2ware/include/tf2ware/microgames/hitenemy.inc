@@ -16,7 +16,7 @@ methodmap HitEnemy < Microgame
 
 	public void OnMicrogameStart()
 	{
-		MicrogameVariation = MalletGetRandomInt(0, 2);
+		MicrogameVariation = MalletGetRandomInt(1, 5);
 		g_attack = true;
 	}
 
@@ -36,20 +36,37 @@ methodmap HitEnemy < Microgame
 
 			RemoveClientWeapons(client);
 
-			if (MicrogameVariation <= 0)
+			switch (MicrogameVariation)
 			{
-				SetClientClass(client, "spy");
-				GiveClientWeapon(client, "tf_weapon_revolver", 0, true);
-			}
-			else if (MicrogameVariation == 1)
-			{
-				SetClientClass(client, "demoman");
-				GiveClientWeapon(client, "tf_weapon_bottle", 2, true);
-			}
-			else if (MicrogameVariation >= 2)
-			{
-				SetClientClass(client, "engineer");
-				GiveClientWeapon(client, "tf_weapon_shotgun_primary", 0, true);
+				case 1:
+				{
+					SetClientClass(client, "spy");
+					GiveClientWeapon(client, "tf_weapon_revolver", 0, true);
+				}
+
+				case 2:
+				{
+					SetClientClass(client, "demoman");
+					GiveClientWeapon(client, "tf_weapon_bottle", 2, true);
+				}
+
+				case 3:
+				{
+					SetClientClass(client, "engineer");
+					GiveClientWeapon(client, "tf_weapon_shotgun_primary", 0, true);
+				}
+
+				case 4:
+				{
+					SetClientClass(client, "soldier");
+					GiveClientWeapon2(client, view_as<int>(TF2WARE_WEAPON_DIRECT_HIT), "tf_weapon_rocketlauncher_directhit", 0, true);
+				}
+
+				case 5:
+				{
+					SetClientClass(client, "sniper");
+					GiveClientWeapon2(client, view_as<int>(TF2WARE_WEAPON_HUNTSMAN), "tf_weapon_compound_bow", 0, true);
+				}
 			}
 		}
 	}

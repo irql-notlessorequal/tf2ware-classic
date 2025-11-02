@@ -4,7 +4,8 @@
 #define GHOSTBUSTERS_SPY 1
 #define GHOSTBUSTERS_HEAVY 2
 
-#define MUSIC_GHOSTB "imgay/tf2ware/minigame_25_alt.mp3"
+#define MUSIC_GHOSTBUSTERS 		"imgay/tf2ware/minigame_25.mp3"
+#define MUSIC_GHOSTBUSTERS_ALT 	"imgay/tf2ware/minigame_25_alt.mp3"
 
 static bool Ghostbusters_pp[MAXPLAYERS + 1] 	= { false, ... };
 static int Ghostbusters_target[MAXPLAYERS + 1]	= { 0, ... };
@@ -66,7 +67,8 @@ methodmap Ghostbusters < Microgame
 
 	public void OnMicrogameSetup()
 	{
-		precacheSound(MUSIC_GHOSTB);
+		/* The regular track is pre-cached by the gamemode. */
+		precacheSound(MUSIC_GHOSTBUSTERS_ALT);
 	}
 
 	public void OnMicrogameStart()
@@ -172,16 +174,16 @@ methodmap Ghostbusters < Microgame
 		}
 	
 		/**
-		 * TODO(irql):
-		 * 
-		 * If we have overhead scores, should we not
-		 * put a glow outline on players?
+		 * Use outlines only if overhead scores are missing...
 		 */
-		for (int client = 1; client <= MaxClients; client++)
+		if (!OverheadScoresEnabled())
 		{
-			if (IsValidClient(client) && IsPlayerAlive(client))
+			for (int client = 1; client <= MaxClients; client++)
 			{
-				SetEntProp(client, Prop_Send, "m_bGlowEnabled", 1);
+				if (IsValidClient(client) && IsPlayerAlive(client))
+				{
+					SetEntProp(client, Prop_Send, "m_bGlowEnabled", 1);
+				}
 			}
 		}
 	
@@ -203,7 +205,8 @@ methodmap Ghostbusters < Microgame
 
 			if (IsValidClient(client) && IsClientParticipating(client))
 			{
-				StopSound(client, SND_CHANNEL_SPECIFIC, MUSIC_GHOSTB);
+				StopSound(client, SND_CHANNEL_SPECIFIC, MUSIC_GHOSTBUSTERS);
+				StopSound(client, SND_CHANNEL_SPECIFIC, MUSIC_GHOSTBUSTERS_ALT);
 
 				if (IsPlayerAlive(client))
 				{
@@ -217,11 +220,6 @@ methodmap Ghostbusters < Microgame
 				}
 			}
 		}
-	
-		/**
-		 * TODO(irql): Is this even needed?
-		 */
-		RespawnAll(true, false);
 	}
 
 	public void OnClientJustEntered(int client)
@@ -483,12 +481,12 @@ Action Ghostbusters_Check(Handle timer)
 
 		if (winner == 1)
 		{
-			CPrintToChatAll("{lightgreen}All ghost spies are dead... {green}surviving medics win!");
+			CPrintToChatAll("%T", "Ghostbusters_MedicsWin", LANG_SERVER);
 		}
 
 		if (winner == 2)
 		{
-			CPrintToChatAll("{lightgreen}All medics are dead... {green}surviving undead win!");
+			CPrintToChatAll("%T", "Ghostbusters_UndeadWin", LANG_SERVER);
 		}
 
 		for (int client = 1; client <= MaxClients; client++)

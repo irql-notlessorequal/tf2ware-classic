@@ -92,16 +92,22 @@
 		"en"	"Oh So Random!"
 	}
 
-	"RandomScore_Announcement"
+	"RandomScore_Announcement_Pos"
 	{
 		"#format" "{1:d}"
 		"en"	"The next minigame will give you {selfmade}{1}{default} points!"
 	}
 
+	"RandomScore_Announcement_Neg"
+	{
+		"#format" "{1:d}"
+		"en"	"The next minigame will give you {corrupted}{1}{default} points!"
+	}
+
 	"Frogger_MadeItFirst"
 	{
 		"#format" "{1:s}"
-		"en" 	"{teamcolor}%N{default} made it to the goal first!"
+		"en" 	"{teamcolor}{1}{default} made it to the goal first!"
 	}
 
 	"Frogger_10SecLeft"
@@ -126,11 +132,22 @@
 
 	"NoTouching_PlayerTouched"
 	{
-		"en"	"You touched {teamcolor}%N{default}."
+		"#format" "{1:s}"
+		"en"	"You touched {teamcolor}{1}{default}."
 	}
 
 	"NoTouching_Explainer"
 	{
 		"en"	"In this {green}SPECIAL ROUND{default}, you are {red}not allowed to touch anyone{default}!"
+	}
+
+	"Ghostbusters_MedicsWin"
+	{
+		"en"	"{lightgreen}All ghost spies are dead... {green}surviving medics win!"
+	}
+
+	"Ghostbusters_UndeadWin"
+	{
+		"en"	"{lightgreen}All medics are dead... {green}surviving undead win!"
 	}
 }

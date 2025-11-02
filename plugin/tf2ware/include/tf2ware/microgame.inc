@@ -108,7 +108,9 @@ public void AddMiniGame(int identifier, Microgame mg)
 	}
 	else
 	{
+#if defined DEBUG
 		PrintToServer("[AddMiniGame] Adding a microgame with the identifier: %d", identifier);
+#endif
 		if (!MICROGAMES.SetValue(identifier, mg, false))
 		{
 			ThrowError("Failed to add microgame!");
@@ -140,9 +142,9 @@ public Microgame GetRandomMicrogame(int &idx)
 	 */
 	idx = MICROGAME_SNAPSHOT.GetKey(MalletGetRandomInt(0, MICROGAME_SNAPSHOT.Length - 1));
 	Microgame mg;
-
+#if defined DEBUG
 	PrintToServer("[GetRandomMicrogame] Requesting microgame %d", idx);
-
+#endif
 	if (!MICROGAMES.GetValue(idx, mg))
 	{
 		ThrowError("Failed to fetch a random microgame!");
@@ -167,6 +169,12 @@ public bool IsBossMicrogame(Microgame mg)
 			return false;
 		}
 	}
+}
+
+stock bool MicrogameHasAltSound(Microgame mg)
+{
+	return view_as<Microgames>(mg) == MG_GHOSTBUSTERS ||
+	       view_as<Microgames>(mg) == MG_ON_GROUND;
 }
 
 public void DispatchOnMicrogameSetup()
@@ -209,6 +217,11 @@ public void DispatchOnMicrogameSetup()
 			case MG_FLOOD:
 			{
 				view_as<Flood>(key).OnMicrogameSetup();
+			}
+
+			case MG_ON_GROUND:
+			{
+				view_as<OnGround>(key).OnMicrogameSetup();
 			}
 
 			case MG_FROGGER:

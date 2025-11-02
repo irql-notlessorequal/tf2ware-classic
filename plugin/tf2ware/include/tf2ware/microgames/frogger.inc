@@ -239,7 +239,7 @@ public Action Frogger_Timer(Handle hTimer)
 				EmitSoundToAll(sound);
 			}
 
-			if (g_Frogger_Timer < 5)
+			if (g_Frogger_Timer <= 5)
 			{
 				CPrintToChatAll("{red}%d{default}!", g_Frogger_Timer);
 			}

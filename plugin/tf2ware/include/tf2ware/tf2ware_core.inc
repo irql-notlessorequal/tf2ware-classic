@@ -21,13 +21,13 @@
 
 #define MAX_MINIGAMES		 40
 
-#define PLUGIN_VERSION		 "0.0.70"
+#define PLUGIN_VERSION		 "0.0.72"
 
 #define MUSIC_SPECIAL_START			"imgay/tf2ware/special_intro.mp3"
 #define MUSIC_SPECIAL_START_LEN 	3.84
 #define MUSIC_SPECIAL_WIN			"imgay/tf2ware/special_win.mp3"
 #define MUSIC_SPECIAL_FAIL			"imgay/tf2ware/special_fail.mp3"
-#define MUSIC_SPECIAL_END_LEN		2.1
+#define MUSIC_SPECIAL_END_LEN		2.06
 #define MUSIC_SPECIAL_SPEEDUP		"imgay/tf2ware/special_speedup.mp3"
 #define MUSIC_SPECIAL_SPEEDUP_LEN	4.15
 #define MUSIC_SPECIAL_GAMEOVER		"imgay/tf2ware/special_gameover.mp3"
@@ -44,7 +44,7 @@
 #define MUSIC_WIPEOUT_BOSS_LEN		3.9
 #define MUSIC_WIPEOUT_GAMEOVER		"imgay/tf2ware/warioman_gameover.mp3"
 #define MUSIC_WIPEOUT_GAMEOVER_LEN	8.17
-#define MUSIC_WIPEOUT_GET_READY		"sound/coach/coach_attack_here.wav"
+#define MUSIC_WIPEOUT_GET_READY		"coach/coach_attack_here.wav"
 
 #define MUSIC_START			 "imgay/tf2ware/warioman_intro.mp3"
 #define MUSIC_START_LEN		 2.17
@@ -167,12 +167,12 @@ enum Microgames
 	MG_SAW_RUN = 4,
 	MG_NEEDLE_JUMP = 5,
 	MG_HOPSCOTCH = 6,
-	/* */
+	MG_SHOOT_COLOR = 7,
 	MG_AIRBLAST = 8,
 	MG_MATH = 9,
 	MG_MOVEMENT = 10,
 	MG_FLOOD = 11,
-	/* */
+	MG_ON_GROUND = 12,
 	MG_BBALL = 13,
 	MG_HUGGING = 14,
 	MG_SIMON_SAYS = 15,
@@ -202,9 +202,14 @@ enum TF2WareItemIndexes
 
 	/* ... */
 
+	TF2WARE_WEAPON_STICKY_BOMB = 20,
+
+	/* ... */
+
+	TF2WARE_WEAPON_HUNTSMAN = 56,
 	TF2WARE_WEARABLE_RAZORBACK = 57,
 
 	/* ... */
 
-	TF2WARE_WEAPON_STICKY_JUMPER = 265
+	TF2WARE_WEAPON_DIRECT_HIT = 127
 };

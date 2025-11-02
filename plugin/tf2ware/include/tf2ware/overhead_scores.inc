@@ -40,6 +40,14 @@ stock bool OverheadScoresAllowed()
 	return SpecialRound != SINGLEPLAYER && SpecialRound != RANDOM_SCORE;
 }
 
+stock bool OverheadScoresEnabled()
+{
+	if (view_as<OverheadScoreMode>(GetConVarInt(ww_overhead_scores)) != ENABLED)
+		return false;
+	else
+		return OverheadScoresAllowed();
+}
+
 stock void CreateSprite(int client)
 {
 	if (IsValidClient(client) && OverheadScoresAllowed())

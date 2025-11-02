@@ -71,12 +71,14 @@ Handle ww_score_style = INVALID_HANDLE;
  */
 Handle ConVar_HostTimescale = INVALID_HANDLE;
 Handle ConVar_PhysTimescale = INVALID_HANDLE;
+Handle ConVar_SVGravity = INVALID_HANDLE;
 Handle ConVar_MPForceCamera = INVALID_HANDLE;
 Handle ConVar_MPFriendlyFire = INVALID_HANDLE;
 Handle ConVar_MPRespawnWaveTime = INVALID_HANDLE;
 Handle ConVar_TFPlayerMovementRestartFreeze = INVALID_HANDLE;
 Handle ConVar_TFTournamentHideDominationIcons = INVALID_HANDLE;
 Handle ConVar_TFAirblastCray = INVALID_HANDLE;
+Handle ConVar_TFAirblastCrayPower = INVALID_HANDLE;
 Handle ConVar_TFBotDifficulty = INVALID_HANDLE;
 
 /**
@@ -161,6 +163,7 @@ Microgame currentMicrogame;
 #include "tf2ware/microgames/jumprope.inc"
 #include "tf2ware/microgames/ghostbusters.inc"
 #include "tf2ware/microgames/frogger.inc"
+#include "tf2ware/microgames/onground.inc"
 
 #if 0
 #include "tf2ware/microgames/redfloor.inc"
@@ -220,12 +223,14 @@ public void OnPluginStart()
 
 	ConVar_HostTimescale = FindConVar("host_timescale");
 	ConVar_PhysTimescale = FindConVar("phys_timescale");
+	ConVar_SVGravity = FindConVar("sv_gravity");
 	ConVar_MPForceCamera = FindConVar("mp_forcecamera");
 	ConVar_MPFriendlyFire = FindConVar("mp_friendlyfire");
 	ConVar_MPRespawnWaveTime = FindConVar("mp_respawnwavetime");
 	ConVar_TFPlayerMovementRestartFreeze = FindConVar("tf_player_movement_restart_freeze");
 	ConVar_TFTournamentHideDominationIcons = FindConVar("tf_tournament_hide_domination_icons");
 	ConVar_TFAirblastCray = FindConVar("tf_airblast_cray");
+	ConVar_TFAirblastCrayPower = FindConVar("tf_airblast_cray_power");
 	ConVar_TFBotDifficulty = FindConVar("tf_bot_difficulty");
 
 	// ConVars
@@ -300,6 +305,7 @@ public void OnPluginStart()
 	AddMiniGame(MG_MATH, new Math());
 	AddMiniGame(MG_MOVEMENT, new Movement());
 	AddMiniGame(MG_NEEDLE_JUMP, new NeedleJump());
+	AddMiniGame(MG_ON_GROUND, new OnGround());
 	AddMiniGame(MG_SAW_RUN, new Sawrun());
 	AddMiniGame(MG_SIMON_SAYS, new SimonSays());
 	AddMiniGame(MG_SNIPER_TARGET, new SniperTarget());
@@ -337,6 +343,7 @@ public void OnMapStart()
 		// Hooks
 		HookConVarChange(ww_enable, StartMinigame_cvar);
 		HookConVarChange(ww_overhead_scores, OverheadScoresChanged);
+
 		HookEvent("post_inventory_application", EventInventoryApplication, EventHookMode_Post);
 		HookEvent("player_say", Player_Say, EventHookMode_Pre);
 		HookEvent("player_spawn", Player_Spawn);
@@ -379,6 +386,7 @@ public void OnMapStart()
 		RemoveNotifyFlag("mp_friendlyfire");
 		RemoveNotifyFlag("tf_tournament_hide_domination_icons");
 		RemoveNotifyFlag("tf_airblast_cray");
+		RemoveNotifyFlag("sv_gravity");
 
 		SetConVarInt(ConVar_TFTournamentHideDominationIcons, 0, true);
 		SetConVarInt(ConVar_MPFriendlyFire, 1);
@@ -388,6 +396,7 @@ public void OnMapStart()
 		 * Revert to pre-JI airblast.
 		 */
 		SetConVarInt(ConVar_TFAirblastCray, 0);
+		SetConVarInt(ConVar_TFAirblastCrayPower , 0);
 
 		DispatchOnMicrogameSetup();
 
@@ -578,6 +587,11 @@ void DispatchOnClientJustEntered(int client)
 			view_as<Flood>(currentMicrogame).OnClientJustEntered(client);
 		}
 
+		case MG_ON_GROUND:
+		{
+			view_as<OnGround>(currentMicrogame).OnClientJustEntered(client);
+		}
+
 		case MG_FROGGER:
 		{
 			view_as<Frogger>(currentMicrogame).OnClientJustEntered(client);
@@ -692,6 +706,11 @@ void DispatchOnMicrogameStart()
 		case MG_FLOOD:
 		{
 			view_as<Flood>(currentMicrogame).OnMicrogameStart();
+		}
+
+		case MG_ON_GROUND:
+		{
+			view_as<OnGround>(currentMicrogame).OnMicrogameStart();
 		}
 
 		case MG_FROGGER:
@@ -810,6 +829,11 @@ void DispatchOnMicrogameTimer(int timeLeft)
 			view_as<Flood>(currentMicrogame).OnMicrogameTimer(timeLeft);
 		}
 
+		case MG_ON_GROUND:
+		{
+			view_as<OnGround>(currentMicrogame).OnMicrogameTimer(timeLeft);
+		}
+
 		case MG_FROGGER:
 		{
 			view_as<Frogger>(currentMicrogame).OnMicrogameTimer(timeLeft);
@@ -924,6 +948,11 @@ void DispatchOnMicrogameEnd()
 		case MG_FLOOD:
 		{
 			view_as<Flood>(currentMicrogame).OnMicrogameEnd();
+		}
+
+		case MG_ON_GROUND:
+		{
+			view_as<OnGround>(currentMicrogame).OnMicrogameEnd();
 		}
 
 		case MG_FROGGER:
@@ -1042,6 +1071,11 @@ void DispatchOnMicrogamePostEnd()
 			view_as<Flood>(currentMicrogame).OnMicrogamePostEnd();
 		}
 
+		case MG_ON_GROUND:
+		{
+			view_as<OnGround>(currentMicrogame).OnMicrogamePostEnd();
+		}
+
 		case MG_FROGGER:
 		{
 			view_as<Frogger>(currentMicrogame).OnMicrogamePostEnd();
@@ -1156,6 +1190,11 @@ void DispatchOnMicrogameFrame()
 		case MG_FLOOD:
 		{
 			view_as<Flood>(currentMicrogame).OnMicrogameFrame();
+		}
+
+		case MG_ON_GROUND:
+		{
+			view_as<OnGround>(currentMicrogame).OnMicrogameFrame();
 		}
 
 		case MG_FROGGER:
@@ -1274,6 +1313,11 @@ void DispatchOnClientDeath(int client)
 			view_as<Flood>(currentMicrogame).OnClientDeath(client);
 		}
 
+		case MG_ON_GROUND:
+		{
+			view_as<OnGround>(currentMicrogame).OnClientDeath(client);
+		}
+
 		case MG_FROGGER:
 		{
 			view_as<Frogger>(currentMicrogame).OnClientDeath(client);
@@ -1388,6 +1432,11 @@ bool DispatchIsMicrogamePlayable(Microgame mg, int players)
 		case MG_FLOOD:
 		{
 			return view_as<Flood>(mg).IsMicrogamePlayable(players);
+		}
+
+		case MG_ON_GROUND:
+		{
+			return view_as<OnGround>(mg).IsMicrogamePlayable(players);
 		}
 
 		case MG_FROGGER:
@@ -2206,7 +2255,11 @@ void StartMinigame()
 		if (SpecialRound == RANDOM_SCORE)
 		{
 			NextMiniGameScore = MalletGetRandomInt(-10, 10);
-			CPrintToChatAll("%T", "RandomScore_Announcement", LANG_SERVER, NextMiniGameScore);
+			
+			if (NextMiniGameScore >= 0)
+				CPrintToChatAll("%T", "RandomScore_Announcement_Pos", LANG_SERVER, NextMiniGameScore);
+			else
+				CPrintToChatAll("%T", "RandomScore_Announcement_Neg", LANG_SERVER, NextMiniGameScore);
 		}
 
 		if (GetConVarBool(ww_music))
@@ -2273,7 +2326,7 @@ public Action Game_Start(Handle hTimer)
 		char sound[512];
 		Format(sound, sizeof(sound), "imgay/tf2ware/minigame_%d.mp3", iMinigame);
 
-		if (view_as<Microgames>(currentMicrogame) == MG_GHOSTBUSTERS && GetRandomInt(1, 3) == 1)
+		if (MicrogameHasAltSound(currentMicrogame) && GetRandomInt(1, 3) == 1)
 		{
 			Format(sound, sizeof(sound), "imgay/tf2ware/minigame_%d_alt.mp3", iMinigame);
 		}
@@ -2977,7 +3030,7 @@ public Action Victory_Timer(Handle hTimer)
 
 		if (SpecialRound != NONE)
 		{
-			CPrintToChatAll("The {lightgreen}Special Round{default} is over!");
+			CPrintToChatAll("%T", "SpecialRoundEnded", LANG_SERVER);
 			ResetSpecialRoundEffect(SpecialRound);
 			SpecialRound = NONE;
 			ShowGameText("Special Round is over!");
@@ -3012,6 +3065,7 @@ public Action Classic_EndMap(Handle hTimer)
 
 	ResetConVar(ConVar_MPFriendlyFire);
 	ResetConVar(ConVar_TFAirblastCray);
+	ResetConVar(ConVar_TFAirblastCrayPower);
 	ResetConVar(ConVar_TFBotDifficulty);
 	ResetConVar(ConVar_TFPlayerMovementRestartFreeze);
 	ResetConVar(ConVar_TFTournamentHideDominationIcons);

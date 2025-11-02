@@ -89,8 +89,8 @@ public void Special_NoTouch(int entity, int other)
 		return;
 	}
 
-	char classname[64];
-	char classname2[64];
+	char classname[MAX_NAME_LENGTH];
+	char classname2[MAX_NAME_LENGTH];
 	GetEdictClassname(entity, classname, sizeof(classname));
 	GetEdictClassname(other, classname2, sizeof(classname2));
 	
@@ -105,10 +105,13 @@ public void Special_NoTouch(int entity, int other)
 		ForcePlayerSuicide(entity);
 		ForcePlayerSuicide(other);
 
-		CPrintToChat(entity, "%t", "NoTouching_PlayerTouched", other);
+		GetClientName(entity, classname, MAX_NAME_LENGTH);
+		GetClientName(other, classname2, MAX_NAME_LENGTH);
+
+		CPrintToChat(entity, "%t", "NoTouching_PlayerTouched", classname2);
 		CPrintToChat(entity, "%T", "NoTouching_Explainer");
 
-		CPrintToChat(other, "%t", "NoTouching_PlayerTouched", entity);
+		CPrintToChat(other, "%t", "NoTouching_PlayerTouched", classname);
 		CPrintToChat(other, "%T", "NoTouching_Explainer");
 	}
 }
