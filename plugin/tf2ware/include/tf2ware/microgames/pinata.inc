@@ -100,7 +100,7 @@ methodmap Pinata < Microgame
 		/* Make sure our heavy is still alive... */
 		if (!heavy)
 		{
-			PrintToChatAll("%T", "Pianta_HeavyDead", LANG_SERVER);
+			CPrintToChatAll("%T", "Pianta_HeavyDead", LANG_SERVER);
 			SetStateAll(true);
 		}
 		else
