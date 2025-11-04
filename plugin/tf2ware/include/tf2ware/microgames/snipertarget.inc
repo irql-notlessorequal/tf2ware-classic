@@ -55,8 +55,10 @@ methodmap SniperTarget < Microgame
 		g_Target_Pos = 0;
 		g_Target_Ready = false;
 
-		/* Epic collisions fix. */
-		NoCollision(true);
+		/**
+		 * Disable collisions if there are too many players.
+		 */
+		NoCollision(GetActivePlayers() > 8);
 	}
 
 	public void OnMicrogameEnd()

@@ -21,7 +21,7 @@
 
 #define MAX_MINIGAMES		 40
 
-#define PLUGIN_VERSION		 "0.0.72"
+#define PLUGIN_VERSION		 "0.0.73"
 
 #define MUSIC_SPECIAL_START			"imgay/tf2ware/special_intro.mp3"
 #define MUSIC_SPECIAL_START_LEN 	3.84
@@ -211,5 +211,9 @@ enum TF2WareItemIndexes
 
 	/* ... */
 
-	TF2WARE_WEAPON_DIRECT_HIT = 127
+	TF2WARE_WEAPON_DIRECT_HIT = 127,
+
+	/* ... */
+
+	TF2WARE_WEAPON_EVICTION_NOTICE = 426,
 };

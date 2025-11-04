@@ -150,4 +150,9 @@
 	{
 		"en"	"{lightgreen}All medics are dead... {green}surviving undead win!"
 	}
+
+	"Pianta_HeavyDead"
+	{
+		"en"	"{lightgreen}The heavy is dead... {green}Scouts win!"
+	}
 }

@@ -46,6 +46,7 @@ methodmap Pinata < Microgame
 			break;
 		} while (true);
 
+		g_attack = true;
 		g_Mission[target] = 1;
 		g_result = 0;
 		SetStateAll(false);
@@ -66,12 +67,13 @@ methodmap Pinata < Microgame
 			return;
 		}
 
+		SDKHook(client, SDKHook_OnTakeDamage, Pinata_OnTakeDamageClient);
+
 		if (g_Mission[client])
 		{
 			RemoveClientWeapons(client);
 			SetClientClass(client, "heavy");
-
-			/* TODO: Give heavy the Eviction Notice with increased attack speed and one-hit kill. */
+			GiveClientWeapon2(client, view_as<int>(TF2WARE_WEAPON_EVICTION_NOTICE), "tf_weapon_fists", 0, true);
 		}
 		else
 		{
@@ -82,16 +84,82 @@ methodmap Pinata < Microgame
 
 	public void OnMicrogameEnd()
 	{
+		int heavy = -1;
+
 		/* Award the heavy the win, if they got at least two scouts. */
 		for (int client = 1; client <= MaxClients; client++)
 		{
-			if (IsValidClient(client) && g_Mission[client] && g_result >= REQUIRED_SCOUTS)
+			if (IsValidClient(client) && g_Mission[client])
 			{
-				SetStateClient(client, true);
+				heavy = client;
+				SetStateClient(client, (g_result >= REQUIRED_SCOUTS));
 				break;
 			}
 		}
 
-		/* TODO: Award the scouts near the heavy */
+		/* Make sure our heavy is still alive... */
+		if (!heavy)
+		{
+			PrintToChatAll("%T", "Pianta_HeavyDead", LANG_SERVER);
+			SetStateAll(true);
+		}
+		else
+		{
+			float heavyPos[3];
+			float scoutPos[3];
+			GetClientAbsOrigin(heavy, heavyPos);
+
+			for (int client = 1; client <= MaxClients; client++)
+			{
+				if (!IsValidClient(client))
+					continue;
+
+				if (!IsClientParticipating(client))
+					continue;
+
+				if (!IsPlayerAlive(client))
+					continue;
+
+				if (client == heavy)
+					continue;
+
+				GetClientAbsOrigin(client, scoutPos);
+				
+				/* Only award the player if they are close enough. */
+				if (FloatAbs(heavyPos[0] - scoutPos[0]) <= HEAVY_DISTANCE_THRESHOLD &&
+					FloatAbs(heavyPos[1] - scoutPos[1]) <= HEAVY_DISTANCE_THRESHOLD)
+				{
+					SetStateClient(client, true);
+				}
+			}
+		}
 	}
+
+	public void OnMicrogamePostEnd()
+	{
+		for (int client = 1; client <= MaxClients; client++)
+		{
+			SDKUnhook(client, SDKHook_OnTakeDamage, Pinata_OnTakeDamageClient);
+		}
+	}
+}
+
+Action Pinata_OnTakeDamageClient(int victim, int &attacker, int &inflictor, float &damage, int &damagetype)
+{
+	if (!IsValidClient(attacker))
+	{
+		return Plugin_Continue;
+	}
+
+	/* Only allow the Heavy to defend themselves. */
+	if (g_Mission[attacker])
+	{
+		damage = 450.0;
+	}
+	else
+	{
+		damage = 0.0;
+	}
+
+	return Plugin_Changed;
 }
