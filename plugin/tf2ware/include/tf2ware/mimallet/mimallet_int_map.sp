@@ -1,4 +1,6 @@
-
+#if SOURCEMOD_V_MAJOR >= 1 && SOURCEMOD_V_MINOR >= 13
+#include <adt_trie>
+#else
 methodmap IntMapSnapshot < Handle
 {
 	// Returns the number of keys in the map snapshot.
@@ -151,3 +153,4 @@ methodmap IntMap < Handle
 		}
 	}
 }
+#endif

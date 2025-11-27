@@ -89,7 +89,7 @@ methodmap Pinata < Microgame
 		/* Award the heavy the win, if they got at least two scouts. */
 		for (int client = 1; client <= MaxClients; client++)
 		{
-			if (IsValidClient(client) && g_Mission[client])
+			if (IsValidClient(client) && IsPlayerAlive(client) && g_Mission[client])
 			{
 				heavy = client;
 				SetStateClient(client, (g_result >= REQUIRED_SCOUTS));
