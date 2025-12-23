@@ -19,8 +19,8 @@ methodmap Hopscotch < Microgame
 		g_Hopscotch_Arena = MalletGetRandomInt(0, 2);
 		g_Hopscotch_Weapon = false;
 	
-		if (g_Hopscotch_Arena == HOPSCOTCH_ARENA_ROCKET_JUMPING
-			|| g_Hopscotch_Arena == HOPSCOTCH_ARENA_STICKY_JUMPING)
+		if (g_Hopscotch_Arena == HOPSCOTCH_ARENA_ROCKET_JUMPING ||
+			g_Hopscotch_Arena == HOPSCOTCH_ARENA_STICKY_JUMPING)
 		{
 			g_attack = true;
 			CreateTimer(4.9, Hopscotch_Weapon);
@@ -69,8 +69,8 @@ methodmap Hopscotch < Microgame
 		
 			float pos[3];
 		
-			if (g_Hopscotch_Arena == HOPSCOTCH_ARENA_ROCKET_JUMPING
-			 || g_Hopscotch_Arena == HOPSCOTCH_ARENA_STICKY_JUMPING)
+			if (g_Hopscotch_Arena == HOPSCOTCH_ARENA_ROCKET_JUMPING ||
+			    g_Hopscotch_Arena == HOPSCOTCH_ARENA_STICKY_JUMPING)
 			{
 				/**
 				 * Spawn players in a circle instead since we have the room.
@@ -130,8 +130,8 @@ methodmap Hopscotch < Microgame
 				{
 					SetStateClient(client, true, true);
 				}
-				else if ((g_Hopscotch_Arena == HOPSCOTCH_ARENA_ROCKET_JUMPING
-					|| g_Hopscotch_Arena == HOPSCOTCH_ARENA_STICKY_JUMPING)
+				else if ((g_Hopscotch_Arena == HOPSCOTCH_ARENA_ROCKET_JUMPING ||
+						  g_Hopscotch_Arena == HOPSCOTCH_ARENA_STICKY_JUMPING)
 					&& pos[2] > -80.0 && pos[1] > 4270.0 && g_Complete[client] == false)
 				{
 					SetStateClient(client, true, true);
@@ -192,7 +192,7 @@ Action Hopscotch_GiveHealth(Handle hTimer, int iClient)
 
 public Action Hopscotch_OnTakeDamageClient(int victim, int &attacker, int &inflictor, float &damage, int &damagetype)
 {
-	if (IsValidClient(attacker) && IsValidClient(victim) && victim != attacker && status == 2)
+	if (IsValidClient(attacker) && IsValidClient(victim) && status == 2)
 	{
 		damage = 0.0;
 

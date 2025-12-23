@@ -21,7 +21,7 @@
 
 #define MAX_MINIGAMES		 40
 
-#define PLUGIN_VERSION		 "0.0.73"
+#define PLUGIN_VERSION		 "0.0.74"
 
 #define MUSIC_SPECIAL_START			"imgay/tf2ware/special_intro.mp3"
 #define MUSIC_SPECIAL_START_LEN 	3.84
@@ -63,10 +63,6 @@
 #define SOUND_MINISCORE		 "items/pumpkin_drop.wav"
 #define SOUND_HEAVY_KISS	 "vo/heavy_generic01.mp3"
 #define MUSIC_WAITING		 "imgay/tf2ware/waitingforplayers.mp3"
-#define MUSIC_WAITING_ALT	  "imgay/tf2ware/break.mp3"
-#define MUSIC_WAITING_ALT_DURATION     39.967347
-#define MUSIC_WAITING_ALT_END "imgay/tf2ware/break_end.mp3"
-#define MUSIC_WAITING_ALT_END_DURATION 1.593469
 #define MUSIC_SPECIAL		 "imgay/tf2ware/specialround.mp3"
 #define MUSIC_SPECIAL_LEN	 13.5
 #define SOUND_SELECT		 "imgay/tf2ware/select.mp3"
@@ -186,6 +182,8 @@ enum Microgames
 	MG_GOOMBA = 23,
 	MG_PINATA = 24,
 	MG_GHOSTBUSTERS = 25,
+
+	/* MG_MANDRILL = 26 (reserved) */
 }
 
 enum TF2WareItemIndexes
@@ -207,7 +205,6 @@ enum TF2WareItemIndexes
 	/* ... */
 
 	TF2WARE_WEAPON_HUNTSMAN = 56,
-	TF2WARE_WEARABLE_RAZORBACK = 57,
 
 	/* ... */
 

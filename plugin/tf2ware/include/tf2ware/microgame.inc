@@ -23,7 +23,7 @@
 
 /**
  * This is still better than the previous call-based solution Mecha used since
- * even if I have duplicate 200 lines of code, it's still much nicer and easier to read.
+ * even if I have to duplicate 200 lines of code, it's still much nicer and easier to read.
  * 
  * Which is what matters here, since the TF2Ware codebase is a fever dreem.
  */
@@ -179,16 +179,13 @@ stock bool MicrogameHasAltSound(Microgame mg)
 
 /////////////////////////////////////////
 
-
 /**
  * I cannot believe this fucking works, I honestly prefer to have to make
- * this unholy abomination than have to deal with the previous Mecha code.
+ * this unholy abomination than have to deal with the previous Mecha code
+ * that used the forwards method in SourcePawn.
  * 
  * My eyes weep at this.
  * Have fun trying to add custom microgames to this.
- * 
- * tl;dr I should really start working on "source.js" or wait till the
- * C# based replacement for SourcePawn actually matures and becomes public.
  */
 
 /////////////////////////////////////////
@@ -197,120 +194,33 @@ void DispatchOnClientJustEntered(int client)
 {
 	switch (view_as<Microgames>(currentMicrogame))
 	{
-		case MG_AIRBLAST:
-		{
-			view_as<Airblast>(currentMicrogame).OnClientJustEntered(client);
-		}
+#define ON_CLIENT_ENTERED(%1,%2) case %1: { view_as<%2>(currentMicrogame).OnClientJustEntered(client); }
 
-		case MG_AIR_RAID:
-		{
-			view_as<AirRaid>(currentMicrogame).OnClientJustEntered(client);
-		}
+		ON_CLIENT_ENTERED(MG_AIRBLAST, Airblast)
+		ON_CLIENT_ENTERED(MG_AIR_RAID, AirRaid)
+		ON_CLIENT_ENTERED(MG_BARREL, Barrel)
+		ON_CLIENT_ENTERED(MG_BBALL, BBall)
+		ON_CLIENT_ENTERED(MG_COLOR_TEXT, ColorText)
+		ON_CLIENT_ENTERED(MG_FLOOD, Flood)
+		ON_CLIENT_ENTERED(MG_ON_GROUND, OnGround)
+		ON_CLIENT_ENTERED(MG_FROGGER, Frogger)
+		ON_CLIENT_ENTERED(MG_GHOSTBUSTERS, Ghostbusters)
+		ON_CLIENT_ENTERED(MG_GOOMBA, Goomba)
+		ON_CLIENT_ENTERED(MG_HIT_ENEMY, HitEnemy)
+		ON_CLIENT_ENTERED(MG_HOPSCOTCH, Hopscotch)
+		ON_CLIENT_ENTERED(MG_HUGGING, Hugging)
+		ON_CLIENT_ENTERED(MG_JUMP_ROPE, JumpRope)
+		ON_CLIENT_ENTERED(MG_KAMIKAZE, Kamikaze)
+		ON_CLIENT_ENTERED(MG_MATH, Math)
+		ON_CLIENT_ENTERED(MG_MOVEMENT, Movement)
+		ON_CLIENT_ENTERED(MG_NEEDLE_JUMP, NeedleJump)
+		ON_CLIENT_ENTERED(MG_PINATA, Pinata)
+		ON_CLIENT_ENTERED(MG_SAW_RUN, Sawrun)
+		ON_CLIENT_ENTERED(MG_SIMON_SAYS, SimonSays)
+		ON_CLIENT_ENTERED(MG_SNIPER_TARGET, SniperTarget)
+		ON_CLIENT_ENTERED(MG_SPYCRAB, Spycrab)
 
-		case MG_BARREL:
-		{
-			view_as<Barrel>(currentMicrogame).OnClientJustEntered(client);
-		}
-
-		case MG_BBALL:
-		{
-			view_as<BBall>(currentMicrogame).OnClientJustEntered(client);
-		}
-
-		case MG_COLOR_TEXT:
-		{
-			view_as<ColorText>(currentMicrogame).OnClientJustEntered(client);
-		}
-
-		case MG_FLOOD:
-		{
-			view_as<Flood>(currentMicrogame).OnClientJustEntered(client);
-		}
-
-		case MG_ON_GROUND:
-		{
-			view_as<OnGround>(currentMicrogame).OnClientJustEntered(client);
-		}
-
-		case MG_FROGGER:
-		{
-			view_as<Frogger>(currentMicrogame).OnClientJustEntered(client);
-		}
-
-		case MG_GHOSTBUSTERS:
-		{
-			view_as<Ghostbusters>(currentMicrogame).OnClientJustEntered(client);
-		}
-
-		case MG_GOOMBA:
-		{
-			view_as<Goomba>(currentMicrogame).OnClientJustEntered(client);
-		}
-
-		case MG_HIT_ENEMY:
-		{
-			view_as<HitEnemy>(currentMicrogame).OnClientJustEntered(client);
-		}
-
-		case MG_HOPSCOTCH:
-		{
-			view_as<Hopscotch>(currentMicrogame).OnClientJustEntered(client);
-		}
-
-		case MG_HUGGING:
-		{
-			view_as<Hugging>(currentMicrogame).OnClientJustEntered(client);
-		}
-
-		case MG_JUMP_ROPE:
-		{
-			view_as<JumpRope>(currentMicrogame).OnClientJustEntered(client);
-		}
-
-		case MG_KAMIKAZE:
-		{
-			view_as<Kamikaze>(currentMicrogame).OnClientJustEntered(client);
-		}
-
-		case MG_MATH:
-		{
-			view_as<Math>(currentMicrogame).OnClientJustEntered(client);
-		}
-
-		case MG_MOVEMENT:
-		{
-			view_as<Movement>(currentMicrogame).OnClientJustEntered(client);
-		}
-
-		case MG_NEEDLE_JUMP:
-		{
-			view_as<NeedleJump>(currentMicrogame).OnClientJustEntered(client);
-		}
-
-		case MG_PINATA:
-		{
-			view_as<Pinata>(currentMicrogame).OnClientJustEntered(client);
-		}
-
-		case MG_SAW_RUN:
-		{
-			view_as<Sawrun>(currentMicrogame).OnClientJustEntered(client);
-		}
-
-		case MG_SIMON_SAYS:
-		{
-			view_as<SimonSays>(currentMicrogame).OnClientJustEntered(client);
-		}
-
-		case MG_SNIPER_TARGET:
-		{
-			view_as<SniperTarget>(currentMicrogame).OnClientJustEntered(client);
-		}
-
-		case MG_SPYCRAB:
-		{
-			view_as<Spycrab>(currentMicrogame).OnClientJustEntered(client);
-		}
+#undef  ON_CLIENT_ENTERED
 
 		default:
 		{
@@ -323,120 +233,33 @@ void DispatchOnMicrogameStart()
 {
 	switch (view_as<Microgames>(currentMicrogame))
 	{
-		case MG_AIRBLAST:
-		{
-			view_as<Airblast>(currentMicrogame).OnMicrogameStart();
-		}
+#define ON_MICROGAME_START(%1,%2) case %1: { view_as<%2>(currentMicrogame).OnMicrogameStart(); }
 
-		case MG_AIR_RAID:
-		{
-			view_as<AirRaid>(currentMicrogame).OnMicrogameStart();
-		}
+		ON_MICROGAME_START(MG_AIRBLAST, Airblast)
+		ON_MICROGAME_START(MG_AIR_RAID, AirRaid)
+		ON_MICROGAME_START(MG_BARREL, Barrel)
+		ON_MICROGAME_START(MG_BBALL, BBall)
+		ON_MICROGAME_START(MG_COLOR_TEXT, ColorText)
+		ON_MICROGAME_START(MG_FLOOD, Flood)
+		ON_MICROGAME_START(MG_ON_GROUND, OnGround)
+		ON_MICROGAME_START(MG_FROGGER, Frogger)
+		ON_MICROGAME_START(MG_GHOSTBUSTERS, Ghostbusters)
+		ON_MICROGAME_START(MG_GOOMBA, Goomba)
+		ON_MICROGAME_START(MG_HIT_ENEMY, HitEnemy)
+		ON_MICROGAME_START(MG_HOPSCOTCH, Hopscotch)
+		ON_MICROGAME_START(MG_HUGGING, Hugging)
+		ON_MICROGAME_START(MG_JUMP_ROPE, JumpRope)
+		ON_MICROGAME_START(MG_KAMIKAZE, Kamikaze)
+		ON_MICROGAME_START(MG_MATH, Math)
+		ON_MICROGAME_START(MG_MOVEMENT, Movement)
+		ON_MICROGAME_START(MG_NEEDLE_JUMP, NeedleJump)
+		ON_MICROGAME_START(MG_PINATA, Pinata)
+		ON_MICROGAME_START(MG_SAW_RUN, Sawrun)
+		ON_MICROGAME_START(MG_SIMON_SAYS, SimonSays)
+		ON_MICROGAME_START(MG_SNIPER_TARGET, SniperTarget)
+		ON_MICROGAME_START(MG_SPYCRAB, Spycrab)
 
-		case MG_BARREL:
-		{
-			view_as<Barrel>(currentMicrogame).OnMicrogameStart();
-		}
-
-		case MG_BBALL:
-		{
-			view_as<BBall>(currentMicrogame).OnMicrogameStart();
-		}
-
-		case MG_COLOR_TEXT:
-		{
-			view_as<ColorText>(currentMicrogame).OnMicrogameStart();
-		}
-
-		case MG_FLOOD:
-		{
-			view_as<Flood>(currentMicrogame).OnMicrogameStart();
-		}
-
-		case MG_ON_GROUND:
-		{
-			view_as<OnGround>(currentMicrogame).OnMicrogameStart();
-		}
-
-		case MG_FROGGER:
-		{
-			view_as<Frogger>(currentMicrogame).OnMicrogameStart();
-		}
-
-		case MG_GHOSTBUSTERS:
-		{
-			view_as<Ghostbusters>(currentMicrogame).OnMicrogameStart();
-		}
-
-		case MG_GOOMBA:
-		{
-			view_as<Goomba>(currentMicrogame).OnMicrogameStart();
-		}
-
-		case MG_HIT_ENEMY:
-		{
-			view_as<HitEnemy>(currentMicrogame).OnMicrogameStart();
-		}
-
-		case MG_HOPSCOTCH:
-		{
-			view_as<Hopscotch>(currentMicrogame).OnMicrogameStart();
-		}
-
-		case MG_HUGGING:
-		{
-			view_as<Hugging>(currentMicrogame).OnMicrogameStart();
-		}
-
-		case MG_JUMP_ROPE:
-		{
-			view_as<JumpRope>(currentMicrogame).OnMicrogameStart();
-		}
-
-		case MG_KAMIKAZE:
-		{
-			view_as<Kamikaze>(currentMicrogame).OnMicrogameStart();
-		}
-
-		case MG_MATH:
-		{
-			view_as<Math>(currentMicrogame).OnMicrogameStart();
-		}
-
-		case MG_MOVEMENT:
-		{
-			view_as<Movement>(currentMicrogame).OnMicrogameStart();
-		}
-
-		case MG_NEEDLE_JUMP:
-		{
-			view_as<NeedleJump>(currentMicrogame).OnMicrogameStart();
-		}
-
-		case MG_PINATA:
-		{
-			view_as<Pinata>(currentMicrogame).OnMicrogameStart();
-		}
-		
-		case MG_SAW_RUN:
-		{
-			view_as<Sawrun>(currentMicrogame).OnMicrogameStart();
-		}
-
-		case MG_SIMON_SAYS:
-		{
-			view_as<SimonSays>(currentMicrogame).OnMicrogameStart();
-		}
-
-		case MG_SNIPER_TARGET:
-		{
-			view_as<SniperTarget>(currentMicrogame).OnMicrogameStart();
-		}
-
-		case MG_SPYCRAB:
-		{
-			view_as<Spycrab>(currentMicrogame).OnMicrogameStart();
-		}
+#undef  ON_MICROGAME_START
 
 		default:
 		{
@@ -449,120 +272,33 @@ void DispatchOnMicrogameTimer(int timeLeft)
 {
 	switch (view_as<Microgames>(currentMicrogame))
 	{
-		case MG_AIRBLAST:
-		{
-			view_as<Airblast>(currentMicrogame).OnMicrogameTimer(timeLeft);
-		}
+#define ON_MICROGAME_TIMER(%1,%2) case %1: { view_as<%2>(currentMicrogame).OnMicrogameTimer(timeLeft); }
 
-		case MG_AIR_RAID:
-		{
-			view_as<AirRaid>(currentMicrogame).OnMicrogameTimer(timeLeft);
-		}
+		ON_MICROGAME_TIMER(MG_AIRBLAST, Airblast)
+		ON_MICROGAME_TIMER(MG_AIR_RAID, AirRaid)
+		ON_MICROGAME_TIMER(MG_BARREL, Barrel)
+		ON_MICROGAME_TIMER(MG_BBALL, BBall)
+		ON_MICROGAME_TIMER(MG_COLOR_TEXT, ColorText)
+		ON_MICROGAME_TIMER(MG_FLOOD, Flood)
+		ON_MICROGAME_TIMER(MG_ON_GROUND, OnGround)
+		ON_MICROGAME_TIMER(MG_FROGGER, Frogger)
+		ON_MICROGAME_TIMER(MG_GHOSTBUSTERS, Ghostbusters)
+		ON_MICROGAME_TIMER(MG_GOOMBA, Goomba)
+		ON_MICROGAME_TIMER(MG_HIT_ENEMY, HitEnemy)
+		ON_MICROGAME_TIMER(MG_HOPSCOTCH, Hopscotch)
+		ON_MICROGAME_TIMER(MG_HUGGING, Hugging)
+		ON_MICROGAME_TIMER(MG_JUMP_ROPE, JumpRope)
+		ON_MICROGAME_TIMER(MG_KAMIKAZE, Kamikaze)
+		ON_MICROGAME_TIMER(MG_MATH, Math)
+		ON_MICROGAME_TIMER(MG_MOVEMENT, Movement)
+		ON_MICROGAME_TIMER(MG_NEEDLE_JUMP, NeedleJump)
+		ON_MICROGAME_TIMER(MG_PINATA, Pinata)
+		ON_MICROGAME_TIMER(MG_SAW_RUN, Sawrun)
+		ON_MICROGAME_TIMER(MG_SIMON_SAYS, SimonSays)
+		ON_MICROGAME_TIMER(MG_SNIPER_TARGET, SniperTarget)
+		ON_MICROGAME_TIMER(MG_SPYCRAB, Spycrab)
 
-		case MG_BARREL:
-		{
-			view_as<Barrel>(currentMicrogame).OnMicrogameTimer(timeLeft);
-		}
-
-		case MG_BBALL:
-		{
-			view_as<BBall>(currentMicrogame).OnMicrogameTimer(timeLeft);
-		}
-
-		case MG_COLOR_TEXT:
-		{
-			view_as<ColorText>(currentMicrogame).OnMicrogameTimer(timeLeft);
-		}
-
-		case MG_FLOOD:
-		{
-			view_as<Flood>(currentMicrogame).OnMicrogameTimer(timeLeft);
-		}
-
-		case MG_ON_GROUND:
-		{
-			view_as<OnGround>(currentMicrogame).OnMicrogameTimer(timeLeft);
-		}
-
-		case MG_FROGGER:
-		{
-			view_as<Frogger>(currentMicrogame).OnMicrogameTimer(timeLeft);
-		}
-
-		case MG_GHOSTBUSTERS:
-		{
-			view_as<Ghostbusters>(currentMicrogame).OnMicrogameTimer(timeLeft);
-		}
-
-		case MG_GOOMBA:
-		{
-			view_as<Goomba>(currentMicrogame).OnMicrogameTimer(timeLeft);
-		}
-
-		case MG_HIT_ENEMY:
-		{
-			view_as<HitEnemy>(currentMicrogame).OnMicrogameTimer(timeLeft);
-		}
-
-		case MG_HOPSCOTCH:
-		{
-			view_as<Hopscotch>(currentMicrogame).OnMicrogameTimer(timeLeft);
-		}
-
-		case MG_HUGGING:
-		{
-			view_as<Hugging>(currentMicrogame).OnMicrogameTimer(timeLeft);
-		}
-
-		case MG_JUMP_ROPE:
-		{
-			view_as<JumpRope>(currentMicrogame).OnMicrogameTimer(timeLeft);
-		}
-
-		case MG_KAMIKAZE:
-		{
-			view_as<Kamikaze>(currentMicrogame).OnMicrogameTimer(timeLeft);
-		}
-
-		case MG_MATH:
-		{
-			view_as<Math>(currentMicrogame).OnMicrogameTimer(timeLeft);
-		}
-
-		case MG_MOVEMENT:
-		{
-			view_as<Movement>(currentMicrogame).OnMicrogameTimer(timeLeft);
-		}
-
-		case MG_NEEDLE_JUMP:
-		{
-			view_as<NeedleJump>(currentMicrogame).OnMicrogameTimer(timeLeft);
-		}
-
-		case MG_PINATA:
-		{
-			view_as<Pinata>(currentMicrogame).OnMicrogameTimer(timeLeft);
-		}
-
-		case MG_SAW_RUN:
-		{
-			view_as<Sawrun>(currentMicrogame).OnMicrogameTimer(timeLeft);
-		}
-
-		case MG_SIMON_SAYS:
-		{
-			view_as<SimonSays>(currentMicrogame).OnMicrogameTimer(timeLeft);
-		}
-
-		case MG_SNIPER_TARGET:
-		{
-			view_as<SniperTarget>(currentMicrogame).OnMicrogameTimer(timeLeft);
-		}
-
-		case MG_SPYCRAB:
-		{
-			view_as<Spycrab>(currentMicrogame).OnMicrogameTimer(timeLeft);
-		}
+#undef  ON_MICROGAME_TIMER
 
 		default:
 		{
@@ -575,120 +311,33 @@ void DispatchOnMicrogameEnd()
 {
 	switch (view_as<Microgames>(currentMicrogame))
 	{
-		case MG_AIRBLAST:
-		{
-			view_as<Airblast>(currentMicrogame).OnMicrogameEnd();
-		}
+#define ON_MICROGAME_END(%1,%2) case %1: { view_as<%2>(currentMicrogame).OnMicrogameEnd(); }
 
-		case MG_AIR_RAID:
-		{
-			view_as<AirRaid>(currentMicrogame).OnMicrogameEnd();
-		}
+		ON_MICROGAME_END(MG_AIRBLAST, Airblast)
+		ON_MICROGAME_END(MG_AIR_RAID, AirRaid)
+		ON_MICROGAME_END(MG_BARREL, Barrel)
+		ON_MICROGAME_END(MG_BBALL, BBall)
+		ON_MICROGAME_END(MG_COLOR_TEXT, ColorText)
+		ON_MICROGAME_END(MG_FLOOD, Flood)
+		ON_MICROGAME_END(MG_ON_GROUND, OnGround)
+		ON_MICROGAME_END(MG_FROGGER, Frogger)
+		ON_MICROGAME_END(MG_GHOSTBUSTERS, Ghostbusters)
+		ON_MICROGAME_END(MG_GOOMBA, Goomba)
+		ON_MICROGAME_END(MG_HIT_ENEMY, HitEnemy)
+		ON_MICROGAME_END(MG_HOPSCOTCH, Hopscotch)
+		ON_MICROGAME_END(MG_HUGGING, Hugging)
+		ON_MICROGAME_END(MG_JUMP_ROPE, JumpRope)
+		ON_MICROGAME_END(MG_KAMIKAZE, Kamikaze)
+		ON_MICROGAME_END(MG_MATH, Math)
+		ON_MICROGAME_END(MG_MOVEMENT, Movement)
+		ON_MICROGAME_END(MG_NEEDLE_JUMP, NeedleJump)
+		ON_MICROGAME_END(MG_PINATA, Pinata)
+		ON_MICROGAME_END(MG_SAW_RUN, Sawrun)
+		ON_MICROGAME_END(MG_SIMON_SAYS, SimonSays)
+		ON_MICROGAME_END(MG_SNIPER_TARGET, SniperTarget)
+		ON_MICROGAME_END(MG_SPYCRAB, Spycrab)
 
-		case MG_BARREL:
-		{
-			view_as<Barrel>(currentMicrogame).OnMicrogameEnd();
-		}
-
-		case MG_BBALL:
-		{
-			view_as<BBall>(currentMicrogame).OnMicrogameEnd();
-		}
-
-		case MG_COLOR_TEXT:
-		{
-			view_as<ColorText>(currentMicrogame).OnMicrogameEnd();
-		}
-
-		case MG_FLOOD:
-		{
-			view_as<Flood>(currentMicrogame).OnMicrogameEnd();
-		}
-
-		case MG_ON_GROUND:
-		{
-			view_as<OnGround>(currentMicrogame).OnMicrogameEnd();
-		}
-
-		case MG_FROGGER:
-		{
-			view_as<Frogger>(currentMicrogame).OnMicrogameEnd();
-		}
-
-		case MG_GHOSTBUSTERS:
-		{
-			view_as<Ghostbusters>(currentMicrogame).OnMicrogameEnd();
-		}
-
-		case MG_GOOMBA:
-		{
-			view_as<Goomba>(currentMicrogame).OnMicrogameEnd();
-		}
-
-		case MG_HIT_ENEMY:
-		{
-			view_as<HitEnemy>(currentMicrogame).OnMicrogameEnd();
-		}
-
-		case MG_HOPSCOTCH:
-		{
-			view_as<Hopscotch>(currentMicrogame).OnMicrogameEnd();
-		}
-
-		case MG_HUGGING:
-		{
-			view_as<Hugging>(currentMicrogame).OnMicrogameEnd();
-		}
-
-		case MG_JUMP_ROPE:
-		{
-			view_as<JumpRope>(currentMicrogame).OnMicrogameEnd();
-		}
-
-		case MG_KAMIKAZE:
-		{
-			view_as<Kamikaze>(currentMicrogame).OnMicrogameEnd();
-		}
-
-		case MG_MATH:
-		{
-			view_as<Math>(currentMicrogame).OnMicrogameEnd();
-		}
-
-		case MG_MOVEMENT:
-		{
-			view_as<Movement>(currentMicrogame).OnMicrogameEnd();
-		}
-
-		case MG_NEEDLE_JUMP:
-		{
-			view_as<NeedleJump>(currentMicrogame).OnMicrogameEnd();
-		}
-
-		case MG_PINATA:
-		{
-			view_as<Pinata>(currentMicrogame).OnMicrogameEnd();
-		}
-
-		case MG_SAW_RUN:
-		{
-			view_as<Sawrun>(currentMicrogame).OnMicrogameEnd();
-		}
-
-		case MG_SIMON_SAYS:
-		{
-			view_as<SimonSays>(currentMicrogame).OnMicrogameEnd();
-		}
-
-		case MG_SNIPER_TARGET:
-		{
-			view_as<SniperTarget>(currentMicrogame).OnMicrogameEnd();
-		}
-
-		case MG_SPYCRAB:
-		{
-			view_as<Spycrab>(currentMicrogame).OnMicrogameEnd();
-		}
+#undef  ON_MICROGAME_END
 
 		default:
 		{
@@ -701,120 +350,33 @@ void DispatchOnMicrogamePostEnd()
 {
 	switch (view_as<Microgames>(currentMicrogame))
 	{
-		case MG_AIRBLAST:
-		{
-			view_as<Airblast>(currentMicrogame).OnMicrogamePostEnd();
-		}
+#define ON_MICROGAME_POST_END(%1,%2) case %1: { view_as<%2>(currentMicrogame).OnMicrogamePostEnd(); }
+	
+		ON_MICROGAME_POST_END(MG_AIRBLAST, Airblast)
+		ON_MICROGAME_POST_END(MG_AIR_RAID, AirRaid)
+		ON_MICROGAME_POST_END(MG_BARREL, Barrel)
+		ON_MICROGAME_POST_END(MG_BBALL, BBall)
+		ON_MICROGAME_POST_END(MG_COLOR_TEXT, ColorText)
+		ON_MICROGAME_POST_END(MG_FLOOD, Flood)
+		ON_MICROGAME_POST_END(MG_ON_GROUND, OnGround)
+		ON_MICROGAME_POST_END(MG_FROGGER, Frogger)
+		ON_MICROGAME_POST_END(MG_GHOSTBUSTERS, Ghostbusters)
+		ON_MICROGAME_POST_END(MG_GOOMBA, Goomba)
+		ON_MICROGAME_POST_END(MG_HIT_ENEMY, HitEnemy)
+		ON_MICROGAME_POST_END(MG_HOPSCOTCH, Hopscotch)
+		ON_MICROGAME_POST_END(MG_HUGGING, Hugging)
+		ON_MICROGAME_POST_END(MG_JUMP_ROPE, JumpRope)
+		ON_MICROGAME_POST_END(MG_KAMIKAZE, Kamikaze)
+		ON_MICROGAME_POST_END(MG_MATH, Math)
+		ON_MICROGAME_POST_END(MG_MOVEMENT, Movement)
+		ON_MICROGAME_POST_END(MG_NEEDLE_JUMP, NeedleJump)
+		ON_MICROGAME_POST_END(MG_PINATA, Pinata)
+		ON_MICROGAME_POST_END(MG_SAW_RUN, Sawrun)
+		ON_MICROGAME_POST_END(MG_SIMON_SAYS, SimonSays)
+		ON_MICROGAME_POST_END(MG_SNIPER_TARGET, SniperTarget)
+		ON_MICROGAME_POST_END(MG_SPYCRAB, Spycrab)
 
-		case MG_AIR_RAID:
-		{
-			view_as<AirRaid>(currentMicrogame).OnMicrogamePostEnd();
-		}
-
-		case MG_BARREL:
-		{
-			view_as<Barrel>(currentMicrogame).OnMicrogamePostEnd();
-		}
-
-		case MG_BBALL:
-		{
-			view_as<BBall>(currentMicrogame).OnMicrogamePostEnd();
-		}
-
-		case MG_COLOR_TEXT:
-		{
-			view_as<ColorText>(currentMicrogame).OnMicrogamePostEnd();
-		}
-
-		case MG_FLOOD:
-		{
-			view_as<Flood>(currentMicrogame).OnMicrogamePostEnd();
-		}
-
-		case MG_ON_GROUND:
-		{
-			view_as<OnGround>(currentMicrogame).OnMicrogamePostEnd();
-		}
-
-		case MG_FROGGER:
-		{
-			view_as<Frogger>(currentMicrogame).OnMicrogamePostEnd();
-		}
-
-		case MG_GHOSTBUSTERS:
-		{
-			view_as<Ghostbusters>(currentMicrogame).OnMicrogamePostEnd();
-		}
-
-		case MG_GOOMBA:
-		{
-			view_as<Goomba>(currentMicrogame).OnMicrogamePostEnd();
-		}
-
-		case MG_HIT_ENEMY:
-		{
-			view_as<HitEnemy>(currentMicrogame).OnMicrogamePostEnd();
-		}
-
-		case MG_HOPSCOTCH:
-		{
-			view_as<Hopscotch>(currentMicrogame).OnMicrogamePostEnd();
-		}
-
-		case MG_HUGGING:
-		{
-			view_as<Hugging>(currentMicrogame).OnMicrogamePostEnd();
-		}
-
-		case MG_JUMP_ROPE:
-		{
-			view_as<JumpRope>(currentMicrogame).OnMicrogamePostEnd();
-		}
-
-		case MG_KAMIKAZE:
-		{
-			view_as<Kamikaze>(currentMicrogame).OnMicrogamePostEnd();
-		}
-
-		case MG_MATH:
-		{
-			view_as<Math>(currentMicrogame).OnMicrogamePostEnd();
-		}
-
-		case MG_MOVEMENT:
-		{
-			view_as<Movement>(currentMicrogame).OnMicrogamePostEnd();
-		}
-
-		case MG_NEEDLE_JUMP:
-		{
-			view_as<NeedleJump>(currentMicrogame).OnMicrogamePostEnd();
-		}
-
-		case MG_PINATA:
-		{
-			view_as<Pinata>(currentMicrogame).OnMicrogamePostEnd();
-		}
-
-		case MG_SAW_RUN:
-		{
-			view_as<Sawrun>(currentMicrogame).OnMicrogamePostEnd();
-		}
-
-		case MG_SIMON_SAYS:
-		{
-			view_as<SimonSays>(currentMicrogame).OnMicrogamePostEnd();
-		}
-
-		case MG_SNIPER_TARGET:
-		{
-			view_as<SniperTarget>(currentMicrogame).OnMicrogamePostEnd();
-		}
-
-		case MG_SPYCRAB:
-		{
-			view_as<Spycrab>(currentMicrogame).OnMicrogamePostEnd();
-		}
+#undef  ON_MICROGAME_POST_END
 
 		default:
 		{
@@ -827,120 +389,33 @@ void DispatchOnMicrogameFrame()
 {
 	switch (view_as<Microgames>(currentMicrogame))
 	{
-		case MG_AIRBLAST:
-		{
-			view_as<Airblast>(currentMicrogame).OnMicrogameFrame();
-		}
+#define ON_MICROGAME_FRAME(%1,%2) case %1: { view_as<%2>(currentMicrogame).OnMicrogameFrame(); }
 
-		case MG_AIR_RAID:
-		{
-			view_as<AirRaid>(currentMicrogame).OnMicrogameFrame();
-		}
+		ON_MICROGAME_FRAME(MG_AIRBLAST, Airblast)
+		ON_MICROGAME_FRAME(MG_AIR_RAID, AirRaid)
+		ON_MICROGAME_FRAME(MG_BARREL, Barrel)
+		ON_MICROGAME_FRAME(MG_BBALL, BBall)
+		ON_MICROGAME_FRAME(MG_COLOR_TEXT, ColorText)
+		ON_MICROGAME_FRAME(MG_FLOOD, Flood)
+		ON_MICROGAME_FRAME(MG_ON_GROUND, OnGround)
+		ON_MICROGAME_FRAME(MG_FROGGER, Frogger)
+		ON_MICROGAME_FRAME(MG_GHOSTBUSTERS, Ghostbusters)
+		ON_MICROGAME_FRAME(MG_GOOMBA, Goomba)
+		ON_MICROGAME_FRAME(MG_HIT_ENEMY, HitEnemy)
+		ON_MICROGAME_FRAME(MG_HOPSCOTCH, Hopscotch)
+		ON_MICROGAME_FRAME(MG_HUGGING, Hugging)
+		ON_MICROGAME_FRAME(MG_JUMP_ROPE, JumpRope)
+		ON_MICROGAME_FRAME(MG_KAMIKAZE, Kamikaze)
+		ON_MICROGAME_FRAME(MG_MATH, Math)
+		ON_MICROGAME_FRAME(MG_MOVEMENT, Movement)
+		ON_MICROGAME_FRAME(MG_NEEDLE_JUMP, NeedleJump)
+		ON_MICROGAME_FRAME(MG_PINATA, Pinata)
+		ON_MICROGAME_FRAME(MG_SAW_RUN, Sawrun)
+		ON_MICROGAME_FRAME(MG_SIMON_SAYS, SimonSays)
+		ON_MICROGAME_FRAME(MG_SNIPER_TARGET, SniperTarget)
+		ON_MICROGAME_FRAME(MG_SPYCRAB, Spycrab)
 
-		case MG_BARREL:
-		{
-			view_as<Barrel>(currentMicrogame).OnMicrogameFrame();
-		}
-
-		case MG_BBALL:
-		{
-			view_as<BBall>(currentMicrogame).OnMicrogameFrame();
-		}
-
-		case MG_COLOR_TEXT:
-		{
-			view_as<ColorText>(currentMicrogame).OnMicrogameFrame();
-		}
-
-		case MG_FLOOD:
-		{
-			view_as<Flood>(currentMicrogame).OnMicrogameFrame();
-		}
-
-		case MG_ON_GROUND:
-		{
-			view_as<OnGround>(currentMicrogame).OnMicrogameFrame();
-		}
-
-		case MG_FROGGER:
-		{
-			view_as<Frogger>(currentMicrogame).OnMicrogameFrame();
-		}
-
-		case MG_GHOSTBUSTERS:
-		{
-			view_as<Ghostbusters>(currentMicrogame).OnMicrogameFrame();
-		}
-
-		case MG_GOOMBA:
-		{
-			view_as<Goomba>(currentMicrogame).OnMicrogameFrame();
-		}
-
-		case MG_HIT_ENEMY:
-		{
-			view_as<HitEnemy>(currentMicrogame).OnMicrogameFrame();
-		}
-
-		case MG_HOPSCOTCH:
-		{
-			view_as<Hopscotch>(currentMicrogame).OnMicrogameFrame();
-		}
-
-		case MG_HUGGING:
-		{
-			view_as<Hugging>(currentMicrogame).OnMicrogameFrame();
-		}
-
-		case MG_JUMP_ROPE:
-		{
-			view_as<JumpRope>(currentMicrogame).OnMicrogameFrame();
-		}
-
-		case MG_KAMIKAZE:
-		{
-			view_as<Kamikaze>(currentMicrogame).OnMicrogameFrame();
-		}
-
-		case MG_MATH:
-		{
-			view_as<Math>(currentMicrogame).OnMicrogameFrame();
-		}
-
-		case MG_MOVEMENT:
-		{
-			view_as<Movement>(currentMicrogame).OnMicrogameFrame();
-		}
-		
-		case MG_NEEDLE_JUMP:
-		{
-			view_as<NeedleJump>(currentMicrogame).OnMicrogameFrame();
-		}
-
-		case MG_PINATA:
-		{
-			view_as<Pinata>(currentMicrogame).OnMicrogameFrame();
-		}
-
-		case MG_SAW_RUN:
-		{
-			view_as<Sawrun>(currentMicrogame).OnMicrogameFrame();
-		}
-
-		case MG_SIMON_SAYS:
-		{
-			view_as<SimonSays>(currentMicrogame).OnMicrogameFrame();
-		}
-
-		case MG_SNIPER_TARGET:
-		{
-			view_as<SniperTarget>(currentMicrogame).OnMicrogameFrame();
-		}
-
-		case MG_SPYCRAB:
-		{
-			view_as<Spycrab>(currentMicrogame).OnMicrogameFrame();
-		}
+#undef  ON_MICROGAME_FRAME
 
 		default:
 		{
@@ -953,120 +428,33 @@ void DispatchOnClientDeath(int client)
 {
 	switch (view_as<Microgames>(currentMicrogame))
 	{
-		case MG_AIRBLAST:
-		{
-			view_as<Airblast>(currentMicrogame).OnClientDeath(client);
-		}
+#define ON_MICROGAME_CLIENT_DEATH(%1,%2) case %1: { view_as<%2>(currentMicrogame).OnClientDeath(client); }
 
-		case MG_AIR_RAID:
-		{
-			view_as<AirRaid>(currentMicrogame).OnClientDeath(client);
-		}
+		ON_MICROGAME_CLIENT_DEATH(MG_AIRBLAST, Airblast)
+		ON_MICROGAME_CLIENT_DEATH(MG_AIR_RAID, AirRaid)
+		ON_MICROGAME_CLIENT_DEATH(MG_BARREL, Barrel)
+		ON_MICROGAME_CLIENT_DEATH(MG_BBALL, BBall)
+		ON_MICROGAME_CLIENT_DEATH(MG_COLOR_TEXT, ColorText)
+		ON_MICROGAME_CLIENT_DEATH(MG_FLOOD, Flood)
+		ON_MICROGAME_CLIENT_DEATH(MG_ON_GROUND, OnGround)
+		ON_MICROGAME_CLIENT_DEATH(MG_FROGGER, Frogger)
+		ON_MICROGAME_CLIENT_DEATH(MG_GHOSTBUSTERS, Ghostbusters)
+		ON_MICROGAME_CLIENT_DEATH(MG_GOOMBA, Goomba)
+		ON_MICROGAME_CLIENT_DEATH(MG_HIT_ENEMY, HitEnemy)
+		ON_MICROGAME_CLIENT_DEATH(MG_HOPSCOTCH, Hopscotch)
+		ON_MICROGAME_CLIENT_DEATH(MG_HUGGING, Hugging)
+		ON_MICROGAME_CLIENT_DEATH(MG_JUMP_ROPE, JumpRope)
+		ON_MICROGAME_CLIENT_DEATH(MG_KAMIKAZE, Kamikaze)
+		ON_MICROGAME_CLIENT_DEATH(MG_MATH, Math)
+		ON_MICROGAME_CLIENT_DEATH(MG_MOVEMENT, Movement)
+		ON_MICROGAME_CLIENT_DEATH(MG_NEEDLE_JUMP, NeedleJump)
+		ON_MICROGAME_CLIENT_DEATH(MG_PINATA, Pinata)
+		ON_MICROGAME_CLIENT_DEATH(MG_SAW_RUN, Sawrun)
+		ON_MICROGAME_CLIENT_DEATH(MG_SIMON_SAYS, SimonSays)
+		ON_MICROGAME_CLIENT_DEATH(MG_SNIPER_TARGET, SniperTarget)
+		ON_MICROGAME_CLIENT_DEATH(MG_SPYCRAB, Spycrab)
 
-		case MG_BARREL:
-		{
-			view_as<Barrel>(currentMicrogame).OnClientDeath(client);
-		}
-
-		case MG_BBALL:
-		{
-			view_as<BBall>(currentMicrogame).OnClientDeath(client);
-		}
-
-		case MG_COLOR_TEXT:
-		{
-			view_as<ColorText>(currentMicrogame).OnClientDeath(client);
-		}
-
-		case MG_FLOOD:
-		{
-			view_as<Flood>(currentMicrogame).OnClientDeath(client);
-		}
-
-		case MG_ON_GROUND:
-		{
-			view_as<OnGround>(currentMicrogame).OnClientDeath(client);
-		}
-
-		case MG_FROGGER:
-		{
-			view_as<Frogger>(currentMicrogame).OnClientDeath(client);
-		}
-
-		case MG_GHOSTBUSTERS:
-		{
-			view_as<Ghostbusters>(currentMicrogame).OnClientDeath(client);
-		}
-
-		case MG_GOOMBA:
-		{
-			view_as<Goomba>(currentMicrogame).OnClientDeath(client);
-		}
-
-		case MG_HIT_ENEMY:
-		{
-			view_as<HitEnemy>(currentMicrogame).OnClientDeath(client);
-		}
-
-		case MG_HOPSCOTCH:
-		{
-			view_as<Hopscotch>(currentMicrogame).OnClientDeath(client);
-		}
-
-		case MG_HUGGING:
-		{
-			view_as<Hugging>(currentMicrogame).OnClientDeath(client);
-		}
-
-		case MG_JUMP_ROPE:
-		{
-			view_as<JumpRope>(currentMicrogame).OnClientDeath(client);
-		}
-
-		case MG_KAMIKAZE:
-		{
-			view_as<Kamikaze>(currentMicrogame).OnClientDeath(client);
-		}
-
-		case MG_MATH:
-		{
-			view_as<Math>(currentMicrogame).OnClientDeath(client);
-		}
-
-		case MG_MOVEMENT:
-		{
-			view_as<Movement>(currentMicrogame).OnClientDeath(client);
-		}
-
-		case MG_NEEDLE_JUMP:
-		{
-			view_as<NeedleJump>(currentMicrogame).OnClientDeath(client);
-		}
-
-		case MG_PINATA:
-		{
-			view_as<Pinata>(currentMicrogame).OnClientDeath(client);
-		}
-
-		case MG_SAW_RUN:
-		{
-			view_as<Sawrun>(currentMicrogame).OnClientDeath(client);
-		}
-
-		case MG_SIMON_SAYS:
-		{
-			view_as<SimonSays>(currentMicrogame).OnClientDeath(client);
-		}
-
-		case MG_SNIPER_TARGET:
-		{
-			view_as<SniperTarget>(currentMicrogame).OnClientDeath(client);
-		}
-
-		case MG_SPYCRAB:
-		{
-			view_as<Spycrab>(currentMicrogame).OnClientDeath(client);
-		}
+#undef  ON_MICROGAME_CLIENT_DEATH
 
 		default:
 		{
@@ -1079,120 +467,33 @@ bool DispatchIsMicrogamePlayable(Microgame mg, int players)
 {
 	switch (view_as<Microgames>(mg))
 	{
-		case MG_AIRBLAST:
-		{
-			return view_as<Airblast>(mg).IsMicrogamePlayable(players);
-		}
+#define IS_MICROGAME_PLAYABLE(%1,%2) case %1: { return view_as<%2>(currentMicrogame).IsMicrogamePlayable(players); }
 
-		case MG_AIR_RAID:
-		{
-			return view_as<AirRaid>(mg).IsMicrogamePlayable(players);
-		}
+		IS_MICROGAME_PLAYABLE(MG_AIRBLAST, Airblast)
+		IS_MICROGAME_PLAYABLE(MG_AIR_RAID, AirRaid)
+		IS_MICROGAME_PLAYABLE(MG_BARREL, Barrel)
+		IS_MICROGAME_PLAYABLE(MG_BBALL, BBall)
+		IS_MICROGAME_PLAYABLE(MG_COLOR_TEXT, ColorText)
+		IS_MICROGAME_PLAYABLE(MG_FLOOD, Flood)
+		IS_MICROGAME_PLAYABLE(MG_ON_GROUND, OnGround)
+		IS_MICROGAME_PLAYABLE(MG_FROGGER, Frogger)
+		IS_MICROGAME_PLAYABLE(MG_GHOSTBUSTERS, Ghostbusters)
+		IS_MICROGAME_PLAYABLE(MG_GOOMBA, Goomba)
+		IS_MICROGAME_PLAYABLE(MG_HIT_ENEMY, HitEnemy)
+		IS_MICROGAME_PLAYABLE(MG_HOPSCOTCH, Hopscotch)
+		IS_MICROGAME_PLAYABLE(MG_HUGGING, Hugging)
+		IS_MICROGAME_PLAYABLE(MG_JUMP_ROPE, JumpRope)
+		IS_MICROGAME_PLAYABLE(MG_KAMIKAZE, Kamikaze)
+		IS_MICROGAME_PLAYABLE(MG_MATH, Math)
+		IS_MICROGAME_PLAYABLE(MG_MOVEMENT, Movement)
+		IS_MICROGAME_PLAYABLE(MG_NEEDLE_JUMP, NeedleJump)
+		IS_MICROGAME_PLAYABLE(MG_PINATA, Pinata)
+		IS_MICROGAME_PLAYABLE(MG_SAW_RUN, Sawrun)
+		IS_MICROGAME_PLAYABLE(MG_SIMON_SAYS, SimonSays)
+		IS_MICROGAME_PLAYABLE(MG_SNIPER_TARGET, SniperTarget)
+		IS_MICROGAME_PLAYABLE(MG_SPYCRAB, Spycrab)
 
-		case MG_BARREL:
-		{
-			return view_as<Barrel>(mg).IsMicrogamePlayable(players);
-		}
-
-		case MG_BBALL:
-		{
-			return view_as<BBall>(mg).IsMicrogamePlayable(players);
-		}
-
-		case MG_COLOR_TEXT:
-		{
-			return view_as<ColorText>(mg).IsMicrogamePlayable(players);
-		}
-
-		case MG_FLOOD:
-		{
-			return view_as<Flood>(mg).IsMicrogamePlayable(players);
-		}
-
-		case MG_ON_GROUND:
-		{
-			return view_as<OnGround>(mg).IsMicrogamePlayable(players);
-		}
-
-		case MG_FROGGER:
-		{
-			return view_as<Frogger>(mg).IsMicrogamePlayable(players);
-		}
-
-		case MG_GHOSTBUSTERS:
-		{
-			return view_as<Ghostbusters>(mg).IsMicrogamePlayable(players);
-		}
-
-		case MG_GOOMBA:
-		{
-			return view_as<Goomba>(mg).IsMicrogamePlayable(players);
-		}
-
-		case MG_HIT_ENEMY:
-		{
-			return view_as<HitEnemy>(mg).IsMicrogamePlayable(players);
-		}
-
-		case MG_HOPSCOTCH:
-		{
-			return view_as<Hopscotch>(mg).IsMicrogamePlayable(players);
-		}
-
-		case MG_HUGGING:
-		{
-			return view_as<Hugging>(mg).IsMicrogamePlayable(players);
-		}
-
-		case MG_JUMP_ROPE:
-		{
-			return view_as<JumpRope>(mg).IsMicrogamePlayable(players);
-		}
-
-		case MG_KAMIKAZE:
-		{
-			return view_as<Kamikaze>(mg).IsMicrogamePlayable(players);
-		}
-
-		case MG_MATH:
-		{
-			return view_as<Math>(mg).IsMicrogamePlayable(players);
-		}
-
-		case MG_MOVEMENT:
-		{
-			return view_as<Movement>(mg).IsMicrogamePlayable(players);
-		}
-
-		case MG_NEEDLE_JUMP:
-		{
-			return view_as<NeedleJump>(mg).IsMicrogamePlayable(players);
-		}
-
-		case MG_PINATA:
-		{
-			return view_as<Pinata>(mg).IsMicrogamePlayable(players);
-		}
-
-		case MG_SAW_RUN:
-		{
-			return view_as<Sawrun>(mg).IsMicrogamePlayable(players);
-		}
-
-		case MG_SIMON_SAYS:
-		{
-			return view_as<SimonSays>(mg).IsMicrogamePlayable(players);
-		}
-
-		case MG_SNIPER_TARGET:
-		{
-			return view_as<SniperTarget>(mg).IsMicrogamePlayable(players);
-		}
-
-		case MG_SPYCRAB:
-		{
-			return view_as<Spycrab>(mg).IsMicrogamePlayable(players);
-		}
+#undef  IS_MICROGAME_PLAYABLE
 
 		default:
 		{
@@ -1206,17 +507,13 @@ public Action DispatchOnPlayerChatSay(int client, const char message[255])
 {
 	switch (view_as<Microgames>(currentMicrogame))
 	{
-		case MG_COLOR_TEXT:
-		{
-			bool ret = view_as<ColorText>(currentMicrogame).OnPlayerChatMessage(client, message);
-			return ret ? Plugin_Handled : Plugin_Continue;			
-		}
+#define ON_MICROGAME_CHAT_SAY(%1,%2) case %1: \
+ { bool ret = view_as<%2>(currentMicrogame).OnPlayerChatMessage(client, message); return ret ? Plugin_Handled : Plugin_Continue; }
 
-		case MG_MATH:
-		{
-			bool ret = view_as<Math>(currentMicrogame).OnPlayerChatMessage(client, message);
-			return ret ? Plugin_Handled : Plugin_Continue;
-		}
+		ON_MICROGAME_CHAT_SAY(MG_COLOR_TEXT, ColorText)
+		ON_MICROGAME_CHAT_SAY(MG_MATH, Math)
+
+#undef  ON_MICROGAME_CHAT_SAY
 
 		default:
 		{
@@ -1237,120 +534,33 @@ public void DispatchOnMicrogameSetup()
 		int key = MICROGAME_SNAPSHOT.GetKey(idx);
 		switch (view_as<Microgames>(key))
 		{
-			case MG_AIRBLAST:
-			{
-				view_as<Airblast>(key).OnMicrogameSetup();
-			}
+#define ON_MICROGAME_SETUP(%1,%2) case %1: { view_as<%2>(currentMicrogame).OnMicrogameSetup(); }
 
-			case MG_AIR_RAID:
-			{
-				view_as<AirRaid>(key).OnMicrogameSetup();
-			}
+			ON_MICROGAME_SETUP(MG_AIRBLAST, Airblast)
+			ON_MICROGAME_SETUP(MG_AIR_RAID, AirRaid)
+			ON_MICROGAME_SETUP(MG_BARREL, Barrel)
+			ON_MICROGAME_SETUP(MG_BBALL, BBall)
+			ON_MICROGAME_SETUP(MG_COLOR_TEXT, ColorText)
+			ON_MICROGAME_SETUP(MG_FLOOD, Flood)
+			ON_MICROGAME_SETUP(MG_ON_GROUND, OnGround)
+			ON_MICROGAME_SETUP(MG_FROGGER, Frogger)
+			ON_MICROGAME_SETUP(MG_GHOSTBUSTERS, Ghostbusters)
+			ON_MICROGAME_SETUP(MG_GOOMBA, Goomba)
+			ON_MICROGAME_SETUP(MG_HIT_ENEMY, HitEnemy)
+			ON_MICROGAME_SETUP(MG_HOPSCOTCH, Hopscotch)
+			ON_MICROGAME_SETUP(MG_HUGGING, Hugging)
+			ON_MICROGAME_SETUP(MG_JUMP_ROPE, JumpRope)
+			ON_MICROGAME_SETUP(MG_KAMIKAZE, Kamikaze)
+			ON_MICROGAME_SETUP(MG_MATH, Math)
+			ON_MICROGAME_SETUP(MG_MOVEMENT, Movement)
+			ON_MICROGAME_SETUP(MG_NEEDLE_JUMP, NeedleJump)
+			ON_MICROGAME_SETUP(MG_PINATA, Pinata)
+			ON_MICROGAME_SETUP(MG_SAW_RUN, Sawrun)
+			ON_MICROGAME_SETUP(MG_SIMON_SAYS, SimonSays)
+			ON_MICROGAME_SETUP(MG_SNIPER_TARGET, SniperTarget)
+			ON_MICROGAME_SETUP(MG_SPYCRAB, Spycrab)
 
-			case MG_BARREL:
-			{
-				view_as<Barrel>(key).OnMicrogameSetup();
-			}
-
-			case MG_BBALL:
-			{
-				view_as<BBall>(key).OnMicrogameSetup();
-			}
-
-			case MG_COLOR_TEXT:
-			{
-				view_as<ColorText>(key).OnMicrogameSetup();
-			}
-
-			case MG_FLOOD:
-			{
-				view_as<Flood>(key).OnMicrogameSetup();
-			}
-
-			case MG_ON_GROUND:
-			{
-				view_as<OnGround>(key).OnMicrogameSetup();
-			}
-
-			case MG_FROGGER:
-			{
-				view_as<Frogger>(key).OnMicrogameSetup();
-			}
-
-			case MG_GHOSTBUSTERS:
-			{
-				view_as<Ghostbusters>(key).OnMicrogameSetup();
-			}
-
-			case MG_GOOMBA:
-			{
-				view_as<Goomba>(key).OnMicrogameSetup();
-			}
-
-			case MG_HIT_ENEMY:
-			{
-				view_as<HitEnemy>(key).OnMicrogameSetup();
-			}
-
-			case MG_HOPSCOTCH:
-			{
-				view_as<Hopscotch>(key).OnMicrogameSetup();
-			}
-
-			case MG_HUGGING:
-			{
-				view_as<Hugging>(key).OnMicrogameSetup();
-			}
-
-			case MG_JUMP_ROPE:
-			{
-				view_as<JumpRope>(key).OnMicrogameSetup();
-			}
-
-			case MG_KAMIKAZE:
-			{
-				view_as<Kamikaze>(key).OnMicrogameSetup();
-			}
-
-			case MG_MATH:
-			{
-				view_as<Math>(key).OnMicrogameSetup();
-			}
-
-			case MG_MOVEMENT:
-			{
-				view_as<Movement>(key).OnMicrogameSetup();
-			}
-
-			case MG_NEEDLE_JUMP:
-			{
-				view_as<NeedleJump>(key).OnMicrogameSetup();
-			}
-
-			case MG_PINATA:
-			{
-				view_as<Pinata>(key).OnMicrogameSetup();
-			}
-
-			case MG_SAW_RUN:
-			{
-				view_as<Sawrun>(key).OnMicrogameSetup();
-			}
-
-			case MG_SIMON_SAYS:
-			{
-				view_as<SimonSays>(key).OnMicrogameSetup();
-			}
-
-			case MG_SNIPER_TARGET:
-			{
-				view_as<SniperTarget>(key).OnMicrogameSetup();
-			}
-
-			case MG_SPYCRAB:
-			{
-				view_as<Spycrab>(key).OnMicrogameSetup();
-			}
+#undef  ON_MICROGAME_SETUP
 
 			default:
 			{

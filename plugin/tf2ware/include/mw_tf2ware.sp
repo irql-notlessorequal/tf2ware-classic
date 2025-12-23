@@ -428,8 +428,6 @@ public void OnMapStart()
 		/* Misc. */
 
 		precacheSound(MUSIC_WAITING);
-		precacheSound(MUSIC_WAITING_ALT);
-		precacheSound(MUSIC_WAITING_ALT_END);
 		precacheSound(MUSIC_SPECIAL);
 
 		precacheSound(SOUND_COMPLETE);
@@ -567,17 +565,6 @@ public Action Timer_DisplayVersion(Handle timer, any client)
 	return Plugin_Handled;
 }
 
-public Action Timer_WaitingForPlayersEnd(Handle timer, any client)
-{
-	if (RoundStarts == 0)
-	{
-		return Plugin_Stop;
-	}
-
-	EmitSoundToClient(client, MUSIC_WAITING_ALT_END, SOUND_FROM_PLAYER, SND_CHANNEL_SPECIFIC);
-	return Plugin_Stop;
-}
-
 public Action Event_RoundStart(Handle event, const char[] name, bool dontBroadcast)
 {
 #if !defined(ENABLE_MALLET)
@@ -611,8 +598,6 @@ public Action Event_RoundStart(Handle event, const char[] name, bool dontBroadca
 					if (!IsFakeClient(client))
 					{
 						StopSound(client, SND_CHANNEL_SPECIFIC, MUSIC_WAITING);
-						StopSound(client, SND_CHANNEL_SPECIFIC, MUSIC_WAITING_ALT);
-						StopSound(client, SND_CHANNEL_SPECIFIC, MUSIC_WAITING_ALT_END);
 						SetOverlay(client, "");
 					}
 
@@ -756,18 +741,7 @@ public Action EventInventoryApplication(Handle event, const char[] name, bool do
 
 	if (g_Spawned[client] == false && g_waiting && !IsFakeClient(client))
 	{
-		/* Play a different waiting for players audio cue if
-		 * the server has already played minimum one round. */
-		if (RoundStarts == 0)
-		{
-			EmitSoundToClient(client, MUSIC_WAITING, SOUND_FROM_PLAYER, SND_CHANNEL_SPECIFIC);
-		}
-		else
-		{
-			EmitSoundToClient(client, MUSIC_WAITING_ALT, SOUND_FROM_PLAYER, SND_CHANNEL_SPECIFIC);
-			CreateTimer(MUSIC_WAITING_ALT_DURATION, Timer_WaitingForPlayersEnd, client);
-		}
-
+		EmitSoundToClient(client, MUSIC_WAITING, SOUND_FROM_PLAYER, SND_CHANNEL_SPECIFIC);
 		SetOverlay(client, "tf2ware_welcome");
 		CreateTimer(0.25, Timer_DisplayVersion, client);
 	}
@@ -1612,7 +1586,8 @@ public Action EndGame(Handle hTimer)
 
 		NoCollision(SpecialRound == BONK);
 
-		if (SpecialRound == THIRDPERSON)
+		if (SpecialRound == THIRDPERSON ||
+			SpecialRound == NO_TOUCHING)
 		{
 			for (int client = 1; client <= MaxClients; client++)
 			{

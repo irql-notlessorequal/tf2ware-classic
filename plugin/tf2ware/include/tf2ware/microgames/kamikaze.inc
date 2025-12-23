@@ -65,6 +65,20 @@ methodmap Kamikaze < Microgame
 
 	public void OnMicrogamePostEnd()
 	{
+		if (GetConVarBool(ww_kamikaze_style))
+		{
+			for (int client = 1; client <= MaxClients; client++)
+			{
+				if (g_Mission[client])
+				{
+					SetVariantString("");
+					AcceptEntityInput(client, "SetCustomModel");
+					SetVariantInt(0);
+					AcceptEntityInput(client, "SetCustomModelRotates");
+				}
+			}
+		}
+		
 		if ((g_bomb > 0) && IsValidEntity(g_bomb))
 		{
 			AcceptEntityInput(g_bomb, "Kill");
@@ -118,12 +132,12 @@ methodmap Kamikaze < Microgame
 	{
 		if (IsValidClient(client))
 		{
-			if (g_Mission[client] == 0)
+			if (!g_Mission[client])
 			{
 				SetClientClass(client, "heavy");
 				DisableClientWeapons(client);
 			}
-			else if (g_Mission[client] == 1)
+			else if (g_Mission[client])
 			{
 				SetClientClass(client, "scout");
 				DisableClientWeapons(client);
@@ -133,6 +147,8 @@ methodmap Kamikaze < Microgame
 					/* Use the "bobomb" model that is otherwise unused. */
 					SetVariantString(WW_BOMB_OLD_MODEL);
 					AcceptEntityInput(client, "SetCustomModel");
+					SetVariantInt(1);
+					AcceptEntityInput(client, "SetCustomModelRotates");
 				}
 				else
 				{
@@ -142,7 +158,7 @@ methodmap Kamikaze < Microgame
 						g_bomb = 0;
 					}
 			
-					g_bomb = CreateEntityByName("tf_wearable_razorback");
+					g_bomb = CreateEntityByName("tf_wearable");
 
 					if (IsValidEdict(g_bomb))
 					{ 
@@ -151,14 +167,19 @@ methodmap Kamikaze < Microgame
 						 * 
 						 * Fuck you Valve and your restrictions.
 						 */
-						SetEntProp(g_bomb, Prop_Send, "m_iItemDefinitionIndex", view_as<int>(TF2WARE_WEARABLE_RAZORBACK));
-						SetEntProp(g_bomb, Prop_Send, "m_nModelIndexOverrides", PrecacheModel(WW_BOMB_MODEL));
+						SetEntProp(g_bomb, Prop_Send, "m_nModelIndex", PrecacheModel(WW_BOMB_MODEL));
 						SetEntProp(g_bomb, Prop_Send, "m_bValidatedAttachedEntity", true);
 						SetEntProp(g_bomb, Prop_Send, "m_hOwnerEntity", client);
+						SetEntProp(g_bomb, Prop_Send, "m_fEffects", 0);
 
 						if (DispatchSpawn(g_bomb))
 						{
 							MalletEquipWearable(client, g_bomb);
+
+							SetVariantString("!activator");
+							AcceptEntityInput(g_bomb, "SetParent", client, -1, 0);
+							SetVariantString("flag");
+							AcceptEntityInput(g_bomb, "SetParentAttachment", client, -1, 0);
 						}
 						else
 						{

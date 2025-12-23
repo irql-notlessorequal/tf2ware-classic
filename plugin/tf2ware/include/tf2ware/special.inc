@@ -108,11 +108,11 @@ public void Special_NoTouch(int entity, int other)
 		GetClientName(entity, classname, MAX_NAME_LENGTH);
 		GetClientName(other, classname2, MAX_NAME_LENGTH);
 
-		CPrintToChat(entity, "%t", "NoTouching_PlayerTouched", classname2);
-		CPrintToChat(entity, "%T", "NoTouching_Explainer");
+		CPrintToChatEx(entity, other, "%t", "NoTouching_PlayerTouched", classname2);
+		CPrintToChat(entity, "%T", "NoTouching_Explainer", LANG_SERVER);
 
-		CPrintToChat(other, "%t", "NoTouching_PlayerTouched", classname);
-		CPrintToChat(other, "%T", "NoTouching_Explainer");
+		CPrintToChatEx(other, entity, "%t", "NoTouching_PlayerTouched", classname);
+		CPrintToChat(other, "%T", "NoTouching_Explainer", LANG_SERVER);
 	}
 }
 
