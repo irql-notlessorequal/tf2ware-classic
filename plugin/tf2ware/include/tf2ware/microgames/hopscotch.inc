@@ -194,11 +194,12 @@ public Action Hopscotch_OnTakeDamageClient(int victim, int &attacker, int &infli
 {
 	if (IsValidClient(attacker) && IsValidClient(victim) && status == 2)
 	{
-		damage = 0.0;
-
-		CreateTimer(0.0, Hopscotch_GiveHealth, victim);
+		CreateTimer(0.0, Hopscotch_GiveHealth, victim, TIMER_FLAG_NO_MAPCHANGE);
 		return Plugin_Changed;
 	}
-	
-	return Plugin_Continue;
+	else
+	{
+		return Plugin_Continue;
+
+	}
 }

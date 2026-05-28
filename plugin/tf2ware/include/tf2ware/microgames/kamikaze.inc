@@ -41,7 +41,7 @@ methodmap Kamikaze < Microgame
 
 			/* We've found a valid candidate, break. */
 			break;
-		} while (true);
+		} while (target);
 	
 		EmitSoundToClient(target, WW_BOMB, SOUND_FROM_PLAYER, SNDCHAN_AUTO, SNDLEVEL_NORMAL, SND_NOFLAGS, SNDVOL_NORMAL, GetSoundMultiplier());
 		ClientParticle(target, PARTICLE_BOMB, 2.0);
@@ -185,7 +185,7 @@ methodmap Kamikaze < Microgame
 						{
 							g_bomb = 0;
 						}
-					}					
+					}
 				}
 			}
 		}		

@@ -21,7 +21,7 @@
 
 #define MAX_MINIGAMES		 40
 
-#define PLUGIN_VERSION		 "0.0.74"
+#define PLUGIN_VERSION		 "0.0.75"
 
 #define MUSIC_SPECIAL_START			"imgay/tf2ware/special_intro.mp3"
 #define MUSIC_SPECIAL_START_LEN 	3.84
@@ -148,7 +148,8 @@ enum SpecialRounds
 	BONK,
 	THIRDPERSON,
 	WIPEOUT,
-	RANDOM_SCORE
+	RANDOM_SCORE,
+	RANDOM_SPEED
 };
 
 enum Microgames
@@ -182,8 +183,7 @@ enum Microgames
 	MG_GOOMBA = 23,
 	MG_PINATA = 24,
 	MG_GHOSTBUSTERS = 25,
-
-	/* MG_MANDRILL = 26 (reserved) */
+	MG_MANDRILL = 26
 }
 
 enum TF2WareItemIndexes

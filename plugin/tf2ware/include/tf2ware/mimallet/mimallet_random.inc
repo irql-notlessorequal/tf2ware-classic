@@ -1,5 +1,10 @@
 #pragma newdecls required
 
+#if defined _mimallet_random
+  #endinput
+#endif
+#define _mimallet_random
+
 #define INT32_MAX	0x7FFFFFFF
 #define INT32_MIN  -0x7FFFFFFF
 

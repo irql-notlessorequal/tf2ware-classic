@@ -29,10 +29,11 @@
 
 	8:      Wipeout
 	9:      Random Score
+	10:     Up And Down
 */
 #pragma newdecls required
 
-#define SPECIAL_TOTAL	9
+#define SPECIAL_TOTAL	10
 
 bool Special_TwoBosses = false;
 
@@ -46,7 +47,8 @@ char var_special_name[][] =
 	"BONK",
 	"THIRDPERSON",
 	"WIPEOUT",
-	"RANDOM SCORE"
+	"RANDOM SCORE",
+	"UP AND DOWN"
 };
 
 char var_special_phrases[][] =
@@ -59,7 +61,8 @@ char var_special_phrases[][] =
 	"Special_Bonk",
 	"Special_ThirdPerson",
 	"Special_Wipeout",
-	"Special_RandomScore"
+	"Special_RandomScore",
+	"Special_UpAndDown"
 };
 
 char FAKE_SPECIAL_ROUNDS[][] =
@@ -73,7 +76,8 @@ char FAKE_SPECIAL_ROUNDS[][] =
 	"TF2 BROS: BRAWL",
 	"HOT SPY ON ICE",
 	"SV_CHEATS 1",
-	"STOP THAT SPYCRAB"
+	"STOP THAT SPYCRAB",
+	"TWO REFINED"
 };
 
 public void Special_NoTouch(int entity, int other)

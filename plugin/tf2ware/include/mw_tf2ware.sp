@@ -979,7 +979,7 @@ int RollMinigame()
 		currentMicrogame = candidate;
 		lastPlayedIndex = candidateIndex;
 		break;
-	} while (true);
+	} while (candidateIndex);
 
 	return candidateIndex;
 }
@@ -1046,13 +1046,16 @@ void HandOutPoints(int points)
 
 stock void PrintWipeoutMessage(int candidatePlayers[MAX_WIPEOUT_PLAYERS], int populated)
 {
-	char output[256];
-	char temporary[32];
+	char output[512];
+	char temporary[MAX_NAME_LENGTH];
 
 	for (int idx = 0; idx < MAX_VISIBLE_WIPEOUT_ENTRIES; idx++)
 	{
-		Format(temporary, sizeof (temporary), "%N\n", candidatePlayers[idx]);
-		StrCat(output, sizeof (output), temporary);
+		int player = candidatePlayers[idx];
+		if (player) {
+			Format(temporary, sizeof (temporary), "%N\n", candidatePlayers[idx]);
+			StrCat(output, sizeof (output), temporary);
+		}
 	}
 
 	if (populated > MAX_VISIBLE_WIPEOUT_ENTRIES)
@@ -1067,26 +1070,23 @@ stock void PrintWipeoutMessage(int candidatePlayers[MAX_WIPEOUT_PLAYERS], int po
 stock int GetWipeoutLimit()
 {
 	int left = GetLeftWipeoutPlayers();
+	float limit = SquareRoot(1.33 * left);
 
-	if (left >= MAX_WIPEOUT_PLAYERS)
-	{
-		return MAX_WIPEOUT_PLAYERS;
-	}
-	else
-	{
-		return left;
-	}
+	if (limit > MAX_WIPEOUT_PLAYERS)
+		limit = float(MAX_WIPEOUT_PLAYERS);
+
+	return RoundFloat(limit);
 }
 
 int PopulateWipeoutPlayers(int candidatePlayers[MAX_WIPEOUT_PLAYERS])
 {
+	int i, j, tmp;
 	int playersAdded = 0;
 	int dynamicLimit = GetWipeoutLimit();
+	int candidates = 0;
+	int[] possiblePlayers = new int[MaxClients];
 
-	/**
-	 * This is a bit crap, maybe it's worth the extra
-	 * code to have two passes which randomize between calls.
-	 */
+	/* Get all possible clients. */
 	for (int client = MaxClients; client >= 1; client--)
 	{
 		if (!IsValidClient(client))
@@ -1099,19 +1099,32 @@ int PopulateWipeoutPlayers(int candidatePlayers[MAX_WIPEOUT_PLAYERS])
 			continue;
 		}
 
-		/**
-		 * We use points as lives, so...
-		 */
+		/* We use points as lives, so... */
 		if (g_Points[client] <= 0)
 		{
 			continue;
 		}
 
+		possiblePlayers[candidates++] = client;
+	}
+
+	/* Perform a Fisher–Yates shuffle here. */
+    for (i = candidates - 1; i > 0; i--) {
+		j = GetURandomInt() % (i + 1);
+		tmp = possiblePlayers[j];
+		possiblePlayers[j] = possiblePlayers[i];
+		possiblePlayers[i] = tmp;
+    }
+
+	/* Assign the first N clients into the microgame. */
+	for (int idx = 1; idx <= candidates; idx++)
+	{
 		if (playersAdded + 1 > dynamicLimit)
 		{
 			break;
 		}
 
+		int client = possiblePlayers[idx];
 		candidatePlayers[playersAdded++] = client;
 		g_Participating[client] = true;
 	}
@@ -1128,6 +1141,11 @@ void AlertPlayers(int candidatePlayers[MAX_WIPEOUT_PLAYERS], int size)
 	for (int idx = 0; idx < size; idx++)
 	{
 		int client = candidatePlayers[idx];
+
+		if (!client)
+		{
+			continue;
+		}
 
 		if (IsFakeClient(client))
 		{
@@ -1175,6 +1193,10 @@ void StartMinigame()
 		{
 			NoCollision(true);
 		}
+		else if (SpecialRound == RANDOM_SPEED)
+		{
+			SetConVarFloat(ww_speed, GetRandomFloat(0.67, 1.67));
+		}
 
 		currentSpeed = GetConVarFloat(ww_speed);
 		
@@ -1195,16 +1217,18 @@ void StartMinigame()
 				 * We need to reset the speed if we're ending wipeout this way.
 				 */
 				SetConVarFloat(ConVar_HostTimescale, 1.0);
-				SetConVarFloat(ConVar_PhysTimescale, 1.0);				
+				SetConVarFloat(ConVar_PhysTimescale, 1.0);
 
 				status	   = 4;
 				bossBattle = 2;
 				CreateTimer(GetSpeedMultiplier(MUSIC_INFO_LEN), Victory_Timer);
 				return;
 			}
-
-			PrintWipeoutMessage(candidatePlayers, populated);
-			AlertPlayers(candidatePlayers, populated);
+			else
+			{
+				PrintWipeoutMessage(candidatePlayers, populated);
+				AlertPlayers(candidatePlayers, populated);				
+			}
 		}
 		else
 		{
@@ -1221,7 +1245,7 @@ void StartMinigame()
 		{
 			NextMiniGameScore = MalletGetRandomInt(-10, 10);
 			
-			if (NextMiniGameScore >= 0)
+			if (NextMiniGameScore)
 				CPrintToChatAll("%T", "RandomScore_Announcement_Pos", LANG_SERVER, NextMiniGameScore);
 			else
 				CPrintToChatAll("%T", "RandomScore_Announcement_Neg", LANG_SERVER, NextMiniGameScore);
@@ -1323,7 +1347,7 @@ public Action Game_Start(Handle hTimer)
 		// Reset everyone's mission
 		SetMissionAll(0);
 
-		// noone can attack
+		// no-one can attack
 		g_attack = (SpecialRound == BONK);
 
 		// initiate mission
@@ -1800,7 +1824,12 @@ public Action SpeedUp_Timer(Handle hTimer)
 			}
 
 			UpdateHud(GetSpeedMultiplier(MUSIC_INFO_LEN));
-			SetConVarFloat(ww_speed, GetConVarFloat(ww_speed) + 1.0);
+
+			if (SpecialRound != RANDOM_SPEED)
+			{
+				SetConVarFloat(ww_speed, GetConVarFloat(ww_speed) + 1.0);
+			}
+			
 			CreateTimer(GetSpeedMultiplier(MUSIC_INFO_LEN), StartMinigame_timer2);
 		}
 
@@ -1882,11 +1911,11 @@ public Action Victory_Timer(Handle hTimer)
 
 		if (SpecialRound == WIPEOUT)
 		{
-			Format(pointsName, sizeof(pointsName), "lives");
+			Format(pointsName, sizeof(pointsName), "%T", "WinnerLives", LANG_SERVER);
 		}
 		else
 		{
-			Format(pointsName, sizeof(pointsName), "points");
+			Format(pointsName, sizeof(pointsName), "%T", "WinnerPoints", LANG_SERVER);
 		}
 
 		bool bAccepted = false;
@@ -1978,11 +2007,11 @@ public Action Victory_Timer(Handle hTimer)
 			 */
 			if (winnerCount == 1)
 			{
-				Format(winnerstring_prefix, sizeof(winnerstring_prefix), "{green}The winner is");
+				Format(winnerstring_prefix, sizeof(winnerstring_prefix), "%T", "WinnerStringPrefix_Single", LANG_SERVER);
 			}
 			else
 			{
-				Format(winnerstring_prefix, sizeof(winnerstring_prefix), "{green}The winners are");
+				Format(winnerstring_prefix, sizeof(winnerstring_prefix), "%T", "WinnerStringPrefix_Multiple", LANG_SERVER);
 			}
 
 			CPrintToChatAll("%s %s (%i %s)!", winnerstring_prefix, winnerstring_names, targetscore, pointsName);
@@ -2174,6 +2203,9 @@ public void StartSpecialRound()
 		else
 		{
 			SpecialRound = view_as<SpecialRounds>(GetConVarInt(ww_force_special));
+
+			/* Clear the forced special round. */
+			SetConVarInt(ww_force_special, 0);
 		}
 
 		if (GetConVarBool(ww_music))

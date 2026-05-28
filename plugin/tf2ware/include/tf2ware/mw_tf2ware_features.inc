@@ -73,7 +73,7 @@ stock void NoCollision(bool input)
 	}
 }
 
-void PyroExplode(float vec1[3])
+stock void PyroExplode(float vec1[3])
 {
 	static int color[4] = {188, 220, 255, 200};
 
